@@ -42,8 +42,8 @@ class Email:
             self.server.quit()
 
 class Arquivo:
-    def __init__(self, arquivo):
-        self.arquivo = arquivo
+    def __init__(self):
+        self.arquivo = ''
         self.body = """"
         <!DOCTYPE html>
         <html lang="en">
@@ -71,6 +71,12 @@ class Arquivo:
         </html>''
         """
 
+    def inserir(self, label):
+        caminho = askopenfilename()
+        ultima_barra = caminho.rfind('/')
+        self.nome = caminho[ultima_barra+1:]
+        label['text'] = self.nome
+
     def gerar_text(self):
         text = ''
         valorGeral = ''
@@ -96,6 +102,7 @@ class App:
     def __init__(self):
         self.window = window
         self.email = Email()
+        self.arquivo = Arquivo()
         self.tela()
         self.index()
         window.mainloop()
@@ -108,10 +115,38 @@ class App:
         self.window.title('Emails')
 
     def index(self):
+        self.index = Frame(self.window, bd=4, bg='lightblue')
+        self.index.place(relx=0.05,rely=0.05,relwidth=0.9,relheight=0.9)
 
+        #Titulo
+        Label(self.index, text='Conversor de Extrato', background='lightblue', font=('arial',30,'bold')).place(relx=0.23,rely=0.2,relheight=0.15)
+
+        # #Logo
+        # self.logo = PhotoImage(file='C:/Users/DELTAASUS/Documents/GitHub/Extrato_Auto/code/imgs/deltaprice-hori.png')
+        
+        # self.logo = self.logo.subsample(4,4)
+        
+        # Label(self.window, image=self.logo, background='lightblue')\
+        #     .place(relx=0.175,rely=0.05,relwidth=0.7,relheight=0.2)
+        
+        #Labels e Entrys
+        ###########Arquivo
+        Label(self.index, text='Insira aqui o arquivo:',\
+            background='lightblue', font=(10))\
+                .place(relx=0.15,rely=0.4)
+
+        self.nome_arq = ''
+        self.arqLabel = Label(self.index)
+        self.arqLabel.config(font=("Arial", 8, 'bold italic'))
+        self.arqLabel.place(relx=0.21,rely=0.47,relwidth=0.35, relheight=0.055)
+        
+        Button(self.index, text='Enviar',\
+            command= lambda: self.arquivo.inserir(self.arqLabel))\
+                .place(relx=0.15,rely=0.47,relwidth=0.06,relheight=0.055)
+        
         #Botão enviar
         Button(self.index, text='Gerar Extrato',\
-            command= lambda: self.ler_arq(self.nome_arq,self.bancoEntry, self.rdButton))\
+            command= lambda: self.executar(self.endereco_email))\
                 .place(relx=0.35,rely=0.8,relwidth=0.35,relheight=0.12)
         
     def executar(self):
@@ -120,6 +155,8 @@ class App:
         conteudo = Arquivo.gerar_text(arquivo)
         self.email.criar(destinatario= 'deltapricepedro@gmail.com', titulo=empresa, conteudo=conteudo)
         self.email.enviar()
+
+    
 
 
 App()
