@@ -34,7 +34,7 @@ class Email:
 
             self.server.login(self.address, self.password)
 
-            self.server.sendmail(self.address, 'deltapricepedro@gmail.com',self.msg.as_string())
+            self.server.sendmail(self.address, self.msg['To'], self.msg.as_string())
             print('Deu')
         except Exception as e:
             print(f'Ocorreu um erro: {e}')
@@ -43,7 +43,7 @@ class Email:
 
 class Arquivo:
     def __init__(self):
-        self.arquivo = ''
+        self.caminho = ''
         self.body = """"
         <!DOCTYPE html>
         <html lang="en">
@@ -72,15 +72,15 @@ class Arquivo:
         """
 
     def inserir(self, label):
-        caminho = askopenfilename()
-        ultima_barra = caminho.rfind('/')
-        self.nome = caminho[ultima_barra+1:]
-        label['text'] = self.nome
+        nome_arq = askopenfilename()
+        ultima_barra = nome_arq.rfind('/')
+        self.caminho = nome_arq[ultima_barra+1:]
+        label['text'] = self.caminho
 
     def gerar_text(self):
         text = ''
         valorGeral = ''
-        arquivo = tb.read_pdf(self.arquivo, pages="all")
+        arquivo = tb.read_pdf(self.caminho, pages="all")
 
         arquivo = arquivo[0].drop([0,1,4])
 
@@ -144,19 +144,24 @@ class App:
             command= lambda: self.arquivo.inserir(self.arqLabel))\
                 .place(relx=0.15,rely=0.47,relwidth=0.06,relheight=0.055)
         
+        Label(self.cpsPF, text='Endereço Email',\
+            background='lightblue', font=(10))\
+                .place(relx=0.05,rely=0.3)
+
+        self.endereco_email = StringVar()
+
+        Entry(self.cpsPF,textvariable=self.endereco_email)\
+            .place(relx=0.05,rely=0.37,relwidth=0.25,relheight=0.05)
+
         #Botão enviar
         Button(self.index, text='Gerar Extrato',\
             command= lambda: self.executar(self.endereco_email))\
                 .place(relx=0.35,rely=0.8,relwidth=0.35,relheight=0.12)
         
-    def executar(self):
-        arquivo = Arquivo(self.pdf)
-        empresa = arquivo.nomeEmpresa()
-        conteudo = Arquivo.gerar_text(arquivo)
-        self.email.criar(destinatario= 'deltapricepedro@gmail.com', titulo=empresa, conteudo=conteudo)
+    def executar(self, endereco_email):
+        empresa = self.arquivo.nomeEmpresa()
+        conteudo = self.arquivo.gerar_text()
+        self.email.criar(destinatario= endereco_email.get(), titulo=empresa, conteudo=conteudo)
         self.email.enviar()
-
-    
-
 
 App()
