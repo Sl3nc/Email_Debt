@@ -95,7 +95,7 @@ class Arquivo:
         text = text + valorGeral
         return self.body.replace('$text', text)
     
-    def nomeEmpresa():
+    def nomeEmpresa(self):
         return 'Sesas'
 
 class App:
@@ -119,7 +119,7 @@ class App:
         self.index.place(relx=0.05,rely=0.05,relwidth=0.9,relheight=0.9)
 
         #Titulo
-        Label(self.index, text='Conversor de Extrato', background='lightblue', font=('arial',30,'bold')).place(relx=0.23,rely=0.2,relheight=0.15)
+        Label(self.index, text='Gerador de Cobrança', background='lightblue', font=('arial',30,'bold')).place(relx=0.23,rely=0.2,relheight=0.15)
 
         # #Logo
         # self.logo = PhotoImage(file='C:/Users/DELTAASUS/Documents/GitHub/Extrato_Auto/code/imgs/deltaprice-hori.png')
@@ -133,35 +133,36 @@ class App:
         ###########Arquivo
         Label(self.index, text='Insira aqui o arquivo:',\
             background='lightblue', font=(10))\
-                .place(relx=0.15,rely=0.4)
+                .place(relx=0.1,rely=0.4)
 
         self.nome_arq = ''
         self.arqLabel = Label(self.index)
         self.arqLabel.config(font=("Arial", 8, 'bold italic'))
-        self.arqLabel.place(relx=0.21,rely=0.47,relwidth=0.35, relheight=0.055)
+        self.arqLabel.place(relx=0.16,rely=0.47,relwidth=0.35, relheight=0.055)
         
         Button(self.index, text='Enviar',\
             command= lambda: self.arquivo.inserir(self.arqLabel))\
-                .place(relx=0.15,rely=0.47,relwidth=0.06,relheight=0.055)
+                .place(relx=0.1,rely=0.47,relwidth=0.06,relheight=0.055)
         
-        Label(self.cpsPF, text='Endereço Email',\
-            background='lightblue', font=(10))\
-                .place(relx=0.05,rely=0.3)
 
         self.endereco_email = StringVar()
 
-        Entry(self.cpsPF,textvariable=self.endereco_email)\
-            .place(relx=0.05,rely=0.37,relwidth=0.25,relheight=0.05)
+        Label(self.index, text='Endereço Email',\
+            background='lightblue', font=(10))\
+                .place(relx=0.6,rely=0.4)
+
+        Entry(self.index,textvariable=self.endereco_email)\
+            .place(relx=0.55,rely=0.47,relwidth=0.35,relheight=0.05)
 
         #Botão enviar
-        Button(self.index, text='Gerar Extrato',\
-            command= lambda: self.executar(self.endereco_email))\
-                .place(relx=0.35,rely=0.8,relwidth=0.35,relheight=0.12)
+        Button(self.index, text='Enviar Email',\
+            command= lambda: self.executar())\
+                .place(relx=0.55,rely=0.8,relwidth=0.35,relheight=0.12)
         
-    def executar(self, endereco_email):
+    def executar(self):
         empresa = self.arquivo.nomeEmpresa()
         conteudo = self.arquivo.gerar_text()
-        self.email.criar(destinatario= endereco_email.get(), titulo=empresa, conteudo=conteudo)
+        self.email.criar(destinatario= self.endereco_email.get(), titulo=empresa, conteudo=conteudo)
         self.email.enviar()
 
 App()
