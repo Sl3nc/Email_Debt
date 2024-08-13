@@ -9,6 +9,8 @@ import smtplib
 import tabula as tb
 from unidecode import unidecode
 from datetime import datetime
+import string
+import os
 
 window = Tk()
 
@@ -16,7 +18,6 @@ class Email:
     def __init__(self):
         self.server_smtp = 'smtp.gmail.com'
         self.port = 587
-        self.server = smtplib.SMTP(self.server_smtp, self.port)
 
         self.address = 'deltapricepedro@gmail.com'
         self.password = 'yogbduxcsmwaocfe'
@@ -32,13 +33,15 @@ class Email:
 
     def enviar(self):
         try:
+            self.server = smtplib.SMTP(self.server_smtp, self.port)
+
             self.server.starttls()
 
             self.server.login(self.address, self.password)
-
+            print(self.msg['To'])
             self.server.sendmail(self.address, self.msg['To'], self.msg.as_string())
-        except Exception as e:
-            print(f'Ocorreu um erro: {e}')
+        except Exception:
+            raise Exception('O endereço de email não é valido!')
         finally:
             self.server.quit()
 
@@ -54,7 +57,7 @@ class Arquivo:
             <title>Document</title>
         </head>
         <body>
-            <p>Prezado cliente, $comprimento <br>Não acusamos o recebimento do(s) honorário(s) relacionado(s) abaixo:</p>
+            <p>Prezado cliente, $comprimento <br><br>Não acusamos o recebimento do(s) honorário(s) relacionado(s) abaixo:</p>
             <ul>
                 $text
             </ul>
@@ -68,10 +71,11 @@ class Arquivo:
             </h3>
             <p>Gentileza nos enviar o comprovante para que possamos realizar a baixa dos títulos.</p>
             <b style="color: rgb(87, 86, 86);">Atenciosamente,</b>
-            <img src="./code/imgs/assDigital.png">
+            <br>
+            <img src="https://i.imgur.com/CmnqM3L.png" style="width: 30%;">
             <p>
                 Esta mensagem, incluindo seus anexos, tem caráter confidencial e seu conteúdo é restrito ao destinatário da mensagem. Caso você tenha recebido esta mensagem por engano, queira, por favor, retorná-la ao destinatário e apagá-la de seus arquivos. Qualquer uso não autorizado, replicação ou disseminação desta mensagem ou parte dela, incluindo seus anexos, é expressamente proibido. 
-                <br>
+                <br><br>
                 This message is intended only for the use of the addressee(s) named herein. The information contained in this message is confidential and may constitute proprietary or inside information. Unauthorized review, dissemination, distribution, copying or other use of this message, including all attachments, is strictly prohibited and may be unlawful. If you have received this message in error, please notify us immediately by return e-mail and destroy this message and all copies thereof, including all attachments.
             </p>
         </body>
@@ -79,14 +83,21 @@ class Arquivo:
         """
 
     def inserir(self, label):
-        self.caminho = askopenfilename()
-        self.caminho = unidecode(self.caminho)
-        ultima_barra = self.caminho.rfind('/')
-        label['text'] = self.caminho[ultima_barra+1:]
+        try:
+            self.caminho = askopenfilename()
+
+            if any(c not in string.ascii_letters for c in self.caminho):
+                caminho_uni = unidecode(self.caminho)
+                os.rename(self.caminho, caminho_uni)
+                self.caminho = caminho_uni
+
+            self.tipo = self.definir_tipo()
+            ultima_barra = self.caminho.rfind('/')
+            label['text'] = self.caminho[ultima_barra+1:]
+        except Exception:
+            messagebox.showwarning(title='Aviso', message= 'Formato do arquivo inválido')
 
     def gerar_text(self):
-        tipo = self.definir_tipo()
-        print(tipo)
         text = ''
         valorGeral = ''
         arquivo = tb.read_pdf(self.caminho, pages="all",)
@@ -100,7 +111,7 @@ class Arquivo:
             elif 'Total do cliente:' in str(row['Competência']):
                 continue
 
-            arquivo.loc[[index],['Vencimento']] = str(row['Vencimento']).replace('1/1 ','')
+            row['Vencimento'] = str(row['Vencimento']).replace('1/1 ','')
             text = text + '<li><b>Período:</b> {0} <b>- Vencimento:</b> {1} <b>- Valor:</b><span style="color: red;"> {2} </span></li>\n'\
                 .format(str(row['Competência']), str(row['Vencimento']), str(row['Em aberto']))
 
@@ -122,7 +133,7 @@ class Arquivo:
     def definir_tipo(self):
         tamanho = len(self.caminho)
         tipo = self.caminho[tamanho-3 :]
-        if 'pdf' in tipo or 'lsx' in tipo:
+        if 'pdf' == tipo or 'lsx' == tipo:
             return tipo    
         self.caminho = ''
         raise Exception('Formato de arquivo inválido') 
@@ -140,7 +151,7 @@ class App:
         self.window.configure(background='darkblue')
         self.window.resizable(False,False)
         self.window.geometry('860x500')
-        #self.window.iconbitmap('C:/Users/DELTAASUS/Documents/GitHub/Extrato_Auto/code/imgs/delta-icon.ico')
+        self.window.iconbitmap('C:/Users/DELTAASUS/Documents/GitHub/Email_Debt/code/imgs/delta-icon.ico')
         self.window.title('Emails')
 
     def index(self):
@@ -148,59 +159,73 @@ class App:
         self.index.place(relx=0.05,rely=0.05,relwidth=0.9,relheight=0.9)
 
         #Titulo
-        Label(self.index, text='Gerador de Cobrança', background='lightblue', font=('arial',30,'bold')).place(relx=0.23,rely=0.2,relheight=0.15)
+        Label(self.index, text='Gerador de Cobrança', background='lightblue', font=('arial',30,'bold')).place(relx=0.23,rely=0.3,relheight=0.15)
 
-        # #Logo
-        # self.logo = PhotoImage(file='C:/Users/DELTAASUS/Documents/GitHub/Extrato_Auto/code/imgs/deltaprice-hori.png')
+        #Logo
+        self.logo = PhotoImage(file='C:/Users/DELTAASUS/Documents/GitHub/Email_Debt/code/imgs/deltaprice-hori.png')
         
-        # self.logo = self.logo.subsample(4,4)
+        self.logo = self.logo.subsample(4,4)
         
-        # Label(self.window, image=self.logo, background='lightblue')\
-        #     .place(relx=0.175,rely=0.05,relwidth=0.7,relheight=0.2)
+        Label(self.window, image=self.logo, background='lightblue')\
+            .place(relx=0.175,rely=0.1,relwidth=0.7,relheight=0.2)
         
         #Labels e Entrys
         ###########Arquivo
         Label(self.index, text='Insira aqui o arquivo:',\
             background='lightblue', font=(10))\
-                .place(relx=0.15,rely=0.4)
+                .place(relx=0.15,rely=0.5)
 
         self.nome_arq = ''
         self.arqLabel = Label(self.index)
         self.arqLabel.config(font=("Arial", 8, 'bold italic'))
-        self.arqLabel.place(relx=0.21,rely=0.47,relwidth=0.7, relheight=0.055)
+        self.arqLabel.place(relx=0.21,rely=0.57,relwidth=0.7, relheight=0.055)
         
         Button(self.index, text='Enviar',\
             command= lambda: self.arquivo.inserir(self.arqLabel))\
-                .place(relx=0.15,rely=0.47,relwidth=0.06,relheight=0.055)
+                .place(relx=0.15,rely=0.57,relwidth=0.06,relheight=0.055)
         
 
         #######Endereco email
         self.endereco_email = StringVar()
 
-        self.endereco_email.set('deltapricepedro@gmail.com')
-
         Label(self.index, text='Endereço Email',\
             background='lightblue', font=(10))\
-                .place(relx=0.15,rely=0.6)
+                .place(relx=0.15,rely=0.7)
 
-        Entry(self.index,textvariable=self.endereco_email)\
-            .place(relx=0.15,rely=0.67,relwidth=0.35,relheight=0.05)
+        Entry(self.index,textvariable=self.endereco_email, justify='center')\
+            .place(relx=0.15,rely=0.77,relwidth=0.35,relheight=0.05)
+
+        Label(self.index, text='Para mais de um email, os separe com " ; "',\
+            background='lightblue', font=("Arial", 10, 'bold italic'))\
+                .place(relx=0.15,rely=0.85)
 
         #Botão enviar
         Button(self.index, text='Enviar Email',\
             command= lambda: self.executar())\
-                .place(relx=0.55,rely=0.6,relwidth=0.35,relheight=0.12)
+                .place(relx=0.55,rely=0.7,relwidth=0.35,relheight=0.12)
         
     def executar(self):
         try:
+            if self.endereco_email.get() == '':
+                raise Exception ('Insira algum endereço de email')
+
             titulo = self.arquivo.titulo_email()
-            conteudo = self.arquivo.gerar_text()
 
-            self.email.criar(self.endereco_email.get(), titulo, conteudo)
-            self.email.enviar()
+            totalEmails = self.endereco_email.get().split(';')
 
-            messagebox.showinfo(title='Aviso', message= 'Email enviado com sucesso')
+            for enderecos in totalEmails:
+                conteudo = self.arquivo.gerar_text()
+
+                self.email.criar(enderecos.strip(), titulo, conteudo)
+                self.email.enviar()
+
+                messagebox.showinfo(title='Aviso', message= 'Email enviado com sucesso')
+        except FileNotFoundError as e:
+            messagebox.showwarning(title='Aviso', message= 'Insira um arquivo válido ou remova os acentos de seu nome')
         except Exception as e:
             messagebox.showwarning(title='Aviso', message= e)
+
+    def mudarLabel(self, text):
+        self.arqLabel['text'] = text
         
 App()
