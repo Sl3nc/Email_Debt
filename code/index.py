@@ -1,12 +1,14 @@
 from tkinter import *
 from tkinter import messagebox
-from tkinter.filedialog import askopenfilename, asksaveasfilename
+from tkinter.filedialog import askopenfilename
 
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import smtplib
 
 import tabula as tb
+from unidecode import unidecode
+from datetime import datetime
 
 window = Tk()
 
@@ -35,7 +37,6 @@ class Email:
             self.server.login(self.address, self.password)
 
             self.server.sendmail(self.address, self.msg['To'], self.msg.as_string())
-            print('Deu')
         except Exception as e:
             print(f'Ocorreu um erro: {e}')
         finally:
@@ -44,7 +45,7 @@ class Email:
 class Arquivo:
     def __init__(self):
         self.caminho = ''
-        self.body = """"
+        self.body = """
         <!DOCTYPE html>
         <html lang="en">
         <head>
@@ -53,7 +54,7 @@ class Arquivo:
             <title>Document</title>
         </head>
         <body>
-            <p>Não acusamos o recebimento do(s) honorário(s) relacionado(s) abaixo:</p>
+            <p>Prezado cliente, $comprimento <br>Não acusamos o recebimento do(s) honorário(s) relacionado(s) abaixo:</p>
             <ul>
                 $text
             </ul>
@@ -67,36 +68,64 @@ class Arquivo:
             </h3>
             <p>Gentileza nos enviar o comprovante para que possamos realizar a baixa dos títulos.</p>
             <b style="color: rgb(87, 86, 86);">Atenciosamente,</b>
+            <img src="./code/imgs/assDigital.png">
+            <p>
+                Esta mensagem, incluindo seus anexos, tem caráter confidencial e seu conteúdo é restrito ao destinatário da mensagem. Caso você tenha recebido esta mensagem por engano, queira, por favor, retorná-la ao destinatário e apagá-la de seus arquivos. Qualquer uso não autorizado, replicação ou disseminação desta mensagem ou parte dela, incluindo seus anexos, é expressamente proibido. 
+                <br>
+                This message is intended only for the use of the addressee(s) named herein. The information contained in this message is confidential and may constitute proprietary or inside information. Unauthorized review, dissemination, distribution, copying or other use of this message, including all attachments, is strictly prohibited and may be unlawful. If you have received this message in error, please notify us immediately by return e-mail and destroy this message and all copies thereof, including all attachments.
+            </p>
         </body>
-        </html>''
+        </html>
         """
 
     def inserir(self, label):
-        nome_arq = askopenfilename()
-        ultima_barra = nome_arq.rfind('/')
-        self.caminho = nome_arq[ultima_barra+1:]
-        label['text'] = self.caminho
+        self.caminho = askopenfilename()
+        self.caminho = unidecode(self.caminho)
+        ultima_barra = self.caminho.rfind('/')
+        label['text'] = self.caminho[ultima_barra+1:]
 
     def gerar_text(self):
+        tipo = self.definir_tipo()
+        print(tipo)
         text = ''
         valorGeral = ''
-        arquivo = tb.read_pdf(self.caminho, pages="all")
+        arquivo = tb.read_pdf(self.caminho, pages="all",)
 
-        arquivo = arquivo[0].drop([0,1,4])
+        arquivo = arquivo[0].drop([0,1])
 
         for index, row in arquivo.iterrows():
             if 'Total geral:' in str(row['Competência']):
-                self.valorGeral =  'Total em aberto: '+ str(row['Em aberto'])
+                valorGeral =  '<b>Total em aberto: <span style="color: red;">'+ str(row['Em aberto']) + '</span></b>'
                 break
+            elif 'Total do cliente:' in str(row['Competência']):
+                continue
+
             arquivo.loc[[index],['Vencimento']] = str(row['Vencimento']).replace('1/1 ','')
-            text = text + 'Período: {0} - Vencimento: {1} - Valor: {2}\n'\
+            text = text + '<li><b>Período:</b> {0} <b>- Vencimento:</b> {1} <b>- Valor:</b><span style="color: red;"> {2} </span></li>\n'\
                 .format(str(row['Competência']), str(row['Vencimento']), str(row['Em aberto']))
 
         text = text + valorGeral
-        return self.body.replace('$text', text)
+        return self.body.replace('$text', text).replace('$comprimento', self.comprimento())
     
-    def nomeEmpresa(self):
-        return 'Sesas'
+    def titulo_email(self):
+        arquivo = tb.read_pdf(self.caminho, pages="all",)
+        return arquivo[0].loc[[1],['Vencimento']].values[0][0] + ' - HONORÁRIOS CONTÁBEIS EM ABERTO'
+    
+    def comprimento(self):
+        hora_atual = datetime.now().hour
+        if hora_atual < 12:
+            return 'bom dia!'
+        elif hora_atual >= 12 and hora_atual < 18:
+            return 'boa tarde!'
+        return 'boa noite!'
+
+    def definir_tipo(self):
+        tamanho = len(self.caminho)
+        tipo = self.caminho[tamanho-3 :]
+        if 'pdf' in tipo or 'lsx' in tipo:
+            return tipo    
+        self.caminho = ''
+        raise Exception('Formato de arquivo inválido') 
 
 class App:
     def __init__(self):
@@ -133,36 +162,45 @@ class App:
         ###########Arquivo
         Label(self.index, text='Insira aqui o arquivo:',\
             background='lightblue', font=(10))\
-                .place(relx=0.1,rely=0.4)
+                .place(relx=0.15,rely=0.4)
 
         self.nome_arq = ''
         self.arqLabel = Label(self.index)
         self.arqLabel.config(font=("Arial", 8, 'bold italic'))
-        self.arqLabel.place(relx=0.16,rely=0.47,relwidth=0.35, relheight=0.055)
+        self.arqLabel.place(relx=0.21,rely=0.47,relwidth=0.7, relheight=0.055)
         
         Button(self.index, text='Enviar',\
             command= lambda: self.arquivo.inserir(self.arqLabel))\
-                .place(relx=0.1,rely=0.47,relwidth=0.06,relheight=0.055)
+                .place(relx=0.15,rely=0.47,relwidth=0.06,relheight=0.055)
         
 
+        #######Endereco email
         self.endereco_email = StringVar()
+
+        self.endereco_email.set('deltapricepedro@gmail.com')
 
         Label(self.index, text='Endereço Email',\
             background='lightblue', font=(10))\
-                .place(relx=0.6,rely=0.4)
+                .place(relx=0.15,rely=0.6)
 
         Entry(self.index,textvariable=self.endereco_email)\
-            .place(relx=0.55,rely=0.47,relwidth=0.35,relheight=0.05)
+            .place(relx=0.15,rely=0.67,relwidth=0.35,relheight=0.05)
 
         #Botão enviar
         Button(self.index, text='Enviar Email',\
             command= lambda: self.executar())\
-                .place(relx=0.55,rely=0.8,relwidth=0.35,relheight=0.12)
+                .place(relx=0.55,rely=0.6,relwidth=0.35,relheight=0.12)
         
     def executar(self):
-        empresa = self.arquivo.nomeEmpresa()
-        conteudo = self.arquivo.gerar_text()
-        self.email.criar(destinatario= self.endereco_email.get(), titulo=empresa, conteudo=conteudo)
-        self.email.enviar()
+        try:
+            titulo = self.arquivo.titulo_email()
+            conteudo = self.arquivo.gerar_text()
 
+            self.email.criar(self.endereco_email.get(), titulo, conteudo)
+            self.email.enviar()
+
+            messagebox.showinfo(title='Aviso', message= 'Email enviado com sucesso')
+        except Exception as e:
+            messagebox.showwarning(title='Aviso', message= e)
+        
 App()
