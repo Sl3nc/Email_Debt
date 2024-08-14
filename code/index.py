@@ -86,7 +86,6 @@ class Conteudo:
         </html>
         """
 
-
     def to_string(self, row):
         dias_atraso = datetime.now().date - self.row['Vencimento']
         multa = row * self.VALOR_JUROS
@@ -97,11 +96,9 @@ class Conteudo:
 
         return '<li><b>Período:</b> {0} <b>- Vencimento:</b> {1} <b>- Dias Atraso:</b> {2} <b>- Principal:</b><span style="color: red;"> {3} </span> <b>- Multa:</b> {4} <b>- Juros:</b> {5} <b>- Total:</b> {6} </li>\n'\
                 .format(str(row['Competência']), str(row['Vencimento']), dias_atraso, str(row['Em aberto']), multa, juros, total)
-        
 
     def valor_geral(self):
         return sum(self.valores_totais)
-    
 
 class Arquivo:
     def __init__(self):
