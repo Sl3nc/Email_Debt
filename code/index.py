@@ -48,13 +48,10 @@ class Email:
         finally:
             self.server.quit()
 
-class Adicionais:
+class Conteudo:
     def __init__(self):
-        self.diaAtual = datetime.now().date
-
-class Arquivo:
-    def __init__(self):
-        self.caminho = ''
+        self.VALOR_JUROS = 0.2
+        self.valores_totais = []
         self.body = """
         <!DOCTYPE html>
         <html lang="en">
@@ -89,6 +86,27 @@ class Arquivo:
         </html>
         """
 
+
+    def to_string(self, row):
+        dias_atraso = datetime.now().date - self.row['Vencimento']
+        multa = row * self.VALOR_JUROS
+        juros = (dias_atraso / 30) * self.VALOR_JUROS
+        total = row['Em aberto'] + multa + juros
+
+        self.valores_totais.append(total)
+
+        return '<li><b>Período:</b> {0} <b>- Vencimento:</b> {1} <b>- Dias Atraso:</b> {2} <b>- Principal:</b><span style="color: red;"> {3} </span> <b>- Multa:</b> {4} <b>- Juros:</b> {5} <b>- Total:</b> {6} </li>\n'\
+                .format(str(row['Competência']), str(row['Vencimento']), dias_atraso, str(row['Em aberto']), multa, juros, total)
+        
+
+    def valor_geral(self):
+        return sum(self.valores_totais)
+    
+
+class Arquivo:
+    def __init__(self):
+        self.caminho = ''
+
     def inserir(self, label):
         try:
             self.caminho = askopenfilename()
@@ -104,25 +122,22 @@ class Arquivo:
         except Exception:
             messagebox.showwarning(title='Aviso', message= 'Formato do arquivo inválido')
 
-    def gerar_text(self):
+    def ler(self):
+        conteudo = Conteudo()
         text = ''
-        valorGeral = ''
         arquivo = tb.read_pdf(self.caminho, pages="all",)
 
         arquivo = arquivo[0].drop([0,1])
 
         for index, row in arquivo.iterrows():
             if 'Total geral:' in str(row['Competência']):
-                valorGeral =  '<b>Total em aberto: <span style="color: red;">'+ str(row['Em aberto']) + '</span></b>'
                 break
-            elif 'Total do cliente:' in str(row['Competência']):
-                continue
 
             row['Vencimento'] = str(row['Vencimento']).replace('1/1 ','')
-            text = text + '<li><b>Período:</b> {0} <b>- Vencimento:</b> {1} <b>- Valor:</b><span style="color: red;"> {2} </span></li>\n'\
-                .format(str(row['Competência']), str(row['Vencimento']), str(row['Em aberto']))
+            text = text + conteudo.to_string(row)
+            
 
-        text = text + valorGeral
+        text = text + conteudo.valor_geral()
         return self.body.replace('$text', text).replace('$cumprimento', self.cumprimento())
     
     def titulo_email(self):
