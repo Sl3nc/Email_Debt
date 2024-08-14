@@ -16,11 +16,14 @@ window = Tk()
 
 class Email:
     def __init__(self):
-        self.server_smtp = 'smtp.gmail.com'
+        self.server_smtp = 'smtp-mail.outlook.com'
         self.port = 587
 
-        self.address = 'deltapricepedro@gmail.com'
-        self.password = 'yogbduxcsmwaocfe'
+        # self.address = 'financeiro@deltaprice.com.br'
+        # self.password = ''
+
+        self.address = 'pedrohrm050316@hotmail.com'
+        self.password = 'quuhaftrmdxoamuj'
 
     def criar(self, destinatario, titulo, conteudo):
         self.msg = MIMEMultipart()
@@ -38,10 +41,13 @@ class Email:
             self.server.starttls()
 
             self.server.login(self.address, self.password)
-            print(self.msg['To'])
+
             self.server.sendmail(self.address, self.msg['To'], self.msg.as_string())
-        except Exception:
-            raise Exception('O endereço de email não é valido!')
+
+        except Exception as e:
+            raise Exception(e)
+        # except Exception:
+        #     raise Exception('O endereço de email não é valido!')
         finally:
             self.server.quit()
 
@@ -63,8 +69,8 @@ class Arquivo:
             </ul>
             <p>Você conseguiria regularizar a situação de sua empresa conosco?<br><u>Para que não ocorra cobrança de encargos como multa e juros</u>, abaixo encontra-se nossos dados bancários para transferência:
             </p>
-            <h3>Chave PIX Deltaprice:</h3> 10620061000105
             <h3>
+                Chave PIX Deltaprice: <span style="font-weight: 100"> 10.620.061/0001-05 </span><br>
                 Deltaprice Serviços Contábeis<br>
                 CNPJ: 10.620.061/0001-05<br>
                 <span style="background-color: yellow;">Banco Itau 341 Ag 1582 conta  98.000-7</span><br>
@@ -72,7 +78,7 @@ class Arquivo:
             <p>Gentileza nos enviar o comprovante para que possamos realizar a baixa dos títulos.</p>
             <b style="color: rgb(87, 86, 86);">Atenciosamente,</b>
             <br>
-            <img src="https://i.imgur.com/CmnqM3L.png" style="width: 30%;">
+            <img src="https://i.imgur.com/CmnqM3L.png" style="width: 40%;">
             <p>
                 Esta mensagem, incluindo seus anexos, tem caráter confidencial e seu conteúdo é restrito ao destinatário da mensagem. Caso você tenha recebido esta mensagem por engano, queira, por favor, retorná-la ao destinatário e apagá-la de seus arquivos. Qualquer uso não autorizado, replicação ou disseminação desta mensagem ou parte dela, incluindo seus anexos, é expressamente proibido. 
                 <br><br>
@@ -152,7 +158,7 @@ class App:
         self.window.resizable(False,False)
         self.window.geometry('860x500')
         self.window.iconbitmap('C:/Users/DELTAASUS/Documents/GitHub/Email_Debt/code/imgs/delta-icon.ico')
-        self.window.title('Emails')
+        self.window.title('Cobrança Automática')
 
     def index(self):
         self.index = Frame(self.window, bd=4, bg='lightblue')
@@ -173,36 +179,36 @@ class App:
         ###########Arquivo
         Label(self.index, text='Insira aqui o arquivo:',\
             background='lightblue', font=(10))\
-                .place(relx=0.15,rely=0.5)
+                .place(relx=0.15,rely=0.47)
 
         self.nome_arq = ''
         self.arqLabel = Label(self.index)
         self.arqLabel.config(font=("Arial", 8, 'bold italic'))
-        self.arqLabel.place(relx=0.21,rely=0.57,relwidth=0.7, relheight=0.055)
+        self.arqLabel.place(relx=0.21,rely=0.54,relwidth=0.7, relheight=0.055)
         
         Button(self.index, text='Enviar',\
             command= lambda: self.arquivo.inserir(self.arqLabel))\
-                .place(relx=0.15,rely=0.57,relwidth=0.06,relheight=0.055)
+                .place(relx=0.15,rely=0.54,relwidth=0.06,relheight=0.055)
         
 
         #######Endereco email
         self.endereco_email = StringVar()
 
-        Label(self.index, text='Endereço Email',\
+        Label(self.index, text='Endereços de Email:',\
             background='lightblue', font=(10))\
-                .place(relx=0.15,rely=0.7)
+                .place(relx=0.15,rely=0.65)
 
         Entry(self.index,textvariable=self.endereco_email, justify='center')\
-            .place(relx=0.15,rely=0.77,relwidth=0.35,relheight=0.05)
+            .place(relx=0.15,rely=0.72,relwidth=0.75,relheight=0.05)
 
         Label(self.index, text='Para mais de um email, os separe com " ; "',\
             background='lightblue', font=("Arial", 10, 'bold italic'))\
-                .place(relx=0.15,rely=0.85)
+                .place(relx=0.15,rely=0.8)
 
         #Botão enviar
         Button(self.index, text='Enviar Email',\
             command= lambda: self.executar())\
-                .place(relx=0.55,rely=0.7,relwidth=0.35,relheight=0.12)
+                .place(relx=0.55,rely=0.8,relwidth=0.35,relheight=0.12)
         
     def executar(self):
         try:
