@@ -19,11 +19,8 @@ class Email:
         self.server_smtp = 'smtp-mail.outlook.com'
         self.port = 587
 
-        # self.address = 'financeiro@deltaprice.com.br'
-        # self.password = ''
-
-        self.address = 'pedrohrm050316@hotmail.com'
-        self.password = 'quuhaftrmdxoamuj'
+        self.address = 'financeiro@deltaprice.com.br'
+        self.password = ''
 
     def criar(self, destinatario, titulo, conteudo):
         self.msg = MIMEMultipart()
@@ -51,6 +48,10 @@ class Email:
         finally:
             self.server.quit()
 
+class Adicionais:
+    def __init__(self):
+        self.diaAtual = datetime.now().date
+
 class Arquivo:
     def __init__(self):
         self.caminho = ''
@@ -63,7 +64,7 @@ class Arquivo:
             <title>Document</title>
         </head>
         <body>
-            <p>Prezado cliente, $comprimento <br><br>Não acusamos o recebimento do(s) honorário(s) relacionado(s) abaixo:</p>
+            <p>Prezado cliente, $cumprimento <br><br>Não acusamos o recebimento do(s) honorário(s) relacionado(s) abaixo:</p>
             <ul>
                 $text
             </ul>
@@ -122,13 +123,13 @@ class Arquivo:
                 .format(str(row['Competência']), str(row['Vencimento']), str(row['Em aberto']))
 
         text = text + valorGeral
-        return self.body.replace('$text', text).replace('$comprimento', self.comprimento())
+        return self.body.replace('$text', text).replace('$cumprimento', self.cumprimento())
     
     def titulo_email(self):
         arquivo = tb.read_pdf(self.caminho, pages="all",)
         return arquivo[0].loc[[1],['Vencimento']].values[0][0] + ' - HONORÁRIOS CONTÁBEIS EM ABERTO'
     
-    def comprimento(self):
+    def cumprimento(self):
         hora_atual = datetime.now().hour
         if hora_atual < 12:
             return 'bom dia!'
