@@ -20,7 +20,7 @@ class Email:
         self.port = 587
 
         self.address = 'financeiro@deltaprice.com.br'
-        self.password = 'RJL@#$21005'
+        self.password = 'ykqaetzjpucwktte'
 
         # self.address = 'pedrohrm050316@hotmail.com'
         # self.password = 'quuhaftrmdxoamuj'
