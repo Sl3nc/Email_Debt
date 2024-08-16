@@ -58,26 +58,47 @@ class Conteudo:
         self.valores_totais = []
         self.body = """
         <!DOCTYPE html>
-        <html lang="en">
+        <html lang="pt-BR">
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Document</title>
         </head>
         <body>
-            <p>Prezado cliente, $cumprimento <br><br>Não acusamos o recebimento do(s) honorário(s) relacionado(s) abaixo:</p>
-            <ul>
-                $text
-            </ul>
-            <p>Você conseguiria regularizar a situação de sua empresa conosco?<br><u>Para que não ocorra cobrança de encargos como multa e juros</u>, abaixo encontra-se nossos dados bancários para transferência:
+            <p>
+                Prezado cliente, $cumprimento <br><br>Não acusamos o recebimento do(s) honorário(s) relacionado(s) abaixo:
             </p>
+            <table style="border: 2px solid rgb(140 140 140);">
+                <thead>
+                    <tr>
+                        <th>COMP.</th>
+                        <th>VENC.</th>
+                        <th>Dias Atraso</th>
+                        <th>Principal</th>
+                        <th>Multa</th>
+                        <th>Juros</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    $text
+                </tbody>
+                <tfoot style="background-color: rgb(228 240 245);">
+                    <tr>
+                        <th colspan="6" style="text-align: right;">Total em aberto: </th>
+                        $valor_geral
+                    </tr>
+                </tfoot>
+            </table>
+            <p>Pedimos gentilmente que regularize sua situação financeira conosco:</p>
             <h3>
-                Chave PIX Deltaprice: <span style="font-weight: 100"> 10.620.061/0001-05 </span><br>
-                Deltaprice Serviços Contábeis<br>
+                Chave PIX: <span style="font-weight: 100"> 10.620.061/0001-05 </span><br>
+                Favorecido: Deltaprice Serviços Contábeis<br>
                 CNPJ: 10.620.061/0001-05<br>
-                <span style="background-color: yellow;">Banco Itau 341 Ag 1582 conta  98.000-7</span><br>
+                <span style="background-color: yellow;">Banco Itau 341 Ag 1582 conta  98.000-7</span>
             </h3>
-            <p>Gentileza nos enviar o comprovante para que possamos realizar a baixa dos títulos.</p>
+            <p>
+                Assim que efetuar o pagamento/transferência, gentileza nos enviar o comprovante para baixa do(s) título(s) em aberto.
+            </p>
             <b style="color: rgb(87, 86, 86);">Atenciosamente,</b>
             <br>
             <img src="https://i.imgur.com/CmnqM3L.png" style="width: 40%;">
@@ -105,12 +126,21 @@ class Conteudo:
 
         self.valores_totais.append(total)
 
-        self.text = self.text + '<li><b>Período:</b> {0} <b>- Vencimento:</b> {1} <b>- Dias Atraso:</b> {2} <b>- Principal:</b><span style="color: red;"> {3} </span> <b>- Multa:</b> {4} <b>- Juros:</b> {5} <b>- Total:</b><span style="color: red;"> {6} </span></li>\n'\
-                .format(str(row['Competência']), str(row['Vencimento']), dias_atraso, str(row['Em aberto']), multa, juros, total)
+        self.text = self.text + """
+            <tr>
+                <th>{0}</th>
+                <td>{1}</td>
+                <td>{2}</td>
+                <td><span style="color: red;">R$ {3}</span></td>
+                <td>R$ {4}</td>
+                <td>R$ {5}</td>
+                <td><span style="color: red;">R$ {6}</span></td>\
+            </tr>\n
+            """.format(str(row['Competência']), str(row['Vencimento']), dias_atraso, str(row['Em aberto']), multa, juros, total)
 
     def valor_geral(self):
-        self.text = self.text + f'<b>Total em aberto: <span style="color: red;">\
-            {sum(self.valores_totais):,.2f} </span></b>'
+        return f'<td><b><span style="color: red;">\
+            R$ {sum(self.valores_totais):,.2f} </span></b></td>'
     
     def cumprimento(self):
         hora_atual = datetime.now().hour
@@ -121,7 +151,9 @@ class Conteudo:
         return 'boa noite!'
 
     def to_string(self):
-        return self.body.replace('$text', self.text).replace('$cumprimento', self.cumprimento())
+        return self.body.replace('$text', self.text)\
+            .replace('$cumprimento', self.cumprimento())\
+                .replace('$valor_geral', self.valor_geral())
 
 class Arquivo:
     def __init__(self):
@@ -144,7 +176,6 @@ class Arquivo:
 
     def ler(self):
         conteudo = Conteudo()
-        text = ''
         arquivo = tb.read_pdf(self.caminho, pages="all",)
 
         arquivo = arquivo[0].drop([0,1])
@@ -156,7 +187,6 @@ class Arquivo:
             row['Vencimento'] = str(row['Vencimento']).replace('1/1 ','')
             conteudo.add_linha(row)
             
-        conteudo.valor_geral()
         return conteudo.to_string()
     
     def titulo_email(self):
