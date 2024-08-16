@@ -20,7 +20,7 @@ class Email:
         self.port = 587
 
         self.address = 'financeiro@deltaprice.com.br'
-        self.password = ''
+        self.password = 'RJL@#$21005'
 
         # self.address = 'pedrohrm050316@hotmail.com'
         # self.password = 'quuhaftrmdxoamuj'
@@ -222,7 +222,7 @@ class App:
         self.index.place(relx=0.05,rely=0.05,relwidth=0.9,relheight=0.9)
 
         #Titulo
-        Label(self.index, text='Gerador de Cobrança', background='lightblue', font=('arial',30,'bold')).place(relx=0.23,rely=0.3,relheight=0.15)
+        Label(self.index, text='Atualiação e Cobrança\n de Honorários Vencidos', background='lightblue', font=('arial',25,'bold')).place(relx=0.23,rely=0.25,relheight=0.15)
 
         #Logo
         self.logo = PhotoImage(file='C:/Users/DELTAASUS/Documents/GitHub/Email_Debt/code/imgs/deltaprice-hori.png')
@@ -230,7 +230,7 @@ class App:
         self.logo = self.logo.subsample(4,4)
         
         Label(self.window, image=self.logo, background='lightblue')\
-            .place(relx=0.175,rely=0.1,relwidth=0.7,relheight=0.2)
+            .place(relx=0.175,rely=0.05,relwidth=0.7,relheight=0.2)
         
         #Labels e Entrys
         ###########Arquivo
