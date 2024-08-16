@@ -19,8 +19,11 @@ class Email:
         self.server_smtp = 'smtp-mail.outlook.com'
         self.port = 587
 
-        self.address = 'financeiro@deltaprice.com.br'
-        self.password = ''
+        # self.address = 'financeiro@deltaprice.com.br'
+        # self.password = ''
+
+        self.address = 'pedrohrm050316@hotmail.com'
+        self.password = 'quuhaftrmdxoamuj'
 
     def criar(self, destinatario, titulo, conteudo):
         self.msg = MIMEMultipart()
@@ -50,7 +53,8 @@ class Email:
 
 class Conteudo:
     def __init__(self):
-        self.VALOR_JUROS = 0.2
+        self.VALOR_JUROS = 0.02
+        self.text = ''
         self.valores_totais = []
         self.body = """
         <!DOCTYPE html>
@@ -87,18 +91,37 @@ class Conteudo:
         """
 
     def add_linha(self, row):
-        dias_atraso = datetime.now().date - self.row['Vencimento']
-        multa = row * self.VALOR_JUROS
-        juros = (dias_atraso / 30) * self.VALOR_JUROS
-        total = row['Em aberto'] + multa + juros
+        valor_pag = float(row['Em aberto'].replace(',','.'))
+
+        dia_atual = datetime.now()
+        dia_vencimento = datetime.strptime(row['Vencimento'], '%d/%m/%Y')
+        dias_atraso = (dia_atual - dia_vencimento).days
+
+        multa = round(valor_pag * self.VALOR_JUROS , 2)
+
+        juros = round(((valor_pag * self.VALOR_JUROS) / 30) * dias_atraso , 2)
+        
+        total = round(valor_pag + multa + juros , 2)
 
         self.valores_totais.append(total)
 
-        return '<li><b>Período:</b> {0} <b>- Vencimento:</b> {1} <b>- Dias Atraso:</b> {2} <b>- Principal:</b><span style="color: red;"> {3} </span> <b>- Multa:</b> {4} <b>- Juros:</b> {5} <b>- Total:</b> {6} </li>\n'\
+        self.text = self.text + '<li><b>Período:</b> {0} <b>- Vencimento:</b> {1} <b>- Dias Atraso:</b> {2} <b>- Principal:</b><span style="color: red;"> {3} </span> <b>- Multa:</b> {4} <b>- Juros:</b> {5} <b>- Total:</b><span style="color: red;"> {6} </span></li>\n'\
                 .format(str(row['Competência']), str(row['Vencimento']), dias_atraso, str(row['Em aberto']), multa, juros, total)
 
     def valor_geral(self):
-        return sum(self.valores_totais)
+        self.text = self.text + f'<b>Total em aberto: <span style="color: red;">\
+            {sum(self.valores_totais):,.2f} </span></b>'
+    
+    def cumprimento(self):
+        hora_atual = datetime.now().hour
+        if hora_atual < 12:
+            return 'bom dia!'
+        elif hora_atual >= 12 and hora_atual < 18:
+            return 'boa tarde!'
+        return 'boa noite!'
+
+    def to_string(self):
+        return self.body.replace('$text', self.text).replace('$cumprimento', self.cumprimento())
 
 class Arquivo:
     def __init__(self):
@@ -127,27 +150,18 @@ class Arquivo:
         arquivo = arquivo[0].drop([0,1])
 
         for index, row in arquivo.iterrows():
-            if 'Total geral:' in str(row['Competência']):
+            if 'Total do cliente:' in str(row['Competência']):
                 break
 
             row['Vencimento'] = str(row['Vencimento']).replace('1/1 ','')
-            text = text + conteudo.add_linha(row)
+            conteudo.add_linha(row)
             
-
-        text = text + conteudo.valor_geral()
-        return self.body.replace('$text', text).replace('$cumprimento', self.cumprimento())
+        conteudo.valor_geral()
+        return conteudo.to_string()
     
     def titulo_email(self):
         arquivo = tb.read_pdf(self.caminho, pages="all",)
         return arquivo[0].loc[[1],['Vencimento']].values[0][0] + ' - HONORÁRIOS CONTÁBEIS EM ABERTO'
-    
-    def cumprimento(self):
-        hora_atual = datetime.now().hour
-        if hora_atual < 12:
-            return 'bom dia!'
-        elif hora_atual >= 12 and hora_atual < 18:
-            return 'boa tarde!'
-        return 'boa noite!'
 
     def definir_tipo(self):
         tamanho = len(self.caminho)
@@ -233,7 +247,7 @@ class App:
             totalEmails = self.endereco_email.get().split(';')
 
             for enderecos in totalEmails:
-                conteudo = self.arquivo.gerar_text()
+                conteudo = self.arquivo.ler()
 
                 self.email.criar(enderecos.strip(), titulo, conteudo)
                 self.email.enviar()
@@ -241,8 +255,8 @@ class App:
                 messagebox.showinfo(title='Aviso', message= 'Email enviado com sucesso')
         except FileNotFoundError as e:
             messagebox.showwarning(title='Aviso', message= 'Insira um arquivo válido ou remova os acentos de seu nome')
-        except Exception as e:
-            messagebox.showwarning(title='Aviso', message= e)
+        # except Exception as e:
+        #     messagebox.showwarning(title='Aviso', message= e)
 
     def mudarLabel(self, text):
         self.arqLabel['text'] = text
