@@ -19,8 +19,8 @@ class Email:
         self.server_smtp = 'smtp-mail.outlook.com'
         self.port = 587
 
-        self.address = 'financeiro@deltaprice.com.br'
-        self.password = 'ykqaetzjpucwktte'
+        self.address = 'financeiro@deltaprice.com'
+        self.password = 'ithicmfxpbashzki'
 
         # self.address = 'pedrohrm050316@hotmail.com'
         # self.password = 'quuhaftrmdxoamuj'
