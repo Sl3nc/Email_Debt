@@ -19,11 +19,11 @@ class Email:
         self.server_smtp = 'smtp-mail.outlook.com'
         self.port = 587
 
-        # self.address = 'financeiro@deltaprice.com.br'
-        # self.password = ''
+        self.address = 'financeiro@deltaprice.com.br'
+        self.password = ''
 
-        self.address = 'pedrohrm050316@hotmail.com'
-        self.password = 'quuhaftrmdxoamuj'
+        # self.address = 'pedrohrm050316@hotmail.com'
+        # self.password = 'quuhaftrmdxoamuj'
 
     def criar(self, destinatario, titulo, conteudo):
         self.msg = MIMEMultipart()
@@ -67,22 +67,22 @@ class Conteudo:
             <p>
                 Prezado cliente, $cumprimento <br><br>Não acusamos o recebimento do(s) honorário(s) relacionado(s) abaixo:
             </p>
-            <table style="border: 2px solid rgb(140 140 140);">
+            <table style="border: 1px solid black;">
                 <thead>
                     <tr>
-                        <th>COMP.</th>
-                        <th>VENC.</th>
-                        <th>Dias Atraso</th>
-                        <th>Principal</th>
-                        <th>Multa</th>
-                        <th>Juros</th>
-                        <th>Total</th>
+                        <th style="padding: 8px 10px;">COMP.</th>
+                        <th style="padding: 8px 10px;">VENC.</th>
+                        <th style="padding: 8px 10px;">Dias Atraso</th>
+                        <th style="padding: 8px 10px;">Principal</th>
+                        <th style="padding: 8px 10px;">Multa</th>
+                        <th style="padding: 8px 10px;">Juros</th>
+                        <th style="padding: 8px 10px;">Total</th>
                     </tr>
                 </thead>
                 <tbody>
                     $text
                 </tbody>
-                <tfoot style="background-color: rgb(228 240 245);">
+                <tfoot>
                     <tr>
                         <th colspan="6" style="text-align: right;">Total em aberto: </th>
                         $valor_geral
@@ -128,13 +128,13 @@ class Conteudo:
 
         self.text = self.text + """
             <tr>
-                <th>{0}</th>
-                <td>{1}</td>
-                <td>{2}</td>
-                <td><span style="color: red;">R$ {3}</span></td>
-                <td>R$ {4}</td>
-                <td>R$ {5}</td>
-                <td><span style="color: red;">R$ {6}</span></td>\
+                <th style="border: 1px solid black; padding: 8px 10px;">{0}</th>
+                <td style="border: 1px solid black; padding: 8px 10px;">{1}</td>
+                <td style="text-align: center; border: 1px solid black; padding: 8px 10px;">{2}</td>
+                <td style="color: red; border: 1px solid black; padding: 8px 10px;">R$ {3}</td>
+                <td style="border: 1px solid black; padding: 8px 10px;">R$ {4}</td>
+                <td style="border: 1px solid black; padding: 8px 10px;">R$ {5}</td>
+                <td style="border: 1px solid black; padding: 8px 10px;"><span style="color: red;">R$ {6}</span></td>\
             </tr>\n
             """.format(str(row['Competência']), str(row['Vencimento']), dias_atraso, str(row['Em aberto']), multa, juros, total)
 
