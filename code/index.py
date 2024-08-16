@@ -86,7 +86,7 @@ class Conteudo:
         </html>
         """
 
-    def to_string(self, row):
+    def add_linha(self, row):
         dias_atraso = datetime.now().date - self.row['Vencimento']
         multa = row * self.VALOR_JUROS
         juros = (dias_atraso / 30) * self.VALOR_JUROS
@@ -131,7 +131,7 @@ class Arquivo:
                 break
 
             row['Vencimento'] = str(row['Vencimento']).replace('1/1 ','')
-            text = text + conteudo.to_string(row)
+            text = text + conteudo.add_linha(row)
             
 
         text = text + conteudo.valor_geral()
