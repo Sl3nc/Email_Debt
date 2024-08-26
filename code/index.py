@@ -19,11 +19,14 @@ class Email:
         self.server_smtp = 'smtp-mail.outlook.com'
         self.port = 587
 
-        self.address = 'financeiro@deltaprice.com'
-        self.password = 'ithicmfxpbashzki'
+        # self.address = 'financeiro@deltaprice.com.br'
+        # self.password = 'qvkqtwckflocmrzj'
+
+        self.address = 'contabilidade@deltaprice.com.br'
+        self.password = ';E/UHMPpJch&6qa'
 
         # self.address = 'pedrohrm050316@hotmail.com'
-        # self.password = 'quuhaftrmdxoamuj'
+        # self.password = 'tnt0503nitro'
 
     def criar(self, destinatario, titulo, conteudo):
         self.msg = MIMEMultipart()
@@ -250,6 +253,8 @@ class App:
 
         #######Endereco email
         self.endereco_email = StringVar()
+
+        self.endereco_email.set('deltapricepedro@gmail.com')
 
         Label(self.index, text='Endereços de Email:',\
             background='lightblue', font=(10))\
