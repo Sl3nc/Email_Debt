@@ -289,7 +289,7 @@ class App:
 
                 messagebox.showinfo(title='Aviso', message= 'Email enviado com sucesso')
         except FileNotFoundError as e:
-            messagebox.showwarning(title='Aviso', message= 'Insira um arquivo válido ou remova os acentos de seu nome')
+            messagebox.showwarning(title='Aviso', message= 'Operação cancelada')
         # except Exception as e:
         #     messagebox.showwarning(title='Aviso', message= e)
 
