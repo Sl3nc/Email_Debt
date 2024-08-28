@@ -148,25 +148,19 @@ class Arquivo:
         self.caminho = ''
 
     def inserir(self, label):
-        try:
-            self.caminho = askopenfilename()
+        self.caminho = askopenfilename()
 
-            if self.caminho =='':
-                raise FileNotFoundError()
+        if self.caminho =='':
+            raise FileNotFoundError('Operação cancelada')
 
-            if any(c not in string.ascii_letters for c in self.caminho):
-                caminho_uni = unidecode(self.caminho)
-                os.rename(self.caminho, caminho_uni)
-                self.caminho = caminho_uni
+        if any(c not in string.ascii_letters for c in self.caminho):
+            caminho_uni = unidecode(self.caminho)
+            os.rename(self.caminho, caminho_uni)
+            self.caminho = caminho_uni
 
-            self.tipo = self.definir_tipo()
-            ultima_barra = self.caminho.rfind('/')
-            label['text'] = self.caminho[ultima_barra+1:]
-
-        except FileNotFoundError:
-            messagebox.showwarning(title='Aviso', message= 'Operação cancelada')
-        except Exception as e:
-            messagebox.showwarning(title='Aviso', message= e)
+        self.tipo = self.definir_tipo()
+        ultima_barra = self.caminho.rfind('/')
+        label['text'] = self.caminho[ultima_barra+1:]
 
     def ler(self):
         conteudo = Conteudo()
@@ -278,6 +272,8 @@ class App:
 
                 messagebox.showinfo(title='Aviso', message= 'Email enviado com sucesso')
 
+        except FileNotFoundError:
+            messagebox.showwarning(title='Aviso', message= 'Insira algum arquivo')
         except Exception as e:
             messagebox.showwarning(title='Aviso', message= e)
 
