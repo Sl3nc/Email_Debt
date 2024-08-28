@@ -19,14 +19,8 @@ class Email:
         self.server_smtp = 'smtp-mail.outlook.com'
         self.port = 587
 
-        # self.address = 'financeiro@deltaprice.com.br'
-        # self.password = 'qvkqtwckflocmrzj'
-
-        self.address = 'contabilidade@deltaprice.com.br'
-        self.password = ';E/UHMPpJch&6qa'
-
-        # self.address = 'pedrohrm050316@hotmail.com'
-        # self.password = 'tnt0503nitro'
+        self.address = 'bruno.deltaprice@outlook.com'
+        self.password = 'ca130896'
 
     def criar(self, destinatario, titulo, conteudo):
         self.msg = MIMEMultipart()
@@ -47,10 +41,8 @@ class Email:
 
             self.server.sendmail(self.address, self.msg['To'], self.msg.as_string())
 
-        except Exception as e:
-            raise Exception(e)
-        # except Exception:
-        #     raise Exception('O endereço de email não é valido!')
+        except Exception:
+            raise Exception('O endereço de email não é valido!')
         finally:
             self.server.quit()
 
@@ -104,7 +96,7 @@ class Conteudo:
             </p>
             <b style="color: rgb(87, 86, 86);">Atenciosamente,</b>
             <br>
-            <img src="https://i.imgur.com/CmnqM3L.png" style="width: 40%;">
+            <img src="https://i.imgur.com/dTUNLTy.jpeg" style="width: 40%;">
             <p>
                 Esta mensagem, incluindo seus anexos, tem caráter confidencial e seu conteúdo é restrito ao destinatário da mensagem. Caso você tenha recebido esta mensagem por engano, queira, por favor, retorná-la ao destinatário e apagá-la de seus arquivos. Qualquer uso não autorizado, replicação ou disseminação desta mensagem ou parte dela, incluindo seus anexos, é expressamente proibido. 
                 <br><br>
@@ -166,6 +158,9 @@ class Arquivo:
         try:
             self.caminho = askopenfilename()
 
+            if self.caminho =='':
+                raise FileNotFoundError()
+
             if any(c not in string.ascii_letters for c in self.caminho):
                 caminho_uni = unidecode(self.caminho)
                 os.rename(self.caminho, caminho_uni)
@@ -174,8 +169,11 @@ class Arquivo:
             self.tipo = self.definir_tipo()
             ultima_barra = self.caminho.rfind('/')
             label['text'] = self.caminho[ultima_barra+1:]
-        except Exception:
-            messagebox.showwarning(title='Aviso', message= 'Formato do arquivo inválido')
+
+        except FileNotFoundError:
+            messagebox.showwarning(title='Aviso', message= 'Operação cancelada')
+        except Exception as e:
+            messagebox.showwarning(title='Aviso', message= e)
 
     def ler(self):
         conteudo = Conteudo()
@@ -217,7 +215,7 @@ class App:
         self.window.configure(background='darkblue')
         self.window.resizable(False,False)
         self.window.geometry('860x500')
-        self.window.iconbitmap('C:/Users/DELTAASUS/Documents/GitHub/Email_Debt/code/imgs/delta-icon.ico')
+        #self.window.iconbitmap('Z:\\18 - PROGRAMAS DELTA\\code\\imgs\\delta-icon.ico')
         self.window.title('Cobrança Automática')
 
     def index(self):
@@ -227,13 +225,13 @@ class App:
         #Titulo
         Label(self.index, text='Atualiação e Cobrança\n de Honorários Vencidos', background='lightblue', font=('arial',25,'bold')).place(relx=0.23,rely=0.25,relheight=0.15)
 
-        #Logo
-        self.logo = PhotoImage(file='C:/Users/DELTAASUS/Documents/GitHub/Email_Debt/code/imgs/deltaprice-hori.png')
+        #Logoo
+        #self.logo = PhotoImage(file='Z:\\18 - PROGRAMAS DELTA\\code\\imgs\\deltaprice-hori.png')
         
-        self.logo = self.logo.subsample(4,4)
+        # self.logo = self.logo.subsample(4,4)
         
-        Label(self.window, image=self.logo, background='lightblue')\
-            .place(relx=0.175,rely=0.05,relwidth=0.7,relheight=0.2)
+        # Label(self.window, image=self.logo, background='lightblue')\
+        #     .place(relx=0.175,rely=0.05,relwidth=0.7,relheight=0.2)
         
         #Labels e Entrys
         ###########Arquivo
@@ -253,8 +251,6 @@ class App:
 
         #######Endereco email
         self.endereco_email = StringVar()
-
-        self.endereco_email.set('deltapricepedro@gmail.com')
 
         Label(self.index, text='Endereços de Email:',\
             background='lightblue', font=(10))\
@@ -288,10 +284,8 @@ class App:
                 self.email.enviar()
 
                 messagebox.showinfo(title='Aviso', message= 'Email enviado com sucesso')
-        except FileNotFoundError as e:
-            messagebox.showwarning(title='Aviso', message= 'Operação cancelada')
-        # except Exception as e:
-        #     messagebox.showwarning(title='Aviso', message= e)
+        except Exception as e:
+            messagebox.showwarning(title='Aviso', message= e)
 
     def mudarLabel(self, text):
         self.arqLabel['text'] = text
