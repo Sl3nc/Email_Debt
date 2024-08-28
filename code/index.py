@@ -96,7 +96,7 @@ class Conteudo:
             </p>
             <b style="color: rgb(87, 86, 86);">Atenciosamente,</b>
             <br>
-            <img src="https://i.imgur.com/dTUNLTy.jpeg" style="width: 40%;">
+            <img src="https://i.imgur.com/dTUNLTy.jpeg" style="width: 50%;">
             <p>
                 Esta mensagem, incluindo seus anexos, tem caráter confidencial e seu conteúdo é restrito ao destinatário da mensagem. Caso você tenha recebido esta mensagem por engano, queira, por favor, retorná-la ao destinatário e apagá-la de seus arquivos. Qualquer uso não autorizado, replicação ou disseminação desta mensagem ou parte dela, incluindo seus anexos, é expressamente proibido. 
                 <br><br>
@@ -131,11 +131,19 @@ class Conteudo:
                 <td style="border: 1px solid black; padding: 8px 10px;">R$ {5}</td>
                 <td style="border: 1px solid black; padding: 8px 10px;"><span style="color: red;">R$ {6}</span></td>\
             </tr>\n
-            """.format(str(row['Competência']), str(row['Vencimento']), dias_atraso, str(row['Em aberto']), multa, juros, total)
+            """.format(
+                str(row['Competência']), 
+                str(row['Vencimento']), 
+                dias_atraso, str(row['Em aberto']), 
+                f'{multa:,.2f}'.replace('.',','), 
+                f'{juros:,.2f}'.replace('.',','), 
+                f'{total:,.2f}'.replace('.',',').replace('_','.'))
 
     def valor_geral(self):
+        valor = f'{sum(self.valores_totais):_.2f}'\
+            .replace('.',',').replace('_','.')
         return f'<td><b><span style="color: red;">\
-            R$ {sum(self.valores_totais):,.2f} </span></b></td>'
+            R$ {valor} </span></b></td>'
     
     def cumprimento(self):
         hora_atual = datetime.now().hour
