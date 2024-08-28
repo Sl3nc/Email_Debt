@@ -2,9 +2,7 @@ from tkinter import *
 from tkinter import messagebox
 from tkinter.filedialog import askopenfilename
 
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-import smtplib
+from smtp2go.core import Smtp2goClient
 
 import tabula as tb
 from unidecode import unidecode
@@ -16,36 +14,23 @@ window = Tk()
 
 class Email:
     def __init__(self):
-        self.server_smtp = 'smtp-mail.outlook.com'
-        self.port = 587
-
-        self.address = 'financeiro@deltaprice.com.br'
-        self.password = 'JLR@#$21005'
+        self.client = Smtp2goClient(api_key='api-57285302C4594921BD70EB19882D320B')
 
     def criar(self, destinatario, titulo, conteudo):
-        self.msg = MIMEMultipart()
-
-        self.msg['From'] = self.address
-        self.msg['To'] = destinatario
-
-        self.msg['Subject'] = titulo
-        self.msg.attach(MIMEText(conteudo, 'html'))
+        self.payload = {
+            'sender': 'financeiro@deltaprice.com.br',
+            'recipients': [destinatario],
+            'subject': titulo,
+            'html': conteudo,
+        }
 
     def enviar(self):
-        try:
-            self.server = smtplib.SMTP(self.server_smtp, self.port)
+        response = self.client.send(**self.payload)
 
-            self.server.starttls()
+        if response.success == False:
+            raise Exception('Endereço de email inválido')
 
-            self.server.login(self.address, self.password)
-
-            self.server.sendmail(self.address, self.msg['To'], self.msg.as_string())
-
-        # except Exception:
-        #     raise Exception('O endereço de email não é valido!')
-        finally:
-            self.server.quit()
-
+                
 class Conteudo:
     def __init__(self):
         self.VALOR_JUROS = 0.02
@@ -260,8 +245,6 @@ class App:
         #######Endereco email
         self.endereco_email = StringVar()
 
-        self.endereco_email.set('deltapricepedro@gmail.com')
-
         Label(self.index, text='Endereços de Email:',\
             background='lightblue', font=(10))\
                 .place(relx=0.15,rely=0.65)
@@ -279,14 +262,14 @@ class App:
                 .place(relx=0.55,rely=0.8,relwidth=0.35,relheight=0.12)
         
     def executar(self):
-        #try:
+        try:
             if self.endereco_email.get() == '':
                 raise Exception ('Insira algum endereço de email')
 
             titulo = self.arquivo.titulo_email()
 
             totalEmails = self.endereco_email.get().split(';')
-
+            
             for enderecos in totalEmails:
                 conteudo = self.arquivo.ler()
 
@@ -294,8 +277,9 @@ class App:
                 self.email.enviar()
 
                 messagebox.showinfo(title='Aviso', message= 'Email enviado com sucesso')
-        # except Exception as e:
-        #     messagebox.showwarning(title='Aviso', message= e)
+
+        except Exception as e:
+            messagebox.showwarning(title='Aviso', message= e)
 
     def mudarLabel(self, text):
         self.arqLabel['text'] = text
