@@ -19,8 +19,8 @@ class Email:
         self.server_smtp = 'smtp-mail.outlook.com'
         self.port = 587
 
-        self.address = 'bruno.deltaprice@outlook.com'
-        self.password = 'ca130896'
+        self.address = 'financeiro@deltaprice.com.br'
+        self.password = 'JLR@#$21005'
 
     def criar(self, destinatario, titulo, conteudo):
         self.msg = MIMEMultipart()
@@ -41,8 +41,8 @@ class Email:
 
             self.server.sendmail(self.address, self.msg['To'], self.msg.as_string())
 
-        except Exception:
-            raise Exception('O endereço de email não é valido!')
+        # except Exception:
+        #     raise Exception('O endereço de email não é valido!')
         finally:
             self.server.quit()
 
@@ -260,6 +260,8 @@ class App:
         #######Endereco email
         self.endereco_email = StringVar()
 
+        self.endereco_email.set('deltapricepedro@gmail.com')
+
         Label(self.index, text='Endereços de Email:',\
             background='lightblue', font=(10))\
                 .place(relx=0.15,rely=0.65)
@@ -277,7 +279,7 @@ class App:
                 .place(relx=0.55,rely=0.8,relwidth=0.35,relheight=0.12)
         
     def executar(self):
-        try:
+        #try:
             if self.endereco_email.get() == '':
                 raise Exception ('Insira algum endereço de email')
 
@@ -292,8 +294,8 @@ class App:
                 self.email.enviar()
 
                 messagebox.showinfo(title='Aviso', message= 'Email enviado com sucesso')
-        except Exception as e:
-            messagebox.showwarning(title='Aviso', message= e)
+        # except Exception as e:
+        #     messagebox.showwarning(title='Aviso', message= e)
 
     def mudarLabel(self, text):
         self.arqLabel['text'] = text
