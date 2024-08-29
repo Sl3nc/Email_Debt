@@ -81,7 +81,7 @@ class Conteudo:
             </p>
             <b style="color: rgb(87, 86, 86);">Atenciosamente,</b>
             <br>
-            <img src="https://i.imgur.com/CmnqM3L.png" style="width: 40%;">
+            <img src="https://i.imgur.com/CmnqM3L.png" style="width: 50%;">
             <p>
                 Esta mensagem, incluindo seus anexos, tem caráter confidencial e seu conteúdo é restrito ao destinatário da mensagem. Caso você tenha recebido esta mensagem por engano, queira, por favor, retorná-la ao destinatário e apagá-la de seus arquivos. Qualquer uso não autorizado, replicação ou disseminação desta mensagem ou parte dela, incluindo seus anexos, é expressamente proibido. 
                 <br><br>
