@@ -10,6 +10,8 @@ from datetime import datetime
 import string
 import os
 
+import webbrowser
+
 window = Tk()
 
 class Email:
@@ -69,17 +71,20 @@ class Conteudo:
                     </tr>
                 </tfoot>
             </table>
-            <p>Pedimos gentilmente que regularize sua situação financeira conosco:</p>
+            <p style="margin: 1% 0% 0.5% 0%;">Pedimos gentilmente que regularize sua situação financeira conosco:</p>
             <div style="display: flex;">
-                <h3>
+                <h3 style="margin: 2% 0% 0% 0%;">
                     Chave PIX: <span style="font-weight: 100"> 10.620.061/0001-05 </span><br>
                     Favorecido: Deltaprice Serviços Contábeis<br>
                     CNPJ: 10.620.061/0001-05<br>
                     <span style="background-color: yellow;">Banco Itau 341 Ag 1582 conta 98.000-7</span>
                 </h3>
-                <img src="https://i.imgur.com/T0w2OdH.png" style="width: 10%; padding-left: 10%;">
+                <div style="padding-left: 10%;">
+                    <p style="margin: 1%;"><b>QR code</b> - PIX</p>
+                    <img src="https://i.imgur.com/T0w2OdH.png" style="width: 30%;">
+                </div>
             </div>
-            <p>
+            <p style="margin: 0.5% 0% 1% 0%;">
                 Assim que efetuar o pagamento/transferência, gentileza nos enviar o comprovante para baixa do(s) título(s) em aberto.
             </p>
             <b style="color: rgb(87, 86, 86);">Atenciosamente,</b>
@@ -213,7 +218,7 @@ class App:
         self.index.place(relx=0.05,rely=0.05,relwidth=0.9,relheight=0.9)
 
         #Titulo
-        Label(self.index, text='Atualiação e Cobrança\n de Honorários Vencidos', background='lightblue', font=('arial',25,'bold')).place(relx=0.23,rely=0.25,relheight=0.15)
+        Label(self.index, text='Atualização e Cobrança\n de Honorários Vencidos', background='lightblue', font=('arial',25,'bold')).place(relx=0.23,rely=0.25,relheight=0.15)
 
         #Logoo
         #self.logo = PhotoImage(file='Z:\\18 - PROGRAMAS DELTA\\code\\imgs\\deltaprice-hori.png')
@@ -252,6 +257,11 @@ class App:
         Label(self.index, text='Para mais de um email, os separe com " ; "',\
             background='lightblue', font=("Arial", 10, 'bold italic'))\
                 .place(relx=0.15,rely=0.8)
+        
+        #Botão pre-visu
+        Button(self.index, text='Pré-visualizar envio',\
+            command= lambda: self.preview())\
+                .place(relx=0.15,rely=0.9,relwidth=0.15,relheight=0.06)
 
         #Botão enviar
         Button(self.index, text='Enviar Email',\
@@ -279,6 +289,19 @@ class App:
             messagebox.showwarning(title='Aviso', message= 'Insira algum arquivo')
         # except Exception as e:
         #     messagebox.showwarning(title='Aviso', message= e)
+
+    def preview(self):
+        try:
+            conteudo = self.arquivo.ler()
+
+            f = open('conteudo_email.html','w', encoding="utf8")
+
+            f.write(conteudo)
+            f.close()
+
+            webbrowser.open_new_tab('conteudo_email.html')
+        except FileNotFoundError:
+            messagebox.showwarning(title='Aviso', message= 'Insira algum arquivo')
 
     def mudarLabel(self, text):
         self.arqLabel['text'] = text
