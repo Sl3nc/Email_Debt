@@ -70,12 +70,15 @@ class Conteudo:
                 </tfoot>
             </table>
             <p>Pedimos gentilmente que regularize sua situação financeira conosco:</p>
-            <h3>
-                Chave PIX: <span style="font-weight: 100"> 10.620.061/0001-05 </span><br>
-                Favorecido: Deltaprice Serviços Contábeis<br>
-                CNPJ: 10.620.061/0001-05<br>
-                <span style="background-color: yellow;">Banco Itau 341 Ag 1582 conta  98.000-7</span>
-            </h3>
+            <div style="display: flex;">
+                <h3>
+                    Chave PIX: <span style="font-weight: 100"> 10.620.061/0001-05 </span><br>
+                    Favorecido: Deltaprice Serviços Contábeis<br>
+                    CNPJ: 10.620.061/0001-05<br>
+                    <span style="background-color: yellow;">Banco Itau 341 Ag 1582 conta 98.000-7</span>
+                </h3>
+                <img src="https://i.imgur.com/T0w2OdH.png" style="width: 10%; padding-left: 10%;">
+            </div>
             <p>
                 Assim que efetuar o pagamento/transferência, gentileza nos enviar o comprovante para baixa do(s) título(s) em aberto.
             </p>
@@ -92,7 +95,7 @@ class Conteudo:
         """
 
     def add_linha(self, row):
-        valor_pag = float(row['Em aberto'].replace(',','.'))
+        valor_pag = float(row['Em aberto'].replace('.',''). replace(',','.'))
 
         dia_atual = datetime.now()
         dia_vencimento = datetime.strptime(row['Vencimento'], '%d/%m/%Y')
@@ -122,7 +125,7 @@ class Conteudo:
                 dias_atraso, str(row['Em aberto']), 
                 f'{multa:,.2f}'.replace('.',','), 
                 f'{juros:,.2f}'.replace('.',','), 
-                f'{total:,.2f}'.replace('.',',').replace('_','.'))
+                f'{total:_.2f}'.replace('.',',').replace('_','.'))
 
     def valor_geral(self):
         valor = f'{sum(self.valores_totais):_.2f}'\
@@ -274,8 +277,8 @@ class App:
 
         except FileNotFoundError:
             messagebox.showwarning(title='Aviso', message= 'Insira algum arquivo')
-        except Exception as e:
-            messagebox.showwarning(title='Aviso', message= e)
+        # except Exception as e:
+        #     messagebox.showwarning(title='Aviso', message= e)
 
     def mudarLabel(self, text):
         self.arqLabel['text'] = text

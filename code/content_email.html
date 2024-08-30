@@ -1,47 +1,54 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
 </head>
 
 <body>
-    <p>Não acusamos o recebimento do(s) honorário(s) relacionado(s) abaixo:</p>
+    <p>
+        Prezado cliente, $cumprimento <br><br>Não acusamos o recebimento do(s) honorário(s) relacionado(s) abaixo:
+    </p>
     <table style="border: 1px solid black;">
         <thead>
             <tr>
-                <th style="border: 1px solid rgb(160 160 160); padding: 8px 10px;">COMP.</th>
-                <th>Total</th>
+                <th style="padding: 8px 10px;">COMP.</th>
+                <th style="padding: 8px 10px;">VENC.</th>
+                <th style="padding: 8px 10px;">Dias Atraso</th>
+                <th style="padding: 8px 10px;">Principal</th>
+                <th style="padding: 8px 10px;">Multa</th>
+                <th style="padding: 8px 10px;">Juros</th>
+                <th style="padding: 8px 10px;">Total</th>
             </tr>
         </thead>
         <tbody>
-            <tr>
-                <td>oi</td>
-                <td>oi</td>
-            </tr>
+            $text
         </tbody>
         <tfoot>
             <tr>
-                <th colspan="2">Average age</th>
-                <td>33</td>
+                <th colspan="6" style="text-align: right;">Total em aberto: </th>
+                $valor_geral
             </tr>
         </tfoot>
     </table>
-    <p>Você conseguiria regularizar a situação de sua empresa conosco?<br><u>Para que não ocorra cobrança de encargos
-            como multa e juros</u>, abaixo encontra-se nossos dados bancários para transferência:
+    <p>Pedimos gentilmente que regularize sua situação financeira conosco:</p>
+    <div style="display: flex;">
+        <h3>
+            Chave PIX: <span style="font-weight: 100"> 10.620.061/0001-05 </span><br>
+            Favorecido: Deltaprice Serviços Contábeis<br>
+            CNPJ: 10.620.061/0001-05<br>
+            <span style="background-color: yellow;">Banco Itau 341 Ag 1582 conta 98.000-7</span>
+        </h3>
+        <img src="https://i.imgur.com/T0w2OdH.png" style="width: 10%; padding-left: 10%;">
+    </div>
+    <p>
+        Assim que efetuar o pagamento/transferência, gentileza nos enviar o comprovante para baixa do(s) título(s) em
+        aberto.
     </p>
-    <h3>Chave PIX Deltaprice:</h3> 10620061000105
-    <h3>
-        Deltaprice Serviços Contábeis<br>
-        CNPJ: 10.620.061/0001-05<br>
-        <span style="background-color: yellow;">Banco Itau 341 Ag 1582 conta 98.000-7</span><br>
-    </h3>
-    <p>Gentileza nos enviar o comprovante para que possamos realizar a baixa dos títulos.</p>
     <b style="color: rgb(87, 86, 86);">Atenciosamente,</b>
     <br>
-    <img src="C:/Users/DELTAASUS/Documents/GitHub/Email_Debt/code/imgs/assDigital.png" style="width: 30%;">
+    <img src="https://i.imgur.com/CmnqM3L.png" style="width: 50%;">
     <p>
         Esta mensagem, incluindo seus anexos, tem caráter confidencial e seu conteúdo é restrito ao destinatário da
         mensagem. Caso você tenha recebido esta mensagem por engano, queira, por favor, retorná-la ao destinatário e
@@ -57,9 +64,3 @@
 </body>
 
 </html>
-
-<style>
-    td{
-        background-color: aqua;
-    }
-</style>
