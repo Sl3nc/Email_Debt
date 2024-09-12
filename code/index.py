@@ -9,6 +9,7 @@ from unidecode import unidecode
 from datetime import datetime
 import string
 import os
+import sys
 
 import webbrowser
 
@@ -210,8 +211,15 @@ class App:
         self.window.configure(background='darkblue')
         self.window.resizable(False,False)
         self.window.geometry('860x500')
-        #self.window.iconbitmap('Z:\\18 - PROGRAMAS DELTA\\code\\imgs\\delta-icon.ico')
+        self.window.iconbitmap(self.resource_path('imgs\\mail-icon.ico'))
         self.window.title('Cobrança Automática')
+
+    def resource_path(self,relative_path):
+        base_path = getattr(
+            sys,
+            '_MEIPASS',
+            os.path.dirname(os.path.abspath(__file__)))
+        return os.path.join(base_path, relative_path)
 
     def index(self):
         self.index = Frame(self.window, bd=4, bg='lightblue')
@@ -221,12 +229,12 @@ class App:
         Label(self.index, text='Atualização e Cobrança\n de Honorários Vencidos', background='lightblue', font=('arial',25,'bold')).place(relx=0.23,rely=0.25,relheight=0.15)
 
         #Logoo
-        #self.logo = PhotoImage(file='Z:\\18 - PROGRAMAS DELTA\\code\\imgs\\deltaprice-hori.png')
+        self.logo = PhotoImage(file= self.resource_path('imgs\\deltaprice-hori.png'))
         
-        # self.logo = self.logo.subsample(4,4)
+        self.logo = self.logo.subsample(4,4)
         
-        # Label(self.window, image=self.logo, background='lightblue')\
-        #     .place(relx=0.175,rely=0.05,relwidth=0.7,relheight=0.2)
+        Label(self.window, image=self.logo, background='lightblue')\
+            .place(relx=0.175,rely=0.05,relwidth=0.7,relheight=0.2)
         
         #Labels e Entrys
         ###########Arquivo
@@ -287,8 +295,8 @@ class App:
 
         except FileNotFoundError:
             messagebox.showwarning(title='Aviso', message= 'Insira algum arquivo')
-        # except Exception as e:
-        #     messagebox.showwarning(title='Aviso', message= e)
+        except Exception as e:
+            messagebox.showwarning(title='Aviso', message= e)
 
     def preview(self):
         try:
