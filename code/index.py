@@ -82,7 +82,7 @@ class Conteudo:
                 </h3>
                 <div style="padding-left: 10%;">
                     <p style="margin: 1%;"><b>QR code</b> - PIX</p>
-                    <img src="https://i.imgur.com/T0w2OdH.png" style="width: 20%;">
+                    <img src="https://i.imgur.com/T0w2OdH.png" style="width: 30%;">
                 </div>
             </div>
             <p style="margin: 0.5% 0% 1% 0%;">
