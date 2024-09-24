@@ -82,7 +82,7 @@ class Conteudo:
                 </h3>
                 <div style="padding-left: 10%;">
                     <p style="margin: 1%;"><b>QR code</b> - PIX</p>
-                    <img src="https://i.imgur.com/T0w2OdH.png" style="width: 30%;">
+                    <img src="https://i.imgur.com/T0w2OdH.png" style="width: 20%;">
                 </div>
             </div>
             <p style="margin: 0.5% 0% 1% 0%;">
@@ -229,12 +229,12 @@ class App:
         Label(self.index, text='Atualização e Cobrança\n de Honorários Vencidos', background='lightblue', font=('arial',25,'bold')).place(relx=0.23,rely=0.25,relheight=0.15)
 
         #Logoo
-        self.logo = PhotoImage(file= self.resource_path('imgs\\deltaprice-hori.png'))
+        self.logo = PhotoImage(file= self.resource_path('imgs\\email_horizontal.png'))
         
-        self.logo = self.logo.subsample(4,4)
+        self.logo = self.logo.subsample(3,3)
         
         Label(self.window, image=self.logo, background='lightblue')\
-            .place(relx=0.175,rely=0.05,relwidth=0.7,relheight=0.2)
+            .place(relx=0.15,rely=0.05,relwidth=0.7,relheight=0.2)
         
         #Labels e Entrys
         ###########Arquivo
