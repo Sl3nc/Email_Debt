@@ -11,7 +11,10 @@ from unidecode import unidecode
 import traceback
 from datetime import datetime
 import string
-import os
+from os import path, rename
+import sys
+
+from sqlite3 import connect
 
 from smtp2go.core import Smtp2goClient
 
@@ -21,6 +24,39 @@ from PySide6.QtWidgets import (
 from PySide6.QtGui import QPixmap, QIcon, QMovie
 from PySide6.QtCore import QThread, QObject, Signal, QSize
 from src.window_cobranca import Ui_MainWindow
+
+def resource_path(relative_path):
+    base_path = getattr(
+        sys,
+        '_MEIPASS',
+        path.dirname(path.abspath(__file__)))
+    return path.join(base_path, relative_path)
+
+class DataBase:
+    NOME_DB = 'email_cobranca.sqlite3'
+    ARQUIVO_DB = resource_path(f'src\\db\\{NOME_DB}')
+    TABELA_EMPRESA = 'Empresa'
+    TABELA_USUARIO = 'Usuario'
+    TABELA_EMAIL = 'Email'
+
+    def __init__(self) -> None:
+        self.query_id_banco = 'SELECT id_banco FROM {0} WHERE nome = "{1}"'
+
+        self.query_id_nome_emp = 'SELECT id_empresa, nome  FROM {0} WHERE id_banco = "{1}"'
+
+        self.query_codEmp_keyBanco =  'SELECT codigo_emp, chave_banco FROM {0} WHERE id_banco = "{1}" AND id_empresa = "{2}"'
+
+        self.connection = connect(self.ARQUIVO_DB)
+        self.cursor = self.connection.cursor()
+        pass
+
+    def clientes_do_banco(self, nome_empresa: str) -> str:
+        self.cursor.execute(
+            self.query_id_nome_emp.format(
+                self.TABELA_EMPRESA, id_banco
+            )
+        )
+        return { id: nome for id, nome in self.cursor.fetchall() }
 
 class Email:
     def __init__(self):
@@ -165,7 +201,7 @@ class Arquivo:
 
             if any(c not in string.ascii_letters for c in self.caminho):
                 caminho_uni = unidecode(self.caminho)
-                os.rename(self.caminho, caminho_uni)
+                rename(self.caminho, caminho_uni)
                 self.caminho = caminho_uni
 
             self.tipo = self.definir_tipo()
