@@ -53,7 +53,7 @@ class DataBase:
     def emails_empresa(self, nome_empresa: str) -> list[str]:
         self.cursor.execute(
             self.query_id_nome_emp.format(
-                self.TABELA_EMPRESA, id_banco
+                self.TABELA_EMPRESA, nome_empresa
             )
         )
         return { id: nome for id, nome in self.cursor.fetchall() }
