@@ -1,4 +1,3 @@
-from tkinter import *
 from tkinter import messagebox
 from tkinter.filedialog import askopenfilename
 
@@ -14,7 +13,12 @@ from datetime import datetime
 import string
 import os
 
-window = Tk()
+from PySide6.QtWidgets import (
+    QMainWindow, QApplication, QRadioButton, QVBoxLayout, QWidget
+)
+from PySide6.QtGui import QPixmap, QIcon, QMovie
+from PySide6.QtCore import QThread, QObject, Signal, QSize
+from src.window_cobranca import Ui_MainWindow
 
 class Email:
     def __init__(self):
@@ -26,18 +30,14 @@ class Email:
 
         self.base_titulo = ' - HONORÁRIOS CONTÁBEIS EM ABERTO'
 
-    def criar(self, destinatario, titulo, conteudo):
+    def criar(self, destinatario, nome_empresa, conteudo):
         self.msg = MIMEMultipart()
 
         self.msg['From'] = self.address
-        self.msg['To'] = destinatario
+        self.msg['To'] = destinatario 
 
-        self.msg['Subject'] = titulo
+        self.msg['Subject'] = nome_empresa + self.base_titulo
         self.msg.attach(MIMEText(conteudo, 'html'))
-
-    def titulo(self):
-        arquivo = tb.read_pdf(self.caminho, pages="all",)
-        return arquivo[0].loc[[1],['Vencimento']].values[0][0] + self.titulo_email
 
     def enviar(self):
         try:
@@ -232,95 +232,66 @@ class Arquivo:
         self.caminho = ''
         raise Exception('Formato de arquivo inválido') 
 
-class App:
+class DataBase:
     def __init__(self):
-        self.window = window
-        self.email = Email()
-        self.arquivo = Arquivo()
-        self.tela()
-        self.index()
-        window.mainloop()
+        pass
 
-    def tela(self):
-        self.window.configure(background='darkblue')
-        self.window.resizable(False,False)
-        self.window.geometry('860x500')
-        #self.window.iconbitmap('Z:\\18 - PROGRAMAS DELTA\\code\\imgs\\delta-icon.ico')
-        self.window.title('Cobrança Automática')
+class Cobrador(QObject):
+    def __init__(self, dict_content: dict[str,str]):
+        super().__init__()
+        self.dict_content = dict_content
 
-    def index(self):
-        self.index = Frame(self.window, bd=4, bg='lightblue')
-        self.index.place(relx=0.05,rely=0.05,relwidth=0.9,relheight=0.9)
-
-        #Titulo
-        Label(self.index, text='Atualiação e Cobrança\n de Honorários Vencidos', background='lightblue', font=('arial',25,'bold')).place(relx=0.23,rely=0.25,relheight=0.15)
-
-        #Logoo
-        #self.logo = PhotoImage(file='Z:\\18 - PROGRAMAS DELTA\\code\\imgs\\deltaprice-hori.png')
-        
-        # self.logo = self.logo.subsample(4,4)
-        
-        # Label(self.window, image=self.logo, background='lightblue')\
-        #     .place(relx=0.175,rely=0.05,relwidth=0.7,relheight=0.2)
-        
-        #Labels e Entrys
-        ###########Arquivo
-        Label(self.index, text='Insira aqui o arquivo:',\
-            background='lightblue', font=(10))\
-                .place(relx=0.15,rely=0.47)
-
-        self.nome_arq = ''
-        self.arqLabel = Label(self.index)
-        self.arqLabel.config(font=("Arial", 8, 'bold italic'))
-        self.arqLabel.place(relx=0.21,rely=0.54,relwidth=0.7, relheight=0.055)
-        
-        Button(self.index, text='Enviar',\
-            command= lambda: self.arquivo.inserir(self.arqLabel))\
-                .place(relx=0.15,rely=0.54,relwidth=0.06,relheight=0.055)
-        
-
-        #######Endereco email
-        self.endereco_email = StringVar()
-
-        self.endereco_email.set('deltapricepedro@gmail.com')
-
-        Label(self.index, text='Endereços de Email:',\
-            background='lightblue', font=(10))\
-                .place(relx=0.15,rely=0.65)
-
-        Entry(self.index,textvariable=self.endereco_email, justify='center')\
-            .place(relx=0.15,rely=0.72,relwidth=0.75,relheight=0.05)
-
-        Label(self.index, text='Para mais de um email, os separe com " ; "',\
-            background='lightblue', font=("Arial", 10, 'bold italic'))\
-                .place(relx=0.15,rely=0.8)
-
-        #Botão enviar
-        Button(self.index, text='Enviar Email',\
-            command= lambda: self.executar())\
-                .place(relx=0.55,rely=0.8,relwidth=0.35,relheight=0.12)
-        
-    #TODO EXECUTAR
     def executar(self):
-        try:
-            if self.endereco_email.get() == '':
+        db = DataBase()
+        email = Email()
+        for nome_empresa, conteudo in self.dict_conteudo.items():
+            endereco_email = db.query_endereco(nome_empresa)
+            if endereco_email == None:
+                endereco_email = db.registrar_endereco(nome_empresa)
+                
+            email.criar(endereco_email, nome_empresa, conteudo)
+            email.enviar()
+
+class MainWindow(QMainWindow, Ui_MainWindow):
+    def __init__(self, parent = None) -> None:
+        super().__init__(parent)
+        self.setupUi(self)
+
+        self.arquivo = Arquivo()
+        self.title('Cobrança Automática')
+
+    def executar(self):
+        if self.endereco_email.get() == '':
                 raise Exception ('Insira algum endereço de email')
+        
+        self._thread = QThread()
 
-            dict_conteudo = self.arquivo.ler()
-            for nome_empresa, conteudo in dict_conteudo.items():
-                endereco_email = db.query_endereco(nome_empresa)
-                if endereco_email == None:
-                    endereco_email = self.registrar_endereco(nome_empresa)
-                    
-                self.email.criar(endereco_email, nome_empresa, conteudo)
-                self.email.enviar()
+        self.arquivo.moveToThread(self._thread)
+        self._thread.started.connect(self.arquivo.ler)
+        self.arquivo.fim.connect(self._thread.quit)
+        self.arquivo.fim.connect(self._thread.deleteLater)
+        self.arquivo.fim.connect(self.cobrar)
+        self.arquivo.inicio.connect(self.alter_estado)
+        
+        self._thread.finished.connect(self.arquivo.deleteLater)
+        self._thread.start()
 
-                messagebox.showinfo(title='Aviso', message= f'Email enviado com sucesso para: {nome_empresa}')
+    #TODO EXECUTAR
+    def cobrar(self, dict_content):
+        try:
+            self._cobrador = Cobrador(dict_content)
+            self._thread = QThread()
+
+            self._cobrador.moveToThread(self._thread)
+            self._thread.started.connect(self._cobrador.executar)
+            self._cobrador.fim.connect(self._thread.quit)
+            self._cobrador.fim.connect(self._thread.deleteLater)
+            self._cobrador.fim.connect(self.alter_estado)
+            self._thread.finished.connect(self._cobrador.deleteLater)
+            self._thread.start()
         except Exception as e:
             traceback.print_exc()
             messagebox.showwarning(title='Aviso', message= e)
 
-    def mudarLabel(self, text):
-        self.arqLabel['text'] = text
-        
-App()
+    def to_progress(self, nome_empresa):
+        messagebox.showinfo(title='Aviso', message= f'Email enviado com sucesso para: {nome_empresa}')
