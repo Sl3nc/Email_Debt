@@ -50,7 +50,7 @@ class DataBase:
         self.cursor = self.connection.cursor()
         pass
 
-    def clientes_do_banco(self, nome_empresa: str) -> str:
+    def emails_empresa(self, nome_empresa: str) -> list[str]:
         self.cursor.execute(
             self.query_id_nome_emp.format(
                 self.TABELA_EMPRESA, id_banco
