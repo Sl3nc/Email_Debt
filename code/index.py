@@ -13,45 +13,14 @@ from datetime import datetime
 import string
 import os
 
+from smtp2go.core import Smtp2goClient
+
 from PySide6.QtWidgets import (
     QMainWindow, QApplication, QRadioButton, QVBoxLayout, QWidget
 )
 from PySide6.QtGui import QPixmap, QIcon, QMovie
 from PySide6.QtCore import QThread, QObject, Signal, QSize
 from src.window_cobranca import Ui_MainWindow
-
-class Email:
-    def __init__(self):
-        self.server_smtp = 'smtp-mail.outlook.com'
-        self.port = 587
-
-        self.address = 'financeiro@deltaprice.com.br'
-        self.password = 'JLR@#$21005'
-
-
-    def criar(self, destinatario, nome_empresa, conteudo):
-        self.msg = MIMEMultipart()
-
-        self.msg['From'] = self.address
-        self.msg['To'] = destinatario 
-
-        self.msg['Subject'] = nome_empresa + self.base_titulo
-        self.msg.attach(MIMEText(conteudo, 'html'))
-
-    def enviar(self):
-        try:
-            self.server = smtplib.SMTP(self.server_smtp, self.port)
-
-            self.server.starttls()
-
-            self.server.login(self.address, self.password)
-
-            self.server.sendmail(self.address, self.msg['To'], self.msg.as_string())
-
-        # except Exception:
-        #     raise Exception('O endereço de email não é valido!')
-        finally:
-            self.server.quit()
 
 class Email:
     def __init__(self):
