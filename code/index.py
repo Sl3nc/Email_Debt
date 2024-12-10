@@ -24,6 +24,8 @@ class Email:
         self.address = 'financeiro@deltaprice.com.br'
         self.password = 'JLR@#$21005'
 
+        self.base_titulo = ' - HONORÁRIOS CONTÁBEIS EM ABERTO'
+
     def criar(self, destinatario, titulo, conteudo):
         self.msg = MIMEMultipart()
 
@@ -32,6 +34,10 @@ class Email:
 
         self.msg['Subject'] = titulo
         self.msg.attach(MIMEText(conteudo, 'html'))
+
+    def titulo(self):
+        arquivo = tb.read_pdf(self.caminho, pages="all",)
+        return arquivo[0].loc[[1],['Vencimento']].values[0][0] + self.titulo_email
 
     def enviar(self):
         try:
@@ -218,10 +224,6 @@ class Arquivo:
             
         return dict_conteudos
     
-    def titulo_email(self):
-        arquivo = tb.read_pdf(self.caminho, pages="all",)
-        return arquivo[0].loc[[1],['Vencimento']].values[0][0] + ' - HONORÁRIOS CONTÁBEIS EM ABERTO'
-
     def definir_tipo(self):
         tamanho = len(self.caminho)
         tipo = self.caminho[tamanho-3 :]
@@ -304,17 +306,16 @@ class App:
             if self.endereco_email.get() == '':
                 raise Exception ('Insira algum endereço de email')
 
-            titulo = self.arquivo.titulo_email()
-
-            totalEmails = self.endereco_email.get().split(';')
-
-            conteudo = self.arquivo.ler()
-            for enderecos in totalEmails:
-
-                self.email.criar(enderecos.strip(), titulo, conteudo)
+            dict_conteudo = self.arquivo.ler()
+            for nome_empresa, conteudo in dict_conteudo.items():
+                endereco_email = db.query_endereco(nome_empresa)
+                if endereco_email == None:
+                    endereco_email = self.registrar_endereco(nome_empresa)
+                    
+                self.email.criar(endereco_email, nome_empresa, conteudo)
                 self.email.enviar()
 
-                messagebox.showinfo(title='Aviso', message= 'Email enviado com sucesso')
+                messagebox.showinfo(title='Aviso', message= f'Email enviado com sucesso para: {nome_empresa}')
         except Exception as e:
             traceback.print_exc()
             messagebox.showwarning(title='Aviso', message= e)
