@@ -256,14 +256,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, parent = None) -> None:
         super().__init__(parent)
         self.setupUi(self)
-
         self.arquivo = Arquivo()
-        self.title('Cobrança Automática')
 
     def executar(self):
         if self.endereco_email.get() == '':
                 raise Exception ('Insira algum endereço de email')
-        
         self._thread = QThread()
 
         self.arquivo.moveToThread(self._thread)
@@ -272,7 +269,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.arquivo.fim.connect(self._thread.deleteLater)
         self.arquivo.fim.connect(self.cobrar)
         self.arquivo.inicio.connect(self.alter_estado)
-        
         self._thread.finished.connect(self.arquivo.deleteLater)
         self._thread.start()
 
