@@ -7,7 +7,9 @@ from email.mime.multipart import MIMEMultipart
 import smtplib
 
 import tabula as tb
+import pandas as pd
 from unidecode import unidecode
+import traceback
 from datetime import datetime
 import string
 import os
@@ -184,19 +186,37 @@ class Arquivo:
             messagebox.showwarning(title='Aviso', message= e)
 
     def ler(self):
-        conteudo = Conteudo()
         arquivo = tb.read_pdf(self.caminho, pages="all",)
+        for tabelas in arquivo:
+            tabelas.columns = ["Titulo/Competencia", "", "","", "","","","","","","","","Valor"]
+        tabelas = pd.concat(arquivo, ignore_index=True)
+        tabelas = tabelas.drop('', axis=1)
+        tabelas = tabelas.drop(0).reset_index(drop=True)
 
-        arquivo = arquivo[0].drop([0,1])
-
+        tabelas.fillna('', inplace=True)
+        dict_conteudos = {}
         for index, row in arquivo.iterrows():
-            if 'Total do cliente:' in str(row['Competência']):
-                break
-
-            row['Vencimento'] = str(row['Vencimento']).replace('1/1 ','')
-            conteudo.add_linha(row)
+            if row.Valor != '' and row["Titulo/Competencia"] != '':
+                #Cria series com: Competência, Vencimento e Valor em aberto
+                vencimento = row["Titulo/Competencia"].replace('1/1 ','')
+                
+                competencia = datetime.strptime(vencimento[7:],'%m/%Y')
+                competencia = competencia.replace(month= -1).strftime('%m/%Y')
+                
+                conteudo_atual.add_linha(pd.Series(data= {
+                    'Competência': competencia,
+                    'Vencimento': vencimento,
+                    'Valor': row.Valor
+                }))
+            elif row.Valor == '':
+                #Abrir conteudo
+                nome_atual = row["Titulo/Competencia"]
+                conteudo_atual = Conteudo()
+            else:
+                #Fecha conteudo
+                dict_conteudos[nome_atual] = conteudo_atual.to_string()
             
-        return conteudo.to_string()
+        return dict_conteudos
     
     def titulo_email(self):
         arquivo = tb.read_pdf(self.caminho, pages="all",)
@@ -278,8 +298,9 @@ class App:
             command= lambda: self.executar())\
                 .place(relx=0.55,rely=0.8,relwidth=0.35,relheight=0.12)
         
+    #TODO EXECUTAR
     def executar(self):
-        #try:
+        try:
             if self.endereco_email.get() == '':
                 raise Exception ('Insira algum endereço de email')
 
@@ -287,15 +308,16 @@ class App:
 
             totalEmails = self.endereco_email.get().split(';')
 
+            conteudo = self.arquivo.ler()
             for enderecos in totalEmails:
-                conteudo = self.arquivo.ler()
 
                 self.email.criar(enderecos.strip(), titulo, conteudo)
                 self.email.enviar()
 
                 messagebox.showinfo(title='Aviso', message= 'Email enviado com sucesso')
-        # except Exception as e:
-        #     messagebox.showwarning(title='Aviso', message= e)
+        except Exception as e:
+            traceback.print_exc()
+            messagebox.showwarning(title='Aviso', message= e)
 
     def mudarLabel(self, text):
         self.arqLabel['text'] = text
