@@ -28,7 +28,6 @@ class Email:
         self.address = 'financeiro@deltaprice.com.br'
         self.password = 'JLR@#$21005'
 
-        self.base_titulo = ' - HONORÁRIOS CONTÁBEIS EM ABERTO'
 
     def criar(self, destinatario, nome_empresa, conteudo):
         self.msg = MIMEMultipart()
@@ -53,6 +52,24 @@ class Email:
         #     raise Exception('O endereço de email não é valido!')
         finally:
             self.server.quit()
+
+class Email:
+    def __init__(self):
+        self.client = Smtp2goClient(api_key='api-57285302C4594921BD70EB19882D320B')
+        self.base_titulo = ' - HONORÁRIOS CONTÁBEIS EM ABERTO'
+
+    def criar(self, destinatario, nome_empresa, conteudo):
+        self.payload = {
+            'sender': 'financeiro@deltaprice.com.br',
+            'recipients': [destinatario],
+            'subject': nome_empresa  + self.base_titulo,
+            'html': conteudo,
+        }
+
+    def enviar(self):
+        response = self.client.send(**self.payload)
+        if response.success == False:
+            raise Exception('Endereço de email inválido')
 
 class Conteudo:
     def __init__(self):
