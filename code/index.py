@@ -40,11 +40,19 @@ class DataBase:
     TABELA_EMAIL = 'Email'
 
     def __init__(self) -> None:
-        self.query_id_banco = 'SELECT id_banco FROM {0} WHERE nome = "{1}"'
+        self.query_enedereco = (
+            f'SELECT endereco FROM {self.TABELA_EMAIL} '
+            'WHERE id_emp = '
+            f'(SELECT id_emp FROM {self.TABELA_EMPRESA} '
+            'WHERE nome = "{1}")'
+        )
 
-        self.query_id_nome_emp = 'SELECT id_empresa, nome  FROM {0} WHERE id_banco = "{1}"'
-
-        self.query_codEmp_keyBanco =  'SELECT codigo_emp, chave_banco FROM {0} WHERE id_banco = "{1}" AND id_empresa = "{2}"'
+        self.insert_endereco = (
+            f'INSERT INTO {self.TABELA_EMAIL} '
+            '(nome, id_emp)'
+            ' VALUES '
+            '(?,?)'
+        )
 
         self.connection = connect(self.ARQUIVO_DB)
         self.cursor = self.connection.cursor()
@@ -52,11 +60,9 @@ class DataBase:
 
     def emails_empresa(self, nome_empresa: str) -> list[str]:
         self.cursor.execute(
-            self.query_id_nome_emp.format(
-                self.TABELA_EMPRESA, nome_empresa
-            )
+            self.query_enedereco.format(nome_empresa)
         )
-        return { id: nome for id, nome in self.cursor.fetchall() }
+        return self.cursor.fetchall()
 
 class Email:
     def __init__(self):
@@ -254,20 +260,17 @@ class Arquivo:
         self.caminho = ''
         raise Exception('Formato de arquivo inválido') 
 
-class DataBase:
-    def __init__(self):
-        pass
-
 class Cobrador(QObject):
     def __init__(self, dict_content: dict[str,str]):
         super().__init__()
         self.dict_content = dict_content
 
+    #TODO EXECUTAR
     def executar(self):
         db = DataBase()
         email = Email()
         for nome_empresa, conteudo in self.dict_conteudo.items():
-            endereco_email = db.query_endereco(nome_empresa)
+            endereco_empresa = db.emails_empresa(nome_empresa)
             if endereco_email == None:
                 endereco_email = db.registrar_endereco(nome_empresa)
                 
@@ -279,6 +282,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         super().__init__(parent)
         self.setupUi(self)
         self.arquivo = Arquivo()
+        DataBase()
 
     def executar(self):
         if self.endereco_email.get() == '':
@@ -294,7 +298,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._thread.finished.connect(self.arquivo.deleteLater)
         self._thread.start()
 
-    #TODO EXECUTAR
     def cobrar(self, dict_content):
         try:
             self._cobrador = Cobrador(dict_content)
@@ -313,3 +316,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def to_progress(self, nome_empresa):
         messagebox.showinfo(title='Aviso', message= f'Email enviado com sucesso para: {nome_empresa}')
+
+if __name__ == '__main__':
+    app = QApplication()
+    window = MainWindow()
+    window.show()
+    app.exec()
