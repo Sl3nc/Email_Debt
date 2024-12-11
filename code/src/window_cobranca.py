@@ -195,6 +195,19 @@ class Ui_MainWindow(object):
         self.formLayout = QFormLayout(self.page_4)
         self.formLayout.setObjectName(u"formLayout")
         self.stackedWidget_empresas.addWidget(self.page_4)
+        self.page_6 = QWidget()
+        self.page_6.setObjectName(u"page_6")
+        self.gridLayout_11 = QGridLayout(self.page_6)
+        self.gridLayout_11.setObjectName(u"gridLayout_11")
+        self.label_loading_empresas = QLabel(self.page_6)
+        self.label_loading_empresas.setObjectName(u"label_loading_empresas")
+        self.label_loading_empresas.setMaximumSize(QSize(96, 96))
+        self.label_loading_empresas.setPixmap(QPixmap(u"../imgs/load.gif"))
+        self.label_loading_empresas.setScaledContents(True)
+
+        self.gridLayout_11.addWidget(self.label_loading_empresas, 0, 0, 1, 1)
+
+        self.stackedWidget_empresas.addWidget(self.page_6)
 
         self.gridLayout_6.addWidget(self.stackedWidget_empresas, 0, 0, 1, 1)
 
@@ -376,6 +389,7 @@ class Ui_MainWindow(object):
         self.label_body_empresas_title.setText(QCoreApplication.translate("MainWindow", u"Empresas que deseja cobrar", None))
         self.pushButton_body_executar.setText(QCoreApplication.translate("MainWindow", u"Executar", None))
         self.label_empresas_aviso.setText(QCoreApplication.translate("MainWindow", u"Insira o relat\u00f3rio de vencidos", None))
+        self.label_loading_empresas.setText("")
         self.label_load_gif.setText("")
         self.label_load_title.setText(QCoreApplication.translate("MainWindow", u"Carregando...", None))
         self.pushButton_endereco.setText(QCoreApplication.translate("MainWindow", u"Enviar", None))

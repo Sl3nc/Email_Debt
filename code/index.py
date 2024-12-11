@@ -207,13 +207,13 @@ class Arquivo(QObject):
             caminho = askopenfilename()
             if caminho =='':
                 raise FileNotFoundError()
+            self.validar_tipo(caminho)
 
             caminho_uni = unidecode(caminho)
             if caminho != caminho_uni:
                 caminho = caminho_uni
                 rename(caminho, caminho_uni)
 
-            self.tipo = self.definir_tipo(caminho)
             self.caminho = caminho
             return caminho[caminho.rfind('/') +1:]
 
@@ -221,6 +221,14 @@ class Arquivo(QObject):
             messagebox.showwarning(title='Aviso', message= 'Operação cancelada')
         except Exception as e:
             messagebox.showwarning(title='Aviso', message= e)
+
+    def validar_tipo(self, caminho):
+        tipo = caminho[len(caminho) - 3 :]
+        if 'pdf' != tipo and 'lsx' != tipo:
+            raise Exception('Formato de arquivo inválido') 
+
+    def nomes_empresas(self):
+        return ...
 
     def ler(self):
         arquivo = tb.read_pdf(self.caminho, pages="all",)
@@ -254,14 +262,6 @@ class Arquivo(QObject):
                 dict_conteudos[nome_atual] = conteudo_atual.to_string()
         
         return dict_conteudos
-    
-    def definir_tipo(self):
-        tamanho = len(self.caminho)
-        tipo = self.caminho[tamanho-3 :]
-        if 'pdf' == tipo or 'lsx' == tipo:
-            return tipo    
-        self.caminho = ''
-        raise Exception('Formato de arquivo inválido') 
 
 class Cobrador(QObject):
     novo_endereco = Signal(str)
@@ -298,9 +298,11 @@ class Cobrador(QObject):
         self.novo_endereco.emit(nome_empresa)
         while self.enderecos_novos == '':
             sleep(2)
+
         id_empresa = self.db.registrar_empresa(nome_empresa)
         enderecos_email = self.enderecos_novos.split(';')
         self.enderecos_novos = ''
+
         for endereco in enderecos_email:
             self.db.registrar_endereco(endereco, id_empresa)
         return enderecos_email
@@ -322,16 +324,30 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         )
 
         self.pushButton_body_relatorio_anexar.connect(
-            self.arquivo.inserir
+            self.inserir_relatorio
+        )
+
+        self.pushButton_body_executar.connect(
+            self.executar
         )
 
     #TODO THREADS
+    def pesquisar_empresas(self):
+        self._thread = QThread()
+
+        self.arquivo.moveToThread(self._thread)
+        self._thread.started.connect(self.arquivo.nomes_empresas)
+        self.arquivo.fim.connect(self._thread.quit)
+        self.arquivo.fim.connect(self._thread.deleteLater)
+        self.arquivo.fim.connect(self.exibir_opcoes)
+        # self._thread.finished.connect(self.arquivo.deleteLater)
+        self._thread.start()
+
     def executar(self):
         if self.pushButton_body_relatorio_anexar.text() == '':
             raise Exception ('Insira algum relatório de vencidos')
         
         self._thread = QThread()
-
         self.arquivo.moveToThread(self._thread)
         self._thread.started.connect(self.arquivo.ler)
         self.arquivo.fim.connect(self._thread.quit)
@@ -349,7 +365,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             self._cobrador.moveToThread(self._thread)
             self._thread.started.connect(self._cobrador.executar)
-            self._cobrador.novo_endereco.connect(self.widget_endereco)
+            self._cobrador.novo_endereco.connect(self.acess_cadastro)
             self._cobrador.fim.connect(self._thread.quit)
             self._cobrador.fim.connect(self._thread.deleteLater)
             self._cobrador.fim.connect(self.exec_load)
@@ -358,6 +374,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         except Exception as e:
             traceback.print_exc()
             messagebox.showwarning(title='Aviso', message= e)
+
+    def inserir_relatorio(self):
+        caminho_reduzido = self.arquivo.inserir()
+        self.pushButton_body_relatorio_anexar.setText(caminho_reduzido)
+        self.pushButton_body_relatorio_anexar.setIcon(QIcon())
+        self.pesquisar_empresas()
 
     def enviar_valor(self):
         try:
@@ -377,7 +399,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def conclusion(self, nomes_empresas: list[str]):
         messagebox.showinfo(title='Aviso', message= f'Email enviado com sucesso para: {'\n- '.join(nomes_empresas)}')
 
-    def widget_endereco(self, nome_empresa):
+    def acess_cadastro(self, nome_empresa):
         self.label_endereco_empresa.setText(nome_empresa)
         self.exec_load(False, 3)
 
