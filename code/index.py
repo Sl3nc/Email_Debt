@@ -13,6 +13,7 @@ from datetime import datetime
 import string
 from os import path, rename
 import sys
+from time import sleep
 
 from sqlite3 import connect
 
@@ -194,25 +195,27 @@ class Conteudo:
             .replace('$cumprimento', self.cumprimento())\
                 .replace('$valor_geral', self.valor_geral())
 
-class Arquivo:
+class Arquivo(QObject):
+    inicio = Signal()
+    fim = Signal()
+
     def __init__(self):
         self.caminho = ''
 
-    def inserir(self, label):
+    def inserir(self):
         try:
-            self.caminho = askopenfilename()
-
-            if self.caminho =='':
+            caminho = askopenfilename()
+            if caminho =='':
                 raise FileNotFoundError()
 
-            if any(c not in string.ascii_letters for c in self.caminho):
-                caminho_uni = unidecode(self.caminho)
-                rename(self.caminho, caminho_uni)
-                self.caminho = caminho_uni
+            caminho_uni = unidecode(caminho)
+            if caminho != caminho_uni:
+                caminho = caminho_uni
+                rename(caminho, caminho_uni)
 
-            self.tipo = self.definir_tipo()
-            ultima_barra = self.caminho.rfind('/')
-            label['text'] = self.caminho[ultima_barra+1:]
+            self.tipo = self.definir_tipo(caminho)
+            self.caminho = caminho
+            return caminho[caminho.rfind('/') +1:]
 
         except FileNotFoundError:
             messagebox.showwarning(title='Aviso', message= 'Operação cancelada')
@@ -249,7 +252,7 @@ class Arquivo:
             else:
                 #Fecha conteudo
                 dict_conteudos[nome_atual] = conteudo_atual.to_string()
-            
+        
         return dict_conteudos
     
     def definir_tipo(self):
@@ -261,32 +264,72 @@ class Arquivo:
         raise Exception('Formato de arquivo inválido') 
 
 class Cobrador(QObject):
+    novo_endereco = Signal(str)
+    inicio = Signal()
+    progress = Signal(int)
+    fim = Signal(bool)
+    resume = Signal(list[str])
+
     def __init__(self, dict_content: dict[str,str]):
         super().__init__()
         self.dict_content = dict_content
+        self.db = DataBase()
+        self.enderecos_novos = ''
 
     #TODO EXECUTAR
     def executar(self):
-        db = DataBase()
         email = Email()
+        count = 0
         for nome_empresa, conteudo in self.dict_conteudo.items():
-            endereco_empresa = db.emails_empresa(nome_empresa)
-            if endereco_email == None:
-                endereco_email = db.registrar_endereco(nome_empresa)
-                
-            email.criar(endereco_email, nome_empresa, conteudo)
-            email.enviar()
+            enderecos_email = self.db.emails_empresa(nome_empresa)
+            if enderecos_email == None:
+                enderecos_email = self.registro(nome_empresa, enderecos_email)
+            
+            for endereco in enderecos_email:
+                email.criar(endereco, nome_empresa, conteudo)
+                email.enviar()
+            
+            count = count + 1
+            self.progress.emit(count)
+        self.fim.emit(False)
+        # self.resume.emit(self.dict_content.keys())
+
+    def registro(self, nome_empresa):
+        self.novo_endereco.emit(nome_empresa)
+        while self.enderecos_novos == '':
+            sleep(2)
+        id_empresa = self.db.registrar_empresa(nome_empresa)
+        enderecos_email = self.enderecos_novos.split(';')
+        self.enderecos_novos = ''
+        for endereco in enderecos_email:
+            self.db.registrar_endereco(endereco, id_empresa)
+        return enderecos_email
+    
+    def set_novo_endereco(self, valor: str):
+        self.enderecos_novos == valor
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, parent = None) -> None:
         super().__init__(parent)
         self.setupUi(self)
-        self.arquivo = Arquivo()
-        DataBase()
 
+        self.MAX_PROGRESS = 100
+        self.coeficiente_progress = 0
+        self.arquivo = Arquivo()
+
+        self.pushButton_endereco.connect(
+            self.enviar_valor
+        )
+
+        self.pushButton_body_relatorio_anexar.connect(
+            self.arquivo.inserir
+        )
+
+    #TODO THREADS
     def executar(self):
-        if self.endereco_email.get() == '':
-                raise Exception ('Insira algum endereço de email')
+        if self.pushButton_body_relatorio_anexar.text() == '':
+            raise Exception ('Insira algum relatório de vencidos')
+        
         self._thread = QThread()
 
         self.arquivo.moveToThread(self._thread)
@@ -294,28 +337,57 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.arquivo.fim.connect(self._thread.quit)
         self.arquivo.fim.connect(self._thread.deleteLater)
         self.arquivo.fim.connect(self.cobrar)
-        self.arquivo.inicio.connect(self.alter_estado)
-        self._thread.finished.connect(self.arquivo.deleteLater)
+        self.arquivo.inicio.connect(self.exec_load)
+        # self._thread.finished.connect(self.arquivo.deleteLater)
         self._thread.start()
 
     def cobrar(self, dict_content):
         try:
+            self.coeficiente_progress = self.MAX_PROGRESS / len(dict_content)
             self._cobrador = Cobrador(dict_content)
             self._thread = QThread()
 
             self._cobrador.moveToThread(self._thread)
             self._thread.started.connect(self._cobrador.executar)
+            self._cobrador.novo_endereco.connect(self.widget_endereco)
             self._cobrador.fim.connect(self._thread.quit)
             self._cobrador.fim.connect(self._thread.deleteLater)
-            self._cobrador.fim.connect(self.alter_estado)
+            self._cobrador.fim.connect(self.exec_load)
             self._thread.finished.connect(self._cobrador.deleteLater)
             self._thread.start()
         except Exception as e:
             traceback.print_exc()
             messagebox.showwarning(title='Aviso', message= e)
 
-    def to_progress(self, nome_empresa):
-        messagebox.showinfo(title='Aviso', message= f'Email enviado com sucesso para: {nome_empresa}')
+    def enviar_valor(self):
+        try:
+            resp = self.lineEdit_endereco.text()
+            #Validar envio
+            if resp == '':
+                raise Exception('Endereço de email inválido')
+
+            #Confirmar envio
+            self._cobrador.set_novo_endereco(resp)
+        except Exception as e:
+            messagebox.showwarning(title='Aviso', message= e)
+
+    def to_progress(self, valor):
+        self.progressBar.setValue(self.coeficiente_progress * valor)
+
+    def conclusion(self, nomes_empresas: list[str]):
+        messagebox.showinfo(title='Aviso', message= f'Email enviado com sucesso para: {'\n- '.join(nomes_empresas)}')
+
+    def widget_endereco(self, nome_empresa):
+        self.label_endereco_empresa.setText(nome_empresa)
+        self.exec_load(False, 3)
+
+    def exec_load(self, action: bool, to = 1):
+        if action == True:
+            self.movie.start()
+            self.stackedWidget.setCurrentIndex(to)
+        else:
+            self.movie.stop()
+            self.stackedWidget.setCurrentIndex(to)
 
 if __name__ == '__main__':
     app = QApplication()
