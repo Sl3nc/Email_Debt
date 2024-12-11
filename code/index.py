@@ -20,7 +20,7 @@ from sqlite3 import connect
 from smtp2go.core import Smtp2goClient
 
 from PySide6.QtWidgets import (
-    QMainWindow, QApplication, QRadioButton, QVBoxLayout, QWidget
+    QMainWindow, QApplication, QRadioButton, QVBoxLayout, QWidget, QCheckBox
 )
 from PySide6.QtGui import QPixmap, QIcon, QMovie
 from PySide6.QtCore import QThread, QObject, Signal, QSize
@@ -201,34 +201,38 @@ class Arquivo(QObject):
 
     def __init__(self):
         self.caminho = ''
+        self.col_titulo = "rcela Vencimento"
 
-    def inserir(self):
-        try:
-            caminho = askopenfilename()
-            if caminho =='':
-                raise FileNotFoundError()
-            self.validar_tipo(caminho)
+    def set_caminho(self, caminho):
+        if caminho =='':
+            raise FileNotFoundError()
+        self.validar_tipo(caminho)
+        caminho = self.validar_uni(caminho)
+        self.caminho = caminho
+        return caminho[caminho.rfind('/') +1:]
 
-            caminho_uni = unidecode(caminho)
-            if caminho != caminho_uni:
-                caminho = caminho_uni
-                rename(caminho, caminho_uni)
+    def validar_uni(self, caminho):
+        caminho_uni = unidecode(caminho)
+        if caminho != caminho_uni:
+            caminho = caminho_uni
+            rename(caminho, caminho_uni)
+            messagebox.showinfo(title='Aviso', message='O caminho do arquivo precisou ser mudado, para encontrá-lo novamente siga o caminho a seguir: \n' + caminho)
+        return caminho
 
-            self.caminho = caminho
-            return caminho[caminho.rfind('/') +1:]
-
-        except FileNotFoundError:
-            messagebox.showwarning(title='Aviso', message= 'Operação cancelada')
-        except Exception as e:
-            messagebox.showwarning(title='Aviso', message= e)
-
-    def validar_tipo(self, caminho):
+    def validar_tipo(self, caminho: str):
         tipo = caminho[len(caminho) - 3 :]
-        if 'pdf' != tipo and 'lsx' != tipo:
+        if tipo.lower() not in ['pdf','lsx']:
             raise Exception('Formato de arquivo inválido') 
 
     def nomes_empresas(self):
-        return ...
+        arquivo = tb.read_pdf(
+            self.caminho, pages='all',relative_area=True, area=[20,16,90,40]
+        )
+        tabelas = pd.concat(arquivo, ignore_index=True)
+        tabelas.fillna('', inplace=True)
+        tabelas = tabelas[tabelas[self.col_titulo] != '']
+        tabelas = tabelas.loc[tabelas.apply(lambda row: row[self.col_titulo][1] != '/', axis=1)]
+        return tabelas[self.col_titulo].values.tolist()
 
     def ler(self):
         arquivo = tb.read_pdf(self.caminho, pages="all",)
@@ -319,29 +323,40 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.coeficiente_progress = 0
         self.arquivo = Arquivo()
 
-        self.pushButton_endereco.connect(
+        self.pushButton_endereco.clicked.connect(
             self.enviar_valor
         )
 
-        self.pushButton_body_relatorio_anexar.connect(
+        self.pushButton_body_relatorio_anexar.clicked.connect(
             self.inserir_relatorio
         )
 
-        self.pushButton_body_executar.connect(
+        self.pushButton_body_executar.clicked.connect(
             self.executar
         )
 
     #TODO THREADS
     def pesquisar_empresas(self):
-        self._thread = QThread()
+        self.stackedWidget_empresas.setCurrentIndex(1)
+        nomes = self.arquivo.nomes_empresas()
+        self.label_empresas_aviso.hide()
 
-        self.arquivo.moveToThread(self._thread)
-        self._thread.started.connect(self.arquivo.nomes_empresas)
-        self.arquivo.fim.connect(self._thread.quit)
-        self.arquivo.fim.connect(self._thread.deleteLater)
-        self.arquivo.fim.connect(self.exibir_opcoes)
-        # self._thread.finished.connect(self.arquivo.deleteLater)
-        self._thread.start()
+        self.options.clear()
+        for index, nome in enumerate(nomes):
+            self.options[index] = QCheckBox(nome)
+            self.formLayout_options.addWidget(self.options[index])
+
+        self.stackedWidget_empresas.setCurrentIndex(0)
+        
+        # self._thread = QThread()
+
+        # self.arquivo.moveToThread(self._thread)
+        # self._thread.started.connect(self.arquivo.nomes_empresas)
+        # self.arquivo.fim.connect(self._thread.quit)
+        # self.arquivo.fim.connect(self._thread.deleteLater)
+        # self.arquivo.fim.connect(self.exibir_opcoes)
+        # # self._thread.finished.connect(self.arquivo.deleteLater)
+        # self._thread.start()
 
     def executar(self):
         if self.pushButton_body_relatorio_anexar.text() == '':
@@ -376,10 +391,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             messagebox.showwarning(title='Aviso', message= e)
 
     def inserir_relatorio(self):
-        caminho_reduzido = self.arquivo.inserir()
-        self.pushButton_body_relatorio_anexar.setText(caminho_reduzido)
-        self.pushButton_body_relatorio_anexar.setIcon(QIcon())
-        self.pesquisar_empresas()
+        try:
+            caminho_reduzido = self.arquivo.set_caminho(askopenfilename())
+            self.pushButton_body_relatorio_anexar.setText(caminho_reduzido)
+            self.pushButton_body_relatorio_anexar.setIcon(QIcon())
+            self.pesquisar_empresas()
+        except FileNotFoundError:
+            messagebox.showwarning(title='Aviso', message= 'Operação cancelada')
+        except Exception as e:
+            messagebox.showwarning(title='Aviso', message= e)
 
     def enviar_valor(self):
         try:

@@ -291,27 +291,28 @@
               </property>
               <widget class="QWidget" name="page_3">
                <layout class="QGridLayout" name="gridLayout_7">
-                <item row="0" column="0">
-                 <widget class="QLabel" name="label_empresas_aviso">
-                  <property name="font">
-                   <font>
-                    <family>Tw Cen MT</family>
-                    <pointsize>13</pointsize>
-                    <italic>true</italic>
-                   </font>
-                  </property>
-                  <property name="text">
-                   <string>Insira o relatório de vencidos</string>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignmentFlag::AlignCenter</set>
-                  </property>
-                 </widget>
+                <item row="1" column="0">
+                 <layout class="QGridLayout" name="gridLayout_12">
+                  <item row="0" column="0">
+                   <widget class="QLabel" name="label_empresas_aviso">
+                    <property name="font">
+                     <font>
+                      <family>Tw Cen MT</family>
+                      <pointsize>13</pointsize>
+                      <italic>true</italic>
+                     </font>
+                    </property>
+                    <property name="text">
+                     <string>Insira o relatório de vencidos</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignmentFlag::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
                 </item>
                </layout>
-              </widget>
-              <widget class="QWidget" name="page_4">
-               <layout class="QFormLayout" name="formLayout"/>
               </widget>
               <widget class="QWidget" name="page_6">
                <layout class="QGridLayout" name="gridLayout_11">

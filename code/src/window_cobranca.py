@@ -15,11 +15,10 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QApplication, QComboBox, QFormLayout, QFrame,
-    QGridLayout, QLabel, QLineEdit, QMainWindow,
-    QMenuBar, QProgressBar, QPushButton, QScrollArea,
-    QSizePolicy, QSpacerItem, QStackedWidget, QStatusBar,
-    QWidget)
+from PySide6.QtWidgets import (QApplication, QComboBox, QFrame, QGridLayout,
+    QLabel, QLineEdit, QMainWindow, QMenuBar,
+    QProgressBar, QPushButton, QScrollArea, QSizePolicy,
+    QSpacerItem, QStackedWidget, QStatusBar, QWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -178,6 +177,8 @@ class Ui_MainWindow(object):
         self.page_3.setObjectName(u"page_3")
         self.gridLayout_7 = QGridLayout(self.page_3)
         self.gridLayout_7.setObjectName(u"gridLayout_7")
+        self.gridLayout_12 = QGridLayout()
+        self.gridLayout_12.setObjectName(u"gridLayout_12")
         self.label_empresas_aviso = QLabel(self.page_3)
         self.label_empresas_aviso.setObjectName(u"label_empresas_aviso")
         font3 = QFont()
@@ -187,14 +188,12 @@ class Ui_MainWindow(object):
         self.label_empresas_aviso.setFont(font3)
         self.label_empresas_aviso.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        self.gridLayout_7.addWidget(self.label_empresas_aviso, 0, 0, 1, 1)
+        self.gridLayout_12.addWidget(self.label_empresas_aviso, 0, 0, 1, 1)
+
+
+        self.gridLayout_7.addLayout(self.gridLayout_12, 1, 0, 1, 1)
 
         self.stackedWidget_empresas.addWidget(self.page_3)
-        self.page_4 = QWidget()
-        self.page_4.setObjectName(u"page_4")
-        self.formLayout = QFormLayout(self.page_4)
-        self.formLayout.setObjectName(u"formLayout")
-        self.stackedWidget_empresas.addWidget(self.page_4)
         self.page_6 = QWidget()
         self.page_6.setObjectName(u"page_6")
         self.gridLayout_11 = QGridLayout(self.page_6)
