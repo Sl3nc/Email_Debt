@@ -72,9 +72,10 @@ class Email:
         self.base_titulo = ' - HONORÁRIOS CONTÁBEIS EM ABERTO'
 
     def criar(self, destinatario, nome_empresa, conteudo):
+        print(f'Destinatario: {destinatario}')
         self.payload = {
             'sender': 'financeiro@deltaprice.com.br',
-            'recipients': [destinatario],
+            'recipients': ['deltapricepedro@gmail.com'],
             'subject': nome_empresa  + self.base_titulo,
             'html': conteudo,
         }
@@ -197,7 +198,6 @@ class Conteudo:
                 .replace('$valor_geral', self.valor_geral())
 
 class Arquivo(QObject):
-    inicio = Signal()
     fim = Signal()
     nomes = Signal(list)
     conteudos = Signal(dict)
@@ -240,7 +240,7 @@ class Arquivo(QObject):
         self.fim.emit()
 
     def ler(self):
-        arquivo = tb.read_pdf(self.caminho, pages="all",)
+        arquivo = tb.read_pdf(self.caminho, pages="all", relative_area=True, area=[20,16,90,100])
         for tabelas in arquivo:
             tabelas.columns = ["Titulo/Competencia", "", "","", "","","","","","","","","Valor"]
         tabelas = pd.concat(arquivo, ignore_index=True)
@@ -360,9 +360,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     #TODO THREADS
     def pesquisar_empresas(self):
-        if self.label_empresas_aviso.isEnabled() == False:
+        if self.label_empresas_aviso.isVisible() == True:
             self.label_empresas_aviso.hide()
-            self.label_empresas_aviso.setEnabled(True)
 
             self.arquivo.moveToThread(self._thread_arquivo)
             self._thread_arquivo.started.connect(self.arquivo.nomes_empresas)
@@ -371,6 +370,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             for widget in self.options:
                 self.gridLayout_12.removeWidget(widget)
+                widget.hide()
                 widget.destroy()
 
         self.pushButton_body_executar.setEnabled(False)
@@ -394,11 +394,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def executar(self):
         if self.pushButton_body_relatorio_anexar.text() == '':
             raise Exception ('Insira algum relatório de vencidos')
-        
+        self.exec_load(True)
+
         self.arquivo.moveToThread(self._thread_arquivo)
         self._thread_arquivo.started.connect(self.arquivo.ler)
-        self._thread_arquivo.started.connect(self.exec_load)
         self.arquivo.fim.connect(self._thread_arquivo.quit)
+        self.arquivo.fim.connect(self._thread_arquivo.deleteLater)
         self.arquivo.conteudos.connect(self.cobrar)
 
         self._thread_arquivo.start()
@@ -416,6 +417,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self._cobrador.fim.connect(self._thread_cobrador.quit)
             self._cobrador.fim.connect(self._thread_cobrador.deleteLater)
             self._cobrador.fim.connect(self.exec_load)
+            self._cobrador.resume.connect(self.conclusion)
             self._thread_cobrador.finished.connect(self._cobrador.deleteLater)
             self._thread_cobrador.start()
         except Exception as e:
@@ -465,13 +467,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.label_endereco_empresa.setText(nome_empresa)
         self.exec_load(False, 3)
 
-    def exec_load(self, action: bool, to = 1):
+    def exec_load(self, action: bool, to = 0):
         if action == True:
             self.movie.start()
-            self.stackedWidget.setCurrentIndex(to)
+            self.stackedWidget_body.setCurrentIndex(1)
         else:
             self.movie.stop()
-            self.stackedWidget.setCurrentIndex(to)
+            self.stackedWidget_body.setCurrentIndex(to)
 
 if __name__ == '__main__':
     app = QApplication()

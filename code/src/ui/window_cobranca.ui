@@ -319,7 +319,7 @@
               <widget class="QWidget" name="page_3">
                <layout class="QGridLayout" name="gridLayout_7">
                 <item row="1" column="0">
-                 <layout class="QGridLayout" name="gridLayout_12">
+                 <layout class="QGridLayout" name="gridLayout_empresas">
                   <item row="0" column="0">
                    <widget class="QLabel" name="label_empresas_aviso">
                     <property name="enabled">
@@ -377,8 +377,8 @@
       </widget>
       <widget class="QWidget" name="page_2">
        <layout class="QGridLayout" name="gridLayout_8">
-        <item row="0" column="3">
-         <spacer name="horizontalSpacer_2">
+        <item row="0" column="0">
+         <spacer name="horizontalSpacer">
           <property name="orientation">
            <enum>Qt::Orientation::Horizontal</enum>
           </property>
@@ -390,7 +390,7 @@
           </property>
          </spacer>
         </item>
-        <item row="4" column="0" colspan="4">
+        <item row="3" column="0" colspan="3">
          <widget class="QFrame" name="frame_3">
           <property name="frameShape">
            <enum>QFrame::Shape::StyledPanel</enum>
@@ -411,8 +411,8 @@
           </layout>
          </widget>
         </item>
-        <item row="0" column="0">
-         <spacer name="horizontalSpacer">
+        <item row="0" column="2">
+         <spacer name="horizontalSpacer_2">
           <property name="orientation">
            <enum>Qt::Orientation::Horizontal</enum>
           </property>
@@ -464,25 +464,6 @@
           </property>
           <property name="alignment">
            <set>Qt::AlignmentFlag::AlignCenter</set>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="0" colspan="4">
-         <widget class="Line" name="line_2">
-          <property name="minimumSize">
-           <size>
-            <width>0</width>
-            <height>5</height>
-           </size>
-          </property>
-          <property name="styleSheet">
-           <string notr="true">background-color: rgb(85, 170, 255);</string>
-          </property>
-          <property name="lineWidth">
-           <number>0</number>
-          </property>
-          <property name="orientation">
-           <enum>Qt::Orientation::Horizontal</enum>
           </property>
          </widget>
         </item>
