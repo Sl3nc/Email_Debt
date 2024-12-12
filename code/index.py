@@ -11,8 +11,9 @@ from unidecode import unidecode
 import traceback
 from datetime import datetime
 import string
-from os import path, rename
+from os import path, renames
 import sys
+from copy import deepcopy
 from time import sleep
 
 from sqlite3 import connect
@@ -198,14 +199,17 @@ class Conteudo:
 class Arquivo(QObject):
     inicio = Signal()
     fim = Signal()
+    nomes = Signal(list)
+    conteudos = Signal(dict)
 
-    def __init__(self):
+    def __init__(self) -> None:
+        super().__init__()
         self.caminho = ''
         self.col_titulo = "rcela Vencimento"
 
     def set_caminho(self, caminho):
-        if caminho =='':
-            raise FileNotFoundError()
+        if caminho == '':
+            return None
         self.validar_tipo(caminho)
         caminho = self.validar_uni(caminho)
         self.caminho = caminho
@@ -214,8 +218,8 @@ class Arquivo(QObject):
     def validar_uni(self, caminho):
         caminho_uni = unidecode(caminho)
         if caminho != caminho_uni:
+            renames(caminho, caminho_uni)
             caminho = caminho_uni
-            rename(caminho, caminho_uni)
             messagebox.showinfo(title='Aviso', message='O caminho do arquivo precisou ser mudado, para encontrá-lo novamente siga o caminho a seguir: \n' + caminho)
         return caminho
 
@@ -232,7 +236,8 @@ class Arquivo(QObject):
         tabelas.fillna('', inplace=True)
         tabelas = tabelas[tabelas[self.col_titulo] != '']
         tabelas = tabelas.loc[tabelas.apply(lambda row: row[self.col_titulo][1] != '/', axis=1)]
-        return tabelas[self.col_titulo].values.tolist()
+        self.nomes.emit(tabelas[self.col_titulo].values.tolist())
+        self.fim.emit()
 
     def ler(self):
         arquivo = tb.read_pdf(self.caminho, pages="all",)
@@ -265,7 +270,8 @@ class Arquivo(QObject):
                 #Fecha conteudo
                 dict_conteudos[nome_atual] = conteudo_atual.to_string()
         
-        return dict_conteudos
+        self.conteudos.emit(dict_conteudos)
+        self.fim.emit()
 
 class Cobrador(QObject):
     novo_endereco = Signal(str)
@@ -322,6 +328,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.MAX_PROGRESS = 100
         self.coeficiente_progress = 0
         self.arquivo = Arquivo()
+        self.options = []
+
+        self._thread_arquivo = QThread()
+
+        self.setWindowIcon(QIcon(resource_path('src\\imgs\\mail-icon.ico')))
+
+        self.movie = QMovie(resource_path("src\\imgs\\load.gif"))
+        self.label_load_gif.setMovie(self.movie)
+        self.label_loading_empresas.setMovie(self.movie)
+
+        icon = QIcon()
+        icon.addFile(resource_path("src\\imgs\\upload-icon.png"), QSize(), QIcon.Mode.Normal, QIcon.State.Off)
+        self.pushButton_body_relatorio_anexar.setIcon(icon)
+
+        #Logo
+        self.label_header_logo.setPixmap(QPixmap
+        (resource_path('src\\imgs\\mail-hori.png')))
 
         self.pushButton_endereco.clicked.connect(
             self.enviar_valor
@@ -337,68 +360,87 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     #TODO THREADS
     def pesquisar_empresas(self):
+        if self.label_empresas_aviso.isEnabled() == False:
+            self.label_empresas_aviso.hide()
+            self.label_empresas_aviso.setEnabled(True)
+
+            self.arquivo.moveToThread(self._thread_arquivo)
+            self._thread_arquivo.started.connect(self.arquivo.nomes_empresas)
+            self.arquivo.fim.connect(self._thread_arquivo.quit)
+            self.arquivo.nomes.connect(self.exibir_opcoes)
+        else:
+            for widget in self.options:
+                self.gridLayout_12.removeWidget(widget)
+                widget.destroy()
+
+        self.pushButton_body_executar.setEnabled(False)
         self.stackedWidget_empresas.setCurrentIndex(1)
-        nomes = self.arquivo.nomes_empresas()
-        self.label_empresas_aviso.hide()
-
-        self.options.clear()
-        for index, nome in enumerate(nomes):
-            self.options[index] = QCheckBox(nome)
-            self.formLayout_options.addWidget(self.options[index])
-
-        self.stackedWidget_empresas.setCurrentIndex(0)
+        self.movie.start()
         
-        # self._thread = QThread()
+        self._thread_arquivo.start()
 
-        # self.arquivo.moveToThread(self._thread)
-        # self._thread.started.connect(self.arquivo.nomes_empresas)
-        # self.arquivo.fim.connect(self._thread.quit)
-        # self.arquivo.fim.connect(self._thread.deleteLater)
-        # self.arquivo.fim.connect(self.exibir_opcoes)
-        # # self._thread.finished.connect(self.arquivo.deleteLater)
-        # self._thread.start()
+    def exibir_opcoes(self, nomes):
+        self.options.clear()
+        for nome in nomes:
+            cb = QCheckBox(nome)
+            cb.setChecked(True)
+            self.options.append(cb)
+            self.gridLayout_12.addWidget(cb)
+
+        self.pushButton_body_executar.setEnabled(True)
+        self.stackedWidget_empresas.setCurrentIndex(0)
+        self.movie.stop()
 
     def executar(self):
         if self.pushButton_body_relatorio_anexar.text() == '':
             raise Exception ('Insira algum relatório de vencidos')
         
-        self._thread = QThread()
-        self.arquivo.moveToThread(self._thread)
-        self._thread.started.connect(self.arquivo.ler)
-        self.arquivo.fim.connect(self._thread.quit)
-        self.arquivo.fim.connect(self._thread.deleteLater)
-        self.arquivo.fim.connect(self.cobrar)
-        self.arquivo.inicio.connect(self.exec_load)
-        # self._thread.finished.connect(self.arquivo.deleteLater)
-        self._thread.start()
+        self.arquivo.moveToThread(self._thread_arquivo)
+        self._thread_arquivo.started.connect(self.arquivo.ler)
+        self._thread_arquivo.started.connect(self.exec_load)
+        self.arquivo.fim.connect(self._thread_arquivo.quit)
+        self.arquivo.conteudos.connect(self.cobrar)
+
+        self._thread_arquivo.start()
 
     def cobrar(self, dict_content):
         try:
-            self.coeficiente_progress = self.MAX_PROGRESS / len(dict_content)
-            self._cobrador = Cobrador(dict_content)
-            self._thread = QThread()
+            content_filtred = self.filtro(dict_content)
+            self.coeficiente_progress = self.MAX_PROGRESS / len(content_filtred)
+            self._cobrador = Cobrador(content_filtred)
+            self._thread_cobrador = QThread()
 
-            self._cobrador.moveToThread(self._thread)
-            self._thread.started.connect(self._cobrador.executar)
+            self._cobrador.moveToThread(self._thread_cobrador)
+            self._thread_cobrador.started.connect(self._cobrador.executar)
             self._cobrador.novo_endereco.connect(self.acess_cadastro)
-            self._cobrador.fim.connect(self._thread.quit)
-            self._cobrador.fim.connect(self._thread.deleteLater)
+            self._cobrador.fim.connect(self._thread_cobrador.quit)
+            self._cobrador.fim.connect(self._thread_cobrador.deleteLater)
             self._cobrador.fim.connect(self.exec_load)
-            self._thread.finished.connect(self._cobrador.deleteLater)
-            self._thread.start()
+            self._thread_cobrador.finished.connect(self._cobrador.deleteLater)
+            self._thread_cobrador.start()
         except Exception as e:
             traceback.print_exc()
             messagebox.showwarning(title='Aviso', message= e)
 
+    def filtro(self, dict_content : dict[str,str]):
+        filtred_content = deepcopy(dict_content)
+        for i in self.options:
+            if i.isChecked() == False:
+                del filtred_content[i.text()]
+        return filtred_content
+
     def inserir_relatorio(self):
         try:
             caminho_reduzido = self.arquivo.set_caminho(askopenfilename())
+            if caminho_reduzido == None:
+                return None
             self.pushButton_body_relatorio_anexar.setText(caminho_reduzido)
             self.pushButton_body_relatorio_anexar.setIcon(QIcon())
             self.pesquisar_empresas()
-        except FileNotFoundError:
-            messagebox.showwarning(title='Aviso', message= 'Operação cancelada')
+        # except FileNotFoundError:
+        #     messagebox.showwarning(title='Aviso', message= 'Operação cancelada')
         except Exception as e:
+            traceback.print_exc()
             messagebox.showwarning(title='Aviso', message= e)
 
     def enviar_valor(self):
