@@ -284,17 +284,17 @@ class Cobrador(QObject):
     def __init__(self, dict_content: dict[str,str]):
         super().__init__()
         self.dict_content = dict_content
-        self.db = DataBase()
         self.enderecos_novos = ''
 
     #TODO EXECUTAR
     def executar(self):
+        db = DataBase()
         email = Email()
         count = 0
         for nome_empresa, conteudo in self.dict_content.items():
-            enderecos_email = self.db.emails_empresa(nome_empresa)
+            enderecos_email = db.emails_empresa(nome_empresa)
             if enderecos_email == None:
-                enderecos_email = self.registro(nome_empresa, enderecos_email)
+                enderecos_email = self.registro(nome_empresa, db)
             
             for endereco in enderecos_email:
                 email.criar(endereco, nome_empresa, conteudo)
@@ -305,17 +305,17 @@ class Cobrador(QObject):
         self.fim.emit(False)
         self.resume.emit(self.dict_content.keys())
 
-    def registro(self, nome_empresa):
+    def registro(self, nome_empresa, db):
         self.novo_endereco.emit(nome_empresa)
         while self.enderecos_novos == '':
             sleep(2)
 
-        id_empresa = self.db.registrar_empresa(nome_empresa)
+        id_empresa = db.registrar_empresa(nome_empresa)
         enderecos_email = self.enderecos_novos.split(';')
         self.enderecos_novos = ''
 
         for endereco in enderecos_email:
-            self.db.registrar_endereco(endereco, id_empresa)
+            db.registrar_endereco(endereco, id_empresa)
         return enderecos_email
     
     def set_novo_endereco(self, valor: str):
