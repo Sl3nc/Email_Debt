@@ -46,7 +46,7 @@ class DataBase:
             f'SELECT endereco FROM {self.TABELA_EMAIL} '
             'WHERE id_emp = '
             f'(SELECT id_emp FROM {self.TABELA_EMPRESA} '
-            'WHERE nome = "{1}")'
+            'WHERE nome = "{0}")'
         )
 
         self.insert_endereco = (
@@ -145,8 +145,8 @@ class Conteudo:
         </html>
         """
 
-    def add_linha(self, row):
-        valor_pag = float(row['Em aberto'].replace(',','.'))
+    def add_linha(self, row: pd.Series):
+        valor_pag = float(row['Valor'].replace(',', '', 1).replace(',', '.', 1))
 
         dia_atual = datetime.now()
         dia_vencimento = datetime.strptime(row['Vencimento'], '%d/%m/%Y')
@@ -173,7 +173,7 @@ class Conteudo:
             """.format(
                 str(row['Competência']), 
                 str(row['Vencimento']), 
-                dias_atraso, str(row['Em aberto']), 
+                dias_atraso, str(row['Valor']), 
                 f'{multa:,.2f}'.replace('.',','), 
                 f'{juros:,.2f}'.replace('.',','), 
                 f'{total:,.2f}'.replace('.',',').replace('_','.'))
@@ -225,7 +225,7 @@ class Arquivo(QObject):
 
     def validar_tipo(self, caminho: str):
         tipo = caminho[len(caminho) - 3 :]
-        if tipo.lower() not in ['pdf','lsx']:
+        if tipo.lower() != 'pdf':
             raise Exception('Formato de arquivo inválido') 
 
     def nomes_empresas(self):
@@ -248,14 +248,17 @@ class Arquivo(QObject):
         tabelas = tabelas.drop(0).reset_index(drop=True)
 
         tabelas.fillna('', inplace=True)
+        self.conteudos.emit(self.filtro_conteudo(tabelas))
+        self.fim.emit()
+
+    def filtro_conteudo(self, tabelas):
         dict_conteudos = {}
-        for index, row in arquivo.iterrows():
+        for index, row in tabelas.iterrows():
             if row.Valor != '' and row["Titulo/Competencia"] != '':
-                #Cria series com: Competência, Vencimento e Valor em aberto
                 vencimento = row["Titulo/Competencia"].replace('1/1 ','')
                 
-                competencia = datetime.strptime(vencimento[7:],'%m/%Y')
-                competencia = competencia.replace(month= -1).strftime('%m/%Y')
+                competencia = datetime.strptime(vencimento[3:],'%m/%Y')
+                competencia = competencia.replace(month= competencia.month - 1).strftime('%m/%Y')
                 
                 conteudo_atual.add_linha(pd.Series(data= {
                     'Competência': competencia,
@@ -269,9 +272,7 @@ class Arquivo(QObject):
             else:
                 #Fecha conteudo
                 dict_conteudos[nome_atual] = conteudo_atual.to_string()
-        
-        self.conteudos.emit(dict_conteudos)
-        self.fim.emit()
+        return dict_conteudos
 
 class Cobrador(QObject):
     novo_endereco = Signal(str)
@@ -290,7 +291,7 @@ class Cobrador(QObject):
     def executar(self):
         email = Email()
         count = 0
-        for nome_empresa, conteudo in self.dict_conteudo.items():
+        for nome_empresa, conteudo in self.dict_content.items():
             enderecos_email = self.db.emails_empresa(nome_empresa)
             if enderecos_email == None:
                 enderecos_email = self.registro(nome_empresa, enderecos_email)
@@ -302,7 +303,7 @@ class Cobrador(QObject):
             count = count + 1
             self.progress.emit(count)
         self.fim.emit(False)
-        # self.resume.emit(self.dict_content.keys())
+        self.resume.emit(self.dict_content.keys())
 
     def registro(self, nome_empresa):
         self.novo_endereco.emit(nome_empresa)
@@ -357,6 +358,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.executar
         )
 
+        self._thread = QThread()
+        self.arquivo.moveToThread(self._thread)
+        self.arquivo.fim.connect(self._thread.quit)
+
     #TODO THREADS
     def inserir_relatorio(self):
         try:
@@ -376,22 +381,22 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if self.label_empresas_aviso.isVisible() == True:
             self.label_empresas_aviso.hide()
         else:
+            self._thread.disconnect(self.inicio)
+            self.arquivo.disconnect(self.conexao_nome)
+
             for widget in self.options:
-                self.gridLayout_12.removeWidget(widget)
+                self.gridLayout_empresas.removeWidget(widget)
                 widget.hide()
                 widget.destroy()
 
         self.pushButton_body_executar.setEnabled(False)
         self.stackedWidget_empresas.setCurrentIndex(1)
         self.movie.start()
-
-        self._thread = QThread()
-        self.arquivo.moveToThread(self._thread)
-        self._thread.started.connect(self.arquivo.nomes_empresas)
-        self.arquivo.fim.connect(self._thread.quit)
-        self.arquivo.fim.connect(self._thread.deleteLater)
-        self.arquivo.nomes.connect(self.exibir_opcoes)
         
+        self.inicio = self._thread.started.connect(self.arquivo.nomes_empresas)
+        # self.arquivo.fim.connect(self._thread.deleteLater)
+        self.conexao_nome = self.arquivo.nomes.connect(self.exibir_opcoes)
+
         self._thread.start()
 
     def exibir_opcoes(self, nomes):
@@ -400,7 +405,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             cb = QCheckBox(nome)
             cb.setChecked(True)
             self.options.append(cb)
-            self.gridLayout_12.addWidget(cb)
+            self.gridLayout_empresas.addWidget(cb)
 
         self.pushButton_body_executar.setEnabled(True)
         self.stackedWidget_empresas.setCurrentIndex(0)
@@ -411,17 +416,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             raise Exception ('Insira algum relatório de vencidos')
         self.exec_load(True)
 
-        self._thread = QThread()
-        self.arquivo.moveToThread(self._thread)
-        self._thread.started.connect(self.arquivo.ler)
-        self.arquivo.fim.connect(self._thread.quit)
-        self.arquivo.fim.connect(self._thread.deleteLater)
-        self.arquivo.conteudos.connect(self.cobrar)
+        self.conexao_ler = self._thread.started.connect(self.arquivo.ler)
+        # self.arquivo.fim.connect(self._thread.deleteLater)
+        self.conexao_cobrar = self.arquivo.conteudos.connect(self.cobrar)
 
         self._thread.start()
 
     def cobrar(self, dict_content):
         try:
+            self._thread.disconnect(self.conexao_ler)
+            self.arquivo.disconnect(self.conexao_cobrar)
+
             content_filtred = self.filtro(dict_content)
             self.coeficiente_progress = self.MAX_PROGRESS / len(content_filtred)
             self._cobrador = Cobrador(content_filtred)

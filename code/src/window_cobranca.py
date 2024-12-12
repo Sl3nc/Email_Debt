@@ -190,8 +190,8 @@ class Ui_MainWindow(object):
         self.page_3.setObjectName(u"page_3")
         self.gridLayout_7 = QGridLayout(self.page_3)
         self.gridLayout_7.setObjectName(u"gridLayout_7")
-        self.gridLayout_12 = QGridLayout()
-        self.gridLayout_12.setObjectName(u"gridLayout_12")
+        self.gridLayout_empresas = QGridLayout()
+        self.gridLayout_empresas.setObjectName(u"gridLayout_empresas")
         self.label_empresas_aviso = QLabel(self.page_3)
         self.label_empresas_aviso.setObjectName(u"label_empresas_aviso")
         self.label_empresas_aviso.setEnabled(False)
@@ -202,10 +202,10 @@ class Ui_MainWindow(object):
         self.label_empresas_aviso.setFont(font5)
         self.label_empresas_aviso.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        self.gridLayout_12.addWidget(self.label_empresas_aviso, 0, 0, 1, 1)
+        self.gridLayout_empresas.addWidget(self.label_empresas_aviso, 0, 0, 1, 1)
 
 
-        self.gridLayout_7.addLayout(self.gridLayout_12, 1, 0, 1, 1)
+        self.gridLayout_7.addLayout(self.gridLayout_empresas, 1, 0, 1, 1)
 
         self.stackedWidget_empresas.addWidget(self.page_3)
         self.page_6 = QWidget()
@@ -233,9 +233,9 @@ class Ui_MainWindow(object):
         self.page_2.setObjectName(u"page_2")
         self.gridLayout_8 = QGridLayout(self.page_2)
         self.gridLayout_8.setObjectName(u"gridLayout_8")
-        self.horizontalSpacer_2 = QSpacerItem(246, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+        self.horizontalSpacer = QSpacerItem(246, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
-        self.gridLayout_8.addItem(self.horizontalSpacer_2, 0, 3, 1, 1)
+        self.gridLayout_8.addItem(self.horizontalSpacer, 0, 0, 1, 1)
 
         self.frame_3 = QFrame(self.page_2)
         self.frame_3.setObjectName(u"frame_3")
@@ -250,11 +250,11 @@ class Ui_MainWindow(object):
         self.gridLayout_9.addWidget(self.progressBar, 0, 0, 1, 1)
 
 
-        self.gridLayout_8.addWidget(self.frame_3, 4, 0, 1, 4)
+        self.gridLayout_8.addWidget(self.frame_3, 3, 0, 1, 3)
 
-        self.horizontalSpacer = QSpacerItem(246, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+        self.horizontalSpacer_2 = QSpacerItem(246, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
-        self.gridLayout_8.addItem(self.horizontalSpacer, 0, 0, 1, 1)
+        self.gridLayout_8.addItem(self.horizontalSpacer_2, 0, 2, 1, 1)
 
         self.label_load_gif = QLabel(self.page_2)
         self.label_load_gif.setObjectName(u"label_load_gif")
@@ -277,16 +277,6 @@ class Ui_MainWindow(object):
         self.label_load_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.gridLayout_8.addWidget(self.label_load_title, 2, 1, 1, 1)
-
-        self.line_2 = QFrame(self.page_2)
-        self.line_2.setObjectName(u"line_2")
-        self.line_2.setMinimumSize(QSize(0, 5))
-        self.line_2.setStyleSheet(u"background-color: rgb(85, 170, 255);")
-        self.line_2.setLineWidth(0)
-        self.line_2.setFrameShape(QFrame.Shape.HLine)
-        self.line_2.setFrameShadow(QFrame.Shadow.Sunken)
-
-        self.gridLayout_8.addWidget(self.line_2, 3, 0, 1, 4)
 
         self.stackedWidget_body.addWidget(self.page_2)
         self.page_5 = QWidget()
