@@ -358,6 +358,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         )
 
     #TODO THREADS
+    def inserir_relatorio(self):
+        try:
+            caminho_reduzido = self.arquivo.set_caminho(askopenfilename())
+            if caminho_reduzido == None:
+                return None
+            self.pushButton_body_relatorio_anexar.setText(caminho_reduzido)
+            self.pushButton_body_relatorio_anexar.setIcon(QIcon())
+            self.pesquisar_empresas()
+        # except FileNotFoundError:
+        #     messagebox.showwarning(title='Aviso', message= 'Operação cancelada')
+        except Exception as e:
+            traceback.print_exc()
+            messagebox.showwarning(title='Aviso', message= e)
+
     def pesquisar_empresas(self):
         if self.label_empresas_aviso.isVisible() == True:
             self.label_empresas_aviso.hide()
@@ -372,7 +386,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.movie.start()
 
         self._thread = QThread()
-
         self.arquivo.moveToThread(self._thread)
         self._thread.started.connect(self.arquivo.nomes_empresas)
         self.arquivo.fim.connect(self._thread.quit)
@@ -398,6 +411,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             raise Exception ('Insira algum relatório de vencidos')
         self.exec_load(True)
 
+        self._thread = QThread()
         self.arquivo.moveToThread(self._thread)
         self._thread.started.connect(self.arquivo.ler)
         self.arquivo.fim.connect(self._thread.quit)
@@ -432,20 +446,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if i.isChecked() == False:
                 del filtred_content[i.text()]
         return filtred_content
-
-    def inserir_relatorio(self):
-        try:
-            caminho_reduzido = self.arquivo.set_caminho(askopenfilename())
-            if caminho_reduzido == None:
-                return None
-            self.pushButton_body_relatorio_anexar.setText(caminho_reduzido)
-            self.pushButton_body_relatorio_anexar.setIcon(QIcon())
-            self.pesquisar_empresas()
-        # except FileNotFoundError:
-        #     messagebox.showwarning(title='Aviso', message= 'Operação cancelada')
-        except Exception as e:
-            traceback.print_exc()
-            messagebox.showwarning(title='Aviso', message= e)
 
     def enviar_valor(self):
         try:
