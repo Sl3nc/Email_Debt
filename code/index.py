@@ -330,7 +330,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.arquivo = Arquivo()
         self.options = []
 
-        self._thread_arquivo = QThread()
 
         self.setWindowIcon(QIcon(resource_path('src\\imgs\\mail-icon.ico')))
 
@@ -362,11 +361,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def pesquisar_empresas(self):
         if self.label_empresas_aviso.isVisible() == True:
             self.label_empresas_aviso.hide()
-
-            self.arquivo.moveToThread(self._thread_arquivo)
-            self._thread_arquivo.started.connect(self.arquivo.nomes_empresas)
-            self.arquivo.fim.connect(self._thread_arquivo.quit)
-            self.arquivo.nomes.connect(self.exibir_opcoes)
         else:
             for widget in self.options:
                 self.gridLayout_12.removeWidget(widget)
@@ -376,8 +370,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.pushButton_body_executar.setEnabled(False)
         self.stackedWidget_empresas.setCurrentIndex(1)
         self.movie.start()
+
+        self._thread = QThread()
+
+        self.arquivo.moveToThread(self._thread)
+        self._thread.started.connect(self.arquivo.nomes_empresas)
+        self.arquivo.fim.connect(self._thread.quit)
+        self.arquivo.fim.connect(self._thread.deleteLater)
+        self.arquivo.nomes.connect(self.exibir_opcoes)
         
-        self._thread_arquivo.start()
+        self._thread.start()
 
     def exibir_opcoes(self, nomes):
         self.options.clear()
@@ -396,13 +398,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             raise Exception ('Insira algum relatório de vencidos')
         self.exec_load(True)
 
-        self.arquivo.moveToThread(self._thread_arquivo)
-        self._thread_arquivo.started.connect(self.arquivo.ler)
-        self.arquivo.fim.connect(self._thread_arquivo.quit)
-        self.arquivo.fim.connect(self._thread_arquivo.deleteLater)
+        self.arquivo.moveToThread(self._thread)
+        self._thread.started.connect(self.arquivo.ler)
+        self.arquivo.fim.connect(self._thread.quit)
+        self.arquivo.fim.connect(self._thread.deleteLater)
         self.arquivo.conteudos.connect(self.cobrar)
 
-        self._thread_arquivo.start()
+        self._thread.start()
 
     def cobrar(self, dict_content):
         try:
