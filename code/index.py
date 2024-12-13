@@ -73,11 +73,12 @@ class DataBase:
         self.cursor = self.connection.cursor()
         pass
 
-    def emails_empresa(self, nome_empresa: str) -> list[tuple[str]]:
+    def emails_empresa(self, nome_empresa: str) -> list[str]:
+        dict_result = ()
         self.cursor.execute(
             self.query_endereco.format(nome_empresa)
         )
-        return self.cursor.fetchall()
+        return [i for sub in self.cursor.fetchall() for i in sub]
 
     def registrar_empresa(self, nome_empresa: str) -> str:
         self.cursor.execute(
@@ -322,21 +323,21 @@ class Cobrador(QObject):
         db = DataBase()
         email = Email()
         count = 0
+        enderecos_totais = []
         for nome_empresa, conteudo in self.dict_content.items():
             enderecos_email = db.emails_empresa(nome_empresa)
             if enderecos_email == []:
                 enderecos_email = self.registro(nome_empresa, db)
             
-            print(enderecos_email)
-            sleep(10)
             email.criar(enderecos_email, nome_empresa, conteudo)
             email.enviar()
 
             count = count + 1
             self.progress.emit(count)
+            enderecos_totais.append(i for i in enderecos_email)
 
         self.fim.emit()
-        self.resume.emit(enderecos_email)
+        self.resume.emit(enderecos_totais)
 
     #TODO REGISTRO
     def registro(self, nome_empresa: str, db: DataBase):
@@ -442,6 +443,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def executar(self):
         if self.pushButton_body_relatorio_anexar.text() == '':
             raise Exception ('Insira algum relatório de vencidos')
+        
+        self.progressBar.setValue(0)
         self.exec_load(True)
 
         self.conexao_ler = self._thread.started.connect(self.arquivo.ler)
@@ -500,6 +503,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             #Confirmar envio
             self._cobrador.set_novo_endereco(resp)
+            self.exec_load(True)
         except Exception as e:
             messagebox.showwarning(title='Aviso', message= e)
 
