@@ -107,6 +107,10 @@ class DataBase:
             self.query_ass.format(nome_func)
         )
         return self.cursor.fetchone()[0]
+    
+    def close(self):
+        self.cursor.close()
+        self.connection.close()
 
 class Email:
     def __init__(self):
@@ -188,7 +192,7 @@ class Conteudo:
         """
 
     def add_linha(self, row: pd.Series):
-        valor_pag = float(row['Valor'].replace(',', '', 1).replace(',', '.', 1))
+        valor_pag = float(row['Valor'].replace('.','').replace(',', '.'))
 
         dia_atual = datetime.now()
         dia_vencimento = datetime.strptime(row['Vencimento'], '%d/%m/%Y')
@@ -213,12 +217,13 @@ class Conteudo:
                 <td style="border: 1px solid black; padding: 8px 10px;"><span style="color: red;">R$ {6}</span></td>\
             </tr>\n
             """.format(
-                str(row['Competência']), 
-                str(row['Vencimento']), 
-                dias_atraso, str(row['Valor']), 
-                f'{multa:,.2f}'.replace('.',','), 
-                f'{juros:,.2f}'.replace('.',','), 
-                f'{total:,.2f}'.replace('.',',').replace('_','.'))
+                    str(row['Competência']), 
+                    str(row['Vencimento']), 
+                    dias_atraso, str(row['Valor']), 
+                    f'{multa:_.2f}'.replace('.',',').replace('_','.'), 
+                    f'{juros:_.2f}'.replace('.',',').replace('_','.'), 
+                    f'{total:_.2f}'.replace('.',',').replace('_','.')
+                )
 
     def valor_geral(self):
         valor = f'{sum(self.valores_totais):_.2f}'\
@@ -352,6 +357,7 @@ class Cobrador(QObject):
             for i in enderecos_email:
                 enderecos_totais.append(i)
 
+        db.close()
         self.fim.emit()
         self.resume.emit(enderecos_totais)
 
