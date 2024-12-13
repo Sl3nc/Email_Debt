@@ -531,6 +531,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def conclusion(self, enderecos_empresas: list[str]):
         self.exec_load(False, 0)
+        enderecos_empresas[0] = f'- {enderecos_empresas[0]}'
         messagebox.showinfo(title='Aviso', message= f'Email enviado com sucesso para: \n{'\n- '.join(enderecos_empresas)}')
 
     def acess_cadastro(self, nome_empresa: str):
