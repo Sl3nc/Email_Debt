@@ -24,7 +24,7 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(847, 491)
+        MainWindow.resize(847, 512)
         MainWindow.setMinimumSize(QSize(847, 491))
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
@@ -83,18 +83,6 @@ class Ui_MainWindow(object):
 
         self.gridLayout_3.addItem(self.verticalSpacer, 3, 1, 1, 1)
 
-        self.comboBox_body_funcionario = QComboBox(self.page)
-        self.comboBox_body_funcionario.addItem("")
-        self.comboBox_body_funcionario.addItem("")
-        self.comboBox_body_funcionario.setObjectName(u"comboBox_body_funcionario")
-        font1 = QFont()
-        font1.setFamilies([u"Segoe UI"])
-        font1.setPointSize(14)
-        self.comboBox_body_funcionario.setFont(font1)
-        self.comboBox_body_funcionario.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
-
-        self.gridLayout_3.addWidget(self.comboBox_body_funcionario, 1, 1, 2, 1)
-
         self.pushButton_body_relatorio_anexar = QPushButton(self.page)
         self.pushButton_body_relatorio_anexar.setObjectName(u"pushButton_body_relatorio_anexar")
         sizePolicy = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
@@ -103,10 +91,10 @@ class Ui_MainWindow(object):
         sizePolicy.setHeightForWidth(self.pushButton_body_relatorio_anexar.sizePolicy().hasHeightForWidth())
         self.pushButton_body_relatorio_anexar.setSizePolicy(sizePolicy)
         self.pushButton_body_relatorio_anexar.setMinimumSize(QSize(0, 50))
-        font2 = QFont()
-        font2.setFamilies([u"Rockwell"])
-        font2.setPointSize(12)
-        self.pushButton_body_relatorio_anexar.setFont(font2)
+        font1 = QFont()
+        font1.setFamilies([u"Rockwell"])
+        font1.setPointSize(12)
+        self.pushButton_body_relatorio_anexar.setFont(font1)
         icon = QIcon()
         icon.addFile(u"../imgs/upload-icon.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         self.pushButton_body_relatorio_anexar.setIcon(icon)
@@ -114,25 +102,28 @@ class Ui_MainWindow(object):
 
         self.gridLayout_3.addWidget(self.pushButton_body_relatorio_anexar, 5, 1, 1, 1)
 
-        self.label_body_funcionario_title = QLabel(self.page)
-        self.label_body_funcionario_title.setObjectName(u"label_body_funcionario_title")
-        sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Maximum)
-        sizePolicy1.setHorizontalStretch(0)
-        sizePolicy1.setVerticalStretch(0)
-        sizePolicy1.setHeightForWidth(self.label_body_funcionario_title.sizePolicy().hasHeightForWidth())
-        self.label_body_funcionario_title.setSizePolicy(sizePolicy1)
-        font3 = QFont()
-        font3.setFamilies([u"Tw Cen MT"])
-        font3.setPointSize(16)
-        self.label_body_funcionario_title.setFont(font3)
-        self.label_body_funcionario_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.comboBox_body_funcionario = QComboBox(self.page)
+        self.comboBox_body_funcionario.addItem("")
+        self.comboBox_body_funcionario.addItem("")
+        self.comboBox_body_funcionario.setObjectName(u"comboBox_body_funcionario")
+        font2 = QFont()
+        font2.setFamilies([u"Segoe UI"])
+        font2.setPointSize(14)
+        self.comboBox_body_funcionario.setFont(font2)
+        self.comboBox_body_funcionario.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
 
-        self.gridLayout_3.addWidget(self.label_body_funcionario_title, 0, 1, 1, 1)
+        self.gridLayout_3.addWidget(self.comboBox_body_funcionario, 1, 1, 2, 1)
 
         self.label_bodyrelatorio_title = QLabel(self.page)
         self.label_bodyrelatorio_title.setObjectName(u"label_bodyrelatorio_title")
+        sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Maximum)
+        sizePolicy1.setHorizontalStretch(0)
+        sizePolicy1.setVerticalStretch(0)
         sizePolicy1.setHeightForWidth(self.label_bodyrelatorio_title.sizePolicy().hasHeightForWidth())
         self.label_bodyrelatorio_title.setSizePolicy(sizePolicy1)
+        font3 = QFont()
+        font3.setFamilies([u"Tw Cen MT"])
+        font3.setPointSize(16)
         self.label_bodyrelatorio_title.setFont(font3)
         self.label_bodyrelatorio_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
@@ -144,6 +135,15 @@ class Ui_MainWindow(object):
         self.label_body_empresas_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.gridLayout_3.addWidget(self.label_body_empresas_title, 0, 0, 1, 1)
+
+        self.label_body_funcionario_title = QLabel(self.page)
+        self.label_body_funcionario_title.setObjectName(u"label_body_funcionario_title")
+        sizePolicy1.setHeightForWidth(self.label_body_funcionario_title.sizePolicy().hasHeightForWidth())
+        self.label_body_funcionario_title.setSizePolicy(sizePolicy1)
+        self.label_body_funcionario_title.setFont(font3)
+        self.label_body_funcionario_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        self.gridLayout_3.addWidget(self.label_body_funcionario_title, 0, 1, 1, 1)
 
         self.frame = QFrame(self.page)
         self.frame.setObjectName(u"frame")
@@ -171,7 +171,7 @@ class Ui_MainWindow(object):
         self.gridLayout_4.addWidget(self.pushButton_body_executar, 0, 0, 1, 1)
 
 
-        self.gridLayout_3.addWidget(self.frame, 6, 1, 1, 1)
+        self.gridLayout_3.addWidget(self.frame, 8, 1, 1, 1)
 
         self.scrollArea = QScrollArea(self.page)
         self.scrollArea.setObjectName(u"scrollArea")
@@ -180,7 +180,7 @@ class Ui_MainWindow(object):
         self.scrollAreaWidgetContents = QWidget()
         self.scrollAreaWidgetContents.setObjectName(u"scrollAreaWidgetContents")
         self.scrollAreaWidgetContents.setEnabled(True)
-        self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 345, 163))
+        self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 345, 173))
         self.gridLayout_6 = QGridLayout(self.scrollAreaWidgetContents)
         self.gridLayout_6.setObjectName(u"gridLayout_6")
         self.stackedWidget_empresas = QStackedWidget(self.scrollAreaWidgetContents)
@@ -207,6 +207,16 @@ class Ui_MainWindow(object):
 
         self.gridLayout_7.addLayout(self.gridLayout_empresas, 1, 0, 1, 1)
 
+        self.pushButton_empresas_marcar = QPushButton(self.page_3)
+        self.pushButton_empresas_marcar.setObjectName(u"pushButton_empresas_marcar")
+        sizePolicy3 = QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
+        sizePolicy3.setHorizontalStretch(0)
+        sizePolicy3.setVerticalStretch(0)
+        sizePolicy3.setHeightForWidth(self.pushButton_empresas_marcar.sizePolicy().hasHeightForWidth())
+        self.pushButton_empresas_marcar.setSizePolicy(sizePolicy3)
+
+        self.gridLayout_7.addWidget(self.pushButton_empresas_marcar, 0, 0, 1, 1)
+
         self.stackedWidget_empresas.addWidget(self.page_3)
         self.page_6 = QWidget()
         self.page_6.setObjectName(u"page_6")
@@ -226,7 +236,7 @@ class Ui_MainWindow(object):
 
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
 
-        self.gridLayout_3.addWidget(self.scrollArea, 1, 0, 6, 1)
+        self.gridLayout_3.addWidget(self.scrollArea, 1, 0, 8, 1)
 
         self.stackedWidget_body.addWidget(self.page)
         self.page_2 = QWidget()
@@ -285,11 +295,11 @@ class Ui_MainWindow(object):
         self.gridLayout.setObjectName(u"gridLayout")
         self.pushButton_endereco = QPushButton(self.page_5)
         self.pushButton_endereco.setObjectName(u"pushButton_endereco")
-        sizePolicy3 = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
-        sizePolicy3.setHorizontalStretch(0)
-        sizePolicy3.setVerticalStretch(0)
-        sizePolicy3.setHeightForWidth(self.pushButton_endereco.sizePolicy().hasHeightForWidth())
-        self.pushButton_endereco.setSizePolicy(sizePolicy3)
+        sizePolicy4 = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
+        sizePolicy4.setHorizontalStretch(0)
+        sizePolicy4.setVerticalStretch(0)
+        sizePolicy4.setHeightForWidth(self.pushButton_endereco.sizePolicy().hasHeightForWidth())
+        self.pushButton_endereco.setSizePolicy(sizePolicy4)
 
         self.gridLayout.addWidget(self.pushButton_endereco, 4, 2, 1, 1)
 
@@ -383,15 +393,16 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"Cobran\u00e7a Autom\u00e1tica", None))
         self.label_header_title.setText(QCoreApplication.translate("MainWindow", u"Cobran\u00e7a Autom\u00e1tica", None))
         self.label_header_logo.setText("")
+        self.pushButton_body_relatorio_anexar.setText("")
         self.comboBox_body_funcionario.setItemText(0, QCoreApplication.translate("MainWindow", u"Bruno", None))
         self.comboBox_body_funcionario.setItemText(1, QCoreApplication.translate("MainWindow", u"Wellington", None))
 
-        self.pushButton_body_relatorio_anexar.setText("")
-        self.label_body_funcionario_title.setText(QCoreApplication.translate("MainWindow", u"Funcion\u00e1rio respons\u00e1vel", None))
         self.label_bodyrelatorio_title.setText(QCoreApplication.translate("MainWindow", u"Relat\u00f3rio de vencidos", None))
         self.label_body_empresas_title.setText(QCoreApplication.translate("MainWindow", u"Empresas que deseja cobrar", None))
+        self.label_body_funcionario_title.setText(QCoreApplication.translate("MainWindow", u"Funcion\u00e1rio respons\u00e1vel", None))
         self.pushButton_body_executar.setText(QCoreApplication.translate("MainWindow", u"Executar", None))
         self.label_empresas_aviso.setText(QCoreApplication.translate("MainWindow", u"Insira o relat\u00f3rio de vencidos", None))
+        self.pushButton_empresas_marcar.setText(QCoreApplication.translate("MainWindow", u"Desmacar todos", None))
         self.label_loading_empresas.setText("")
         self.label_load_gif.setText("")
         self.label_load_title.setText(QCoreApplication.translate("MainWindow", u"Carregando...", None))

@@ -181,7 +181,7 @@ class Conteudo:
             </p>
             <b style="color: rgb(87, 86, 86);">Atenciosamente,</b>
             <br>
-            <img src="$assinatura" style="width: 50%;">
+            <img src="$assinatura" style="width: 40%;">
             <p>
                 Esta mensagem, incluindo seus anexos, tem caráter confidencial e seu conteúdo é restrito ao destinatário da mensagem. Caso você tenha recebido esta mensagem por engano, queira, por favor, retorná-la ao destinatário e apagá-la de seus arquivos. Qualquer uso não autorizado, replicação ou disseminação desta mensagem ou parte dela, incluindo seus anexos, é expressamente proibido. 
                 <br><br>
@@ -412,6 +412,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.executar
         )
 
+        self.pushButton_empresas_marcar.hide()
+
         self._thread = QThread()
         self.arquivo.moveToThread(self._thread)
         self.arquivo.fim.connect(self._thread.quit)
@@ -458,6 +460,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.options.append(cb)
             self.gridLayout_empresas.addWidget(cb)
 
+        self.pushButton_empresas_marcar.show()
         self.pushButton_body_executar.setEnabled(True)
         self.stackedWidget_empresas.setCurrentIndex(0)
         self.movie.stop()
