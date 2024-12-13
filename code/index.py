@@ -42,7 +42,7 @@ class DataBase:
     TABELA_EMAIL = 'Email'
 
     def __init__(self) -> None:
-        self.query_enedereco = (
+        self.query_endereco = (
             f'SELECT endereco FROM {self.TABELA_EMAIL} '
             'WHERE id_emp = '
             f'(SELECT id_emp FROM {self.TABELA_EMPRESA} '
@@ -51,14 +51,14 @@ class DataBase:
 
         self.insert_endereco = (
             f'INSERT INTO {self.TABELA_EMAIL} '
-            '(nome, id_emp)'
+            '(endereco, id_emp)'
             ' VALUES '
             '(?,?)'
         )
 
         self.query_empresa = (
             f'SELECT id_emp FROM {self.TABELA_EMPRESA} '
-            'WHERE nome = {0}'
+            'WHERE nome = "{0}"'
         )
 
         self.insert_empresa = (
@@ -74,26 +74,26 @@ class DataBase:
 
     def emails_empresa(self, nome_empresa: str) -> list[str]:
         self.cursor.execute(
-            self.query_enedereco.format(nome_empresa)
+            self.query_endereco.format(nome_empresa)
         )
         return self.cursor.fetchall()
 
     def registrar_empresa(self, nome_empresa: str) -> str:
         self.cursor.execute(
-            self.insert_empresa.format(nome_empresa)
+            self.insert_empresa, (nome_empresa,)
         )
         self.connection.commit()
         self.cursor.execute(
-            self.query_empresa
+            self.query_empresa.format(nome_empresa)
         )
         return self.cursor.fetchone()
 
     def registrar_enderecos(self, enderecos: list[str], id_empresa: str) -> None:
-        for endereco in enderecos:
-            self.cursor.execute(
-                self.insert_endereco, [endereco, id_empresa]
-            )
-            self.connection.commit()
+        self.cursor.executemany(
+            self.insert_endereco, 
+            ([endereco, id_empresa[0]] for endereco in enderecos)
+        )
+        self.connection.commit()
 
 class Email:
     def __init__(self):
@@ -227,7 +227,7 @@ class Conteudo:
                 .replace('$valor_geral', self.valor_geral())
 
 class Arquivo(QObject):
-    fim = Signal()
+    fim = Signal(int)
     nomes = Signal(list)
     conteudos = Signal(dict)
 
@@ -266,7 +266,7 @@ class Arquivo(QObject):
         tabelas = tabelas[tabelas[self.col_titulo] != '']
         tabelas = tabelas.loc[tabelas.apply(lambda row: row[self.col_titulo][1] != '/', axis=1)]
         self.nomes.emit(tabelas[self.col_titulo].values.tolist())
-        self.fim.emit()
+        self.fim.emit(1)
 
     def ler(self):
         arquivo = tb.read_pdf(self.caminho, pages="all", relative_area=True, area=[20,16,90,100])
@@ -278,7 +278,7 @@ class Arquivo(QObject):
 
         tabelas.fillna('', inplace=True)
         self.conteudos.emit(self.filtro_conteudo(tabelas))
-        self.fim.emit()
+        self.fim.emit(2)
 
     def filtro_conteudo(self, tabelas):
         dict_conteudos = {}
@@ -322,18 +322,20 @@ class Cobrador(QObject):
         count = 0
         for nome_empresa, conteudo in self.dict_content.items():
             enderecos_email = db.emails_empresa(nome_empresa)
-            if enderecos_email == None:
+            if enderecos_email == []:
                 enderecos_email = self.registro(nome_empresa, db)
             
             for endereco in enderecos_email:
                 email.criar(endereco, nome_empresa, conteudo)
                 email.enviar()
-            
+
             count = count + 1
             self.progress.emit(count)
-        self.fim.emit(False)
-        self.resume.emit(self.dict_content.keys())
 
+        self.fim.emit(False)
+        self.resume.emit(enderecos_email)
+
+    #TODO REGISTRO
     def registro(self, nome_empresa: str, db: DataBase):
         self.novo_endereco.emit(nome_empresa)
         while self.enderecos_novos == '':
@@ -346,7 +348,7 @@ class Cobrador(QObject):
         return enderecos_email
     
     def set_novo_endereco(self, valor: str):
-        self.enderecos_novos == valor
+        self.enderecos_novos = valor
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, parent = None) -> None:
@@ -357,7 +359,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.coeficiente_progress = 0
         self.arquivo = Arquivo()
         self.options = []
-
 
         self.setWindowIcon(QIcon(resource_path('src\\imgs\\mail-icon.ico')))
 
@@ -408,9 +409,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if self.label_empresas_aviso.isVisible() == True:
             self.label_empresas_aviso.hide()
         else:
-            self._thread.disconnect(self.inicio)
-            self.arquivo.disconnect(self.conexao_nome)
-
             for widget in self.options:
                 self.gridLayout_empresas.removeWidget(widget)
                 widget.hide()
@@ -421,11 +419,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.movie.start()
         
         self.inicio = self._thread.started.connect(self.arquivo.nomes_empresas)
-        # self.arquivo.fim.connect(self._thread.deleteLater)
+        self.arquivo.fim.connect(self.reset_thread)
         self.conexao_nome = self.arquivo.nomes.connect(self.exibir_opcoes)
 
         self._thread.start()
-
+    
     def exibir_opcoes(self, nomes):
         self.options.clear()
         for nome in nomes:
@@ -444,18 +442,25 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.exec_load(True)
 
         self.conexao_ler = self._thread.started.connect(self.arquivo.ler)
-        # self.arquivo.fim.connect(self._thread.deleteLater)
+        self.arquivo.fim.connect(self.reset_thread)
         self.conexao_cobrar = self.arquivo.conteudos.connect(self.cobrar)
 
         self._thread.start()
 
-    def cobrar(self, dict_content):
-        try:
+    def reset_thread(self, option: int):
+        if option == 1:
+            self._thread.disconnect(self.inicio)
+            self.arquivo.disconnect(self.conexao_nome)
+        elif option == 2:
             self._thread.disconnect(self.conexao_ler)
             self.arquivo.disconnect(self.conexao_cobrar)
 
+    #TODO COBRAR
+    def cobrar(self, dict_content):
+        try:
             content_filtred = self.filtro(dict_content)
             self.coeficiente_progress = self.MAX_PROGRESS / len(content_filtred)
+
             self._cobrador = Cobrador(content_filtred)
             self._thread_cobrador = QThread()
 
@@ -465,7 +470,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self._cobrador.fim.connect(self._thread_cobrador.quit)
             self._cobrador.fim.connect(self._thread_cobrador.deleteLater)
             self._cobrador.fim.connect(self.exec_load)
-            self._cobrador.resume.connect(self.conclusion)
+            # self._cobrador.resume.connect(self.conclusion)
             self._thread_cobrador.finished.connect(self._cobrador.deleteLater)
             self._thread_cobrador.start()
         except Exception as e:
@@ -494,12 +499,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def to_progress(self, valor):
         self.progressBar.setValue(self.coeficiente_progress * valor)
 
-    def conclusion(self, nomes_empresas: list[str]):
-        messagebox.showinfo(title='Aviso', message= f'Email enviado com sucesso para: {'\n- '.join(nomes_empresas)}')
+    def conclusion(self, enderecos_empresas: list[str]):
+        messagebox.showinfo(title='Aviso', message= f'Email enviado com sucesso para: {'\n- '.join(enderecos_empresas)}')
 
-    def acess_cadastro(self, nome_empresa):
+    def acess_cadastro(self, nome_empresa: str):
         self.label_endereco_empresa.setText(nome_empresa)
-        self.exec_load(False, 3)
+        self.exec_load(False, 2)
 
     def exec_load(self, action: bool, to = 0):
         if action == True:
