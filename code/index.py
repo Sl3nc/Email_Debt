@@ -56,6 +56,18 @@ class DataBase:
             '(?,?)'
         )
 
+        self.query_empresa = (
+            f'SELECT id_emp FROM {self.TABELA_EMPRESA} '
+            'WHERE nome = {0}'
+        )
+
+        self.insert_empresa = (
+            f'INSERT INTO {self.TABELA_EMPRESA} '
+            '(nome)'
+            ' VALUES '
+            '(?)'
+        )
+
         self.connection = connect(self.ARQUIVO_DB)
         self.cursor = self.connection.cursor()
         pass
@@ -65,6 +77,23 @@ class DataBase:
             self.query_enedereco.format(nome_empresa)
         )
         return self.cursor.fetchall()
+
+    def registrar_empresa(self, nome_empresa: str) -> str:
+        self.cursor.execute(
+            self.insert_empresa.format(nome_empresa)
+        )
+        self.connection.commit()
+        self.cursor.execute(
+            self.query_empresa
+        )
+        return self.cursor.fetchone()
+
+    def registrar_enderecos(self, enderecos: list[str], id_empresa: str) -> None:
+        for endereco in enderecos:
+            self.cursor.execute(
+                self.insert_endereco, [endereco, id_empresa]
+            )
+            self.connection.commit()
 
 class Email:
     def __init__(self):
@@ -305,7 +334,7 @@ class Cobrador(QObject):
         self.fim.emit(False)
         self.resume.emit(self.dict_content.keys())
 
-    def registro(self, nome_empresa, db):
+    def registro(self, nome_empresa: str, db: DataBase):
         self.novo_endereco.emit(nome_empresa)
         while self.enderecos_novos == '':
             sleep(2)
@@ -313,9 +342,7 @@ class Cobrador(QObject):
         id_empresa = db.registrar_empresa(nome_empresa)
         enderecos_email = self.enderecos_novos.split(';')
         self.enderecos_novos = ''
-
-        for endereco in enderecos_email:
-            db.registrar_endereco(endereco, id_empresa)
+        db.registrar_enderecos(enderecos_email, id_empresa)
         return enderecos_email
     
     def set_novo_endereco(self, valor: str):
