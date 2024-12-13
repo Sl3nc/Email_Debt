@@ -10,6 +10,7 @@ import pandas as pd
 from unidecode import unidecode
 import traceback
 from datetime import datetime
+from dateutil.relativedelta import relativedelta
 import string
 from os import path, renames
 import sys
@@ -72,7 +73,7 @@ class DataBase:
         self.cursor = self.connection.cursor()
         pass
 
-    def emails_empresa(self, nome_empresa: str) -> list[str]:
+    def emails_empresa(self, nome_empresa: str) -> list[tuple[str]]:
         self.cursor.execute(
             self.query_endereco.format(nome_empresa)
         )
@@ -100,11 +101,10 @@ class Email:
         self.client = Smtp2goClient(api_key='api-57285302C4594921BD70EB19882D320B')
         self.base_titulo = ' - HONORÁRIOS CONTÁBEIS EM ABERTO'
 
-    def criar(self, destinatario, nome_empresa, conteudo):
-        print(f'Destinatario: {destinatario}')
+    def criar(self, destinatarios: list[str], nome_empresa: str, conteudo: str):
         self.payload = {
             'sender': 'financeiro@deltaprice.com.br',
-            'recipients': ['deltapricepedro@gmail.com'],
+            'recipients': destinatarios,
             'subject': nome_empresa  + self.base_titulo,
             'html': conteudo,
         }
@@ -269,7 +269,7 @@ class Arquivo(QObject):
         self.fim.emit(1)
 
     def ler(self):
-        arquivo = tb.read_pdf(self.caminho, pages="all", relative_area=True, area=[20,16,90,100])
+        arquivo = tb.read_pdf(self.caminho, pages="all", relative_area=True, area=[20,16,96,100])
         for tabelas in arquivo:
             tabelas.columns = ["Titulo/Competencia", "", "","", "","","","","","","","","Valor"]
         tabelas = pd.concat(arquivo, ignore_index=True)
@@ -280,6 +280,7 @@ class Arquivo(QObject):
         self.conteudos.emit(self.filtro_conteudo(tabelas))
         self.fim.emit(2)
 
+    #todo filtro
     def filtro_conteudo(self, tabelas):
         dict_conteudos = {}
         for index, row in tabelas.iterrows():
@@ -287,7 +288,7 @@ class Arquivo(QObject):
                 vencimento = row["Titulo/Competencia"].replace('1/1 ','')
                 
                 competencia = datetime.strptime(vencimento[3:],'%m/%Y')
-                competencia = competencia.replace(month= competencia.month - 1).strftime('%m/%Y')
+                competencia = (competencia - relativedelta(month=1)).strftime('%m/%Y')
                 
                 conteudo_atual.add_linha(pd.Series(data= {
                     'Competência': competencia,
@@ -301,14 +302,15 @@ class Arquivo(QObject):
             else:
                 #Fecha conteudo
                 dict_conteudos[nome_atual] = conteudo_atual.to_string()
+
         return dict_conteudos
 
 class Cobrador(QObject):
     novo_endereco = Signal(str)
     inicio = Signal()
     progress = Signal(int)
-    fim = Signal(bool)
-    resume = Signal(list[str])
+    fim = Signal()
+    resume = Signal(list)
 
     def __init__(self, dict_content: dict[str,str]):
         super().__init__()
@@ -325,14 +327,15 @@ class Cobrador(QObject):
             if enderecos_email == []:
                 enderecos_email = self.registro(nome_empresa, db)
             
-            for endereco in enderecos_email:
-                email.criar(endereco, nome_empresa, conteudo)
-                email.enviar()
+            print(enderecos_email)
+            sleep(10)
+            email.criar(enderecos_email, nome_empresa, conteudo)
+            email.enviar()
 
             count = count + 1
             self.progress.emit(count)
 
-        self.fim.emit(False)
+        self.fim.emit()
         self.resume.emit(enderecos_email)
 
     #TODO REGISTRO
@@ -469,11 +472,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self._cobrador.novo_endereco.connect(self.acess_cadastro)
             self._cobrador.fim.connect(self._thread_cobrador.quit)
             self._cobrador.fim.connect(self._thread_cobrador.deleteLater)
-            self._cobrador.fim.connect(self.exec_load)
-            # self._cobrador.resume.connect(self.conclusion)
+            self._cobrador.progress.connect(self.to_progress)
+            self._cobrador.resume.connect(self.conclusion)
             self._thread_cobrador.finished.connect(self._cobrador.deleteLater)
             self._thread_cobrador.start()
+        except ZeroDivisionError:
+            self.exec_load(False)
+            messagebox.showwarning(title='Aviso', message= "Sem empresas selecionadas")
         except Exception as e:
+            self.exec_load(False)
             traceback.print_exc()
             messagebox.showwarning(title='Aviso', message= e)
 
@@ -500,6 +507,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.progressBar.setValue(self.coeficiente_progress * valor)
 
     def conclusion(self, enderecos_empresas: list[str]):
+        self.exec_load(False, 0)
         messagebox.showinfo(title='Aviso', message= f'Email enviado com sucesso para: {'\n- '.join(enderecos_empresas)}')
 
     def acess_cadastro(self, nome_empresa: str):
