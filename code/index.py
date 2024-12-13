@@ -39,7 +39,7 @@ class DataBase:
     NOME_DB = 'email_cobranca.sqlite3'
     ARQUIVO_DB = resource_path(f'src\\db\\{NOME_DB}')
     TABELA_EMPRESA = 'Empresa'
-    TABELA_USUARIO = 'Usuario'
+    TABELA_USUARIO = 'Usuarios'
     TABELA_EMAIL = 'Email'
 
     def __init__(self) -> None:
@@ -67,6 +67,11 @@ class DataBase:
             '(nome)'
             ' VALUES '
             '(?)'
+        )
+
+        self.query_ass = (
+            f'SELECT assinatura FROM {self.TABELA_USUARIO} '
+            'WHERE nome = "{0}"'
         )
 
         self.connection = connect(self.ARQUIVO_DB)
@@ -97,6 +102,12 @@ class DataBase:
         )
         self.connection.commit()
 
+    def query_assinatura(self, nome_func: str) -> str:
+        self.cursor.execute(
+            self.query_ass.format(nome_func)
+        )
+        return self.cursor.fetchone()[0]
+
 class Email:
     def __init__(self):
         self.client = Smtp2goClient(api_key='api-57285302C4594921BD70EB19882D320B')
@@ -115,6 +126,7 @@ class Email:
         if response.success == False:
             raise Exception('Endereço de email inválido')
 
+#https://i.imgur.com/dTUNLTy.jpeg
 class Conteudo:
     def __init__(self):
         self.VALOR_JUROS = 0.02
@@ -165,7 +177,7 @@ class Conteudo:
             </p>
             <b style="color: rgb(87, 86, 86);">Atenciosamente,</b>
             <br>
-            <img src="https://i.imgur.com/dTUNLTy.jpeg" style="width: 50%;">
+            <img src="$assinatura" style="width: 50%;">
             <p>
                 Esta mensagem, incluindo seus anexos, tem caráter confidencial e seu conteúdo é restrito ao destinatário da mensagem. Caso você tenha recebido esta mensagem por engano, queira, por favor, retorná-la ao destinatário e apagá-la de seus arquivos. Qualquer uso não autorizado, replicação ou disseminação desta mensagem ou parte dela, incluindo seus anexos, é expressamente proibido. 
                 <br><br>
@@ -313,9 +325,10 @@ class Cobrador(QObject):
     fim = Signal()
     resume = Signal(list)
 
-    def __init__(self, dict_content: dict[str,str]):
+    def __init__(self, dict_content: dict[str,str], nome_func: str):
         super().__init__()
         self.dict_content = dict_content
+        self.nome_func = nome_func
         self.enderecos_novos = ''
 
     #TODO EXECUTAR
@@ -324,17 +337,20 @@ class Cobrador(QObject):
         email = Email()
         count = 0
         enderecos_totais = []
+        assinatura = db.query_assinatura(self.nome_func)
         for nome_empresa, conteudo in self.dict_content.items():
             enderecos_email = db.emails_empresa(nome_empresa)
             if enderecos_email == []:
                 enderecos_email = self.registro(nome_empresa, db)
             
+            conteudo = conteudo.replace('$assinatura', assinatura)
             email.criar(enderecos_email, nome_empresa, conteudo)
             email.enviar()
 
             count = count + 1
             self.progress.emit(count)
-            enderecos_totais.append(i for i in enderecos_email)
+            for i in enderecos_email:
+                enderecos_totais.append(i)
 
         self.fim.emit()
         self.resume.emit(enderecos_totais)
@@ -467,7 +483,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             content_filtred = self.filtro(dict_content)
             self.coeficiente_progress = self.MAX_PROGRESS / len(content_filtred)
 
-            self._cobrador = Cobrador(content_filtred)
+            self._cobrador = Cobrador(
+                content_filtred,
+                self.comboBox_body_funcionario.currentText()
+                )
             self._thread_cobrador = QThread()
 
             self._cobrador.moveToThread(self._thread_cobrador)
@@ -512,7 +531,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def conclusion(self, enderecos_empresas: list[str]):
         self.exec_load(False, 0)
-        messagebox.showinfo(title='Aviso', message= f'Email enviado com sucesso para: {'\n- '.join(enderecos_empresas)}')
+        messagebox.showinfo(title='Aviso', message= f'Email enviado com sucesso para: \n{'\n- '.join(enderecos_empresas)}')
 
     def acess_cadastro(self, nome_empresa: str):
         self.label_endereco_empresa.setText(nome_empresa)
