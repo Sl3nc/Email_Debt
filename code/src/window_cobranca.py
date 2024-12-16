@@ -16,16 +16,17 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QApplication, QComboBox, QFrame, QGridLayout,
-    QLabel, QLineEdit, QMainWindow, QMenuBar,
-    QProgressBar, QPushButton, QScrollArea, QSizePolicy,
-    QSpacerItem, QStackedWidget, QStatusBar, QWidget)
+    QHeaderView, QLabel, QLineEdit, QMainWindow,
+    QMenuBar, QProgressBar, QPushButton, QScrollArea,
+    QSizePolicy, QSpacerItem, QStackedWidget, QStatusBar,
+    QTreeView, QWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(847, 512)
-        MainWindow.setMinimumSize(QSize(847, 491))
+        MainWindow.resize(847, 510)
+        MainWindow.setMinimumSize(QSize(847, 510))
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
         self.gridLayout_2 = QGridLayout(self.centralwidget)
@@ -77,101 +78,73 @@ class Ui_MainWindow(object):
         self.stackedWidget_body.setObjectName(u"stackedWidget_body")
         self.page = QWidget()
         self.page.setObjectName(u"page")
+        self.page.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
         self.gridLayout_3 = QGridLayout(self.page)
         self.gridLayout_3.setObjectName(u"gridLayout_3")
-        self.verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Maximum)
-
-        self.gridLayout_3.addItem(self.verticalSpacer, 3, 1, 1, 1)
-
         self.pushButton_body_relatorio_anexar = QPushButton(self.page)
         self.pushButton_body_relatorio_anexar.setObjectName(u"pushButton_body_relatorio_anexar")
-        sizePolicy = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+        sizePolicy = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.pushButton_body_relatorio_anexar.sizePolicy().hasHeightForWidth())
         self.pushButton_body_relatorio_anexar.setSizePolicy(sizePolicy)
-        self.pushButton_body_relatorio_anexar.setMinimumSize(QSize(0, 50))
+        self.pushButton_body_relatorio_anexar.setMinimumSize(QSize(400, 50))
         font1 = QFont()
         font1.setFamilies([u"Rockwell"])
         font1.setPointSize(12)
         self.pushButton_body_relatorio_anexar.setFont(font1)
+        self.pushButton_body_relatorio_anexar.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+        self.pushButton_body_relatorio_anexar.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
         icon = QIcon()
         icon.addFile(u"../imgs/upload-icon.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         self.pushButton_body_relatorio_anexar.setIcon(icon)
         self.pushButton_body_relatorio_anexar.setIconSize(QSize(48, 48))
 
-        self.gridLayout_3.addWidget(self.pushButton_body_relatorio_anexar, 5, 1, 1, 1)
+        self.gridLayout_3.addWidget(self.pushButton_body_relatorio_anexar, 9, 1, 1, 1)
 
         self.comboBox_body_funcionario = QComboBox(self.page)
         self.comboBox_body_funcionario.addItem("")
         self.comboBox_body_funcionario.addItem("")
         self.comboBox_body_funcionario.setObjectName(u"comboBox_body_funcionario")
+        sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
+        sizePolicy1.setHorizontalStretch(0)
+        sizePolicy1.setVerticalStretch(0)
+        sizePolicy1.setHeightForWidth(self.comboBox_body_funcionario.sizePolicy().hasHeightForWidth())
+        self.comboBox_body_funcionario.setSizePolicy(sizePolicy1)
         font2 = QFont()
         font2.setFamilies([u"Segoe UI"])
         font2.setPointSize(14)
         self.comboBox_body_funcionario.setFont(font2)
+        self.comboBox_body_funcionario.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         self.comboBox_body_funcionario.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
 
         self.gridLayout_3.addWidget(self.comboBox_body_funcionario, 1, 1, 2, 1)
 
         self.label_bodyrelatorio_title = QLabel(self.page)
         self.label_bodyrelatorio_title.setObjectName(u"label_bodyrelatorio_title")
-        sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Maximum)
-        sizePolicy1.setHorizontalStretch(0)
-        sizePolicy1.setVerticalStretch(0)
-        sizePolicy1.setHeightForWidth(self.label_bodyrelatorio_title.sizePolicy().hasHeightForWidth())
-        self.label_bodyrelatorio_title.setSizePolicy(sizePolicy1)
+        sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Maximum)
+        sizePolicy2.setHorizontalStretch(0)
+        sizePolicy2.setVerticalStretch(0)
+        sizePolicy2.setHeightForWidth(self.label_bodyrelatorio_title.sizePolicy().hasHeightForWidth())
+        self.label_bodyrelatorio_title.setSizePolicy(sizePolicy2)
         font3 = QFont()
         font3.setFamilies([u"Tw Cen MT"])
         font3.setPointSize(16)
         self.label_bodyrelatorio_title.setFont(font3)
         self.label_bodyrelatorio_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        self.gridLayout_3.addWidget(self.label_bodyrelatorio_title, 4, 1, 1, 1)
+        self.gridLayout_3.addWidget(self.label_bodyrelatorio_title, 8, 1, 1, 1)
 
-        self.label_body_empresas_title = QLabel(self.page)
-        self.label_body_empresas_title.setObjectName(u"label_body_empresas_title")
-        self.label_body_empresas_title.setFont(font3)
-        self.label_body_empresas_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.pushButton_empresas_marcar = QPushButton(self.page)
+        self.pushButton_empresas_marcar.setObjectName(u"pushButton_empresas_marcar")
+        sizePolicy3 = QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
+        sizePolicy3.setHorizontalStretch(0)
+        sizePolicy3.setVerticalStretch(0)
+        sizePolicy3.setHeightForWidth(self.pushButton_empresas_marcar.sizePolicy().hasHeightForWidth())
+        self.pushButton_empresas_marcar.setSizePolicy(sizePolicy3)
+        self.pushButton_empresas_marcar.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
 
-        self.gridLayout_3.addWidget(self.label_body_empresas_title, 0, 0, 1, 1)
-
-        self.label_body_funcionario_title = QLabel(self.page)
-        self.label_body_funcionario_title.setObjectName(u"label_body_funcionario_title")
-        sizePolicy1.setHeightForWidth(self.label_body_funcionario_title.sizePolicy().hasHeightForWidth())
-        self.label_body_funcionario_title.setSizePolicy(sizePolicy1)
-        self.label_body_funcionario_title.setFont(font3)
-        self.label_body_funcionario_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-        self.gridLayout_3.addWidget(self.label_body_funcionario_title, 0, 1, 1, 1)
-
-        self.frame = QFrame(self.page)
-        self.frame.setObjectName(u"frame")
-        self.frame.setFrameShape(QFrame.Shape.StyledPanel)
-        self.frame.setFrameShadow(QFrame.Shadow.Raised)
-        self.gridLayout_4 = QGridLayout(self.frame)
-        self.gridLayout_4.setObjectName(u"gridLayout_4")
-        self.gridLayout_4.setContentsMargins(150, 0, 150, 0)
-        self.pushButton_body_executar = QPushButton(self.frame)
-        self.pushButton_body_executar.setObjectName(u"pushButton_body_executar")
-        self.pushButton_body_executar.setEnabled(True)
-        sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Maximum)
-        sizePolicy2.setHorizontalStretch(0)
-        sizePolicy2.setVerticalStretch(0)
-        sizePolicy2.setHeightForWidth(self.pushButton_body_executar.sizePolicy().hasHeightForWidth())
-        self.pushButton_body_executar.setSizePolicy(sizePolicy2)
-        self.pushButton_body_executar.setMinimumSize(QSize(156, 48))
-        font4 = QFont()
-        font4.setPointSize(12)
-        font4.setBold(False)
-        font4.setItalic(True)
-        font4.setUnderline(False)
-        self.pushButton_body_executar.setFont(font4)
-
-        self.gridLayout_4.addWidget(self.pushButton_body_executar, 0, 0, 1, 1)
-
-
-        self.gridLayout_3.addWidget(self.frame, 8, 1, 1, 1)
+        self.gridLayout_3.addWidget(self.pushButton_empresas_marcar, 10, 0, 1, 1)
 
         self.scrollArea = QScrollArea(self.page)
         self.scrollArea.setObjectName(u"scrollArea")
@@ -180,7 +153,7 @@ class Ui_MainWindow(object):
         self.scrollAreaWidgetContents = QWidget()
         self.scrollAreaWidgetContents.setObjectName(u"scrollAreaWidgetContents")
         self.scrollAreaWidgetContents.setEnabled(True)
-        self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 345, 173))
+        self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 384, 132))
         self.gridLayout_6 = QGridLayout(self.scrollAreaWidgetContents)
         self.gridLayout_6.setObjectName(u"gridLayout_6")
         self.stackedWidget_empresas = QStackedWidget(self.scrollAreaWidgetContents)
@@ -195,27 +168,17 @@ class Ui_MainWindow(object):
         self.label_empresas_aviso = QLabel(self.page_3)
         self.label_empresas_aviso.setObjectName(u"label_empresas_aviso")
         self.label_empresas_aviso.setEnabled(False)
-        font5 = QFont()
-        font5.setFamilies([u"NSimSun"])
-        font5.setPointSize(14)
-        font5.setItalic(True)
-        self.label_empresas_aviso.setFont(font5)
+        font4 = QFont()
+        font4.setFamilies([u"NSimSun"])
+        font4.setPointSize(14)
+        font4.setItalic(True)
+        self.label_empresas_aviso.setFont(font4)
         self.label_empresas_aviso.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.gridLayout_empresas.addWidget(self.label_empresas_aviso, 0, 0, 1, 1)
 
 
         self.gridLayout_7.addLayout(self.gridLayout_empresas, 1, 0, 1, 1)
-
-        self.pushButton_empresas_marcar = QPushButton(self.page_3)
-        self.pushButton_empresas_marcar.setObjectName(u"pushButton_empresas_marcar")
-        sizePolicy3 = QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
-        sizePolicy3.setHorizontalStretch(0)
-        sizePolicy3.setVerticalStretch(0)
-        sizePolicy3.setHeightForWidth(self.pushButton_empresas_marcar.sizePolicy().hasHeightForWidth())
-        self.pushButton_empresas_marcar.setSizePolicy(sizePolicy3)
-
-        self.gridLayout_7.addWidget(self.pushButton_empresas_marcar, 0, 0, 1, 1)
 
         self.stackedWidget_empresas.addWidget(self.page_3)
         self.page_6 = QWidget()
@@ -236,7 +199,56 @@ class Ui_MainWindow(object):
 
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
 
-        self.gridLayout_3.addWidget(self.scrollArea, 1, 0, 8, 1)
+        self.gridLayout_3.addWidget(self.scrollArea, 1, 0, 9, 1)
+
+        self.frame = QFrame(self.page)
+        self.frame.setObjectName(u"frame")
+        sizePolicy2.setHeightForWidth(self.frame.sizePolicy().hasHeightForWidth())
+        self.frame.setSizePolicy(sizePolicy2)
+        self.frame.setFrameShape(QFrame.Shape.StyledPanel)
+        self.frame.setFrameShadow(QFrame.Shadow.Raised)
+        self.gridLayout_4 = QGridLayout(self.frame)
+        self.gridLayout_4.setObjectName(u"gridLayout_4")
+        self.gridLayout_4.setContentsMargins(-1, 0, -1, 0)
+        self.pushButton_body_executar = QPushButton(self.frame)
+        self.pushButton_body_executar.setObjectName(u"pushButton_body_executar")
+        self.pushButton_body_executar.setEnabled(True)
+        sizePolicy3.setHeightForWidth(self.pushButton_body_executar.sizePolicy().hasHeightForWidth())
+        self.pushButton_body_executar.setSizePolicy(sizePolicy3)
+        self.pushButton_body_executar.setMinimumSize(QSize(200, 40))
+        font5 = QFont()
+        font5.setPointSize(14)
+        font5.setBold(False)
+        font5.setItalic(True)
+        font5.setUnderline(False)
+        self.pushButton_body_executar.setFont(font5)
+        self.pushButton_body_executar.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+        self.pushButton_body_executar.setStyleSheet(u"border: 2.5px solid rgb(85, 170, 255); border-radius: 10px; background-color: #E1E1E1;")
+
+        self.gridLayout_4.addWidget(self.pushButton_body_executar, 0, 0, 1, 1)
+
+
+        self.gridLayout_3.addWidget(self.frame, 10, 1, 1, 1)
+
+        self.verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Maximum)
+
+        self.gridLayout_3.addItem(self.verticalSpacer, 3, 1, 1, 1)
+
+        self.label_body_empresas_title = QLabel(self.page)
+        self.label_body_empresas_title.setObjectName(u"label_body_empresas_title")
+        self.label_body_empresas_title.setFont(font3)
+        self.label_body_empresas_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        self.gridLayout_3.addWidget(self.label_body_empresas_title, 0, 0, 1, 1)
+
+        self.label_body_funcionario_title = QLabel(self.page)
+        self.label_body_funcionario_title.setObjectName(u"label_body_funcionario_title")
+        sizePolicy2.setHeightForWidth(self.label_body_funcionario_title.sizePolicy().hasHeightForWidth())
+        self.label_body_funcionario_title.setSizePolicy(sizePolicy2)
+        self.label_body_funcionario_title.setFont(font3)
+        self.label_body_funcionario_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        self.gridLayout_3.addWidget(self.label_body_funcionario_title, 0, 1, 1, 1)
 
         self.stackedWidget_body.addWidget(self.page)
         self.page_2 = QWidget()
@@ -367,6 +379,17 @@ class Ui_MainWindow(object):
         self.gridLayout.addItem(self.verticalSpacer_2, 2, 1, 1, 1)
 
         self.stackedWidget_body.addWidget(self.page_5)
+        self.page_4 = QWidget()
+        self.page_4.setObjectName(u"page_4")
+        self.gridLayout_12 = QGridLayout(self.page_4)
+        self.gridLayout_12.setObjectName(u"gridLayout_12")
+        self.treeView = QTreeView(self.page_4)
+        self.treeView.setObjectName(u"treeView")
+        self.treeView.setAnimated(False)
+
+        self.gridLayout_12.addWidget(self.treeView, 0, 0, 1, 1)
+
+        self.stackedWidget_body.addWidget(self.page_4)
 
         self.gridLayout_2.addWidget(self.stackedWidget_body, 1, 0, 1, 1)
 
@@ -398,12 +421,12 @@ class Ui_MainWindow(object):
         self.comboBox_body_funcionario.setItemText(1, QCoreApplication.translate("MainWindow", u"Wellington", None))
 
         self.label_bodyrelatorio_title.setText(QCoreApplication.translate("MainWindow", u"Relat\u00f3rio de vencidos", None))
+        self.pushButton_empresas_marcar.setText(QCoreApplication.translate("MainWindow", u"Desmacar todos", None))
+        self.label_empresas_aviso.setText(QCoreApplication.translate("MainWindow", u"Insira o relat\u00f3rio de vencidos", None))
+        self.label_loading_empresas.setText("")
+        self.pushButton_body_executar.setText(QCoreApplication.translate("MainWindow", u"Executar", None))
         self.label_body_empresas_title.setText(QCoreApplication.translate("MainWindow", u"Empresas que deseja cobrar", None))
         self.label_body_funcionario_title.setText(QCoreApplication.translate("MainWindow", u"Funcion\u00e1rio respons\u00e1vel", None))
-        self.pushButton_body_executar.setText(QCoreApplication.translate("MainWindow", u"Executar", None))
-        self.label_empresas_aviso.setText(QCoreApplication.translate("MainWindow", u"Insira o relat\u00f3rio de vencidos", None))
-        self.pushButton_empresas_marcar.setText(QCoreApplication.translate("MainWindow", u"Desmacar todos", None))
-        self.label_loading_empresas.setText("")
         self.label_load_gif.setText("")
         self.label_load_title.setText(QCoreApplication.translate("MainWindow", u"Carregando...", None))
         self.pushButton_endereco.setText(QCoreApplication.translate("MainWindow", u"Enviar", None))

@@ -325,7 +325,6 @@ class Arquivo(QObject):
 
 class Cobrador(QObject):
     novo_endereco = Signal(str)
-    inicio = Signal()
     progress = Signal(int)
     fim = Signal()
     resume = Signal(list)
@@ -385,6 +384,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.coeficiente_progress = 0
         self.arquivo = Arquivo()
         self.options = []
+        self.option_checada = False
 
         self.setWindowIcon(QIcon(resource_path('src\\imgs\\mail-icon.ico')))
 
@@ -410,6 +410,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.pushButton_body_executar.clicked.connect(
             self.executar
+        )
+
+        self.pushButton_empresas_marcar.clicked.connect(
+            self.marcar_options
         )
 
         self.pushButton_empresas_marcar.hide()
@@ -442,6 +446,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 widget.hide()
                 widget.destroy()
 
+        self.pushButton_empresas_marcar.hide()
         self.pushButton_body_executar.setEnabled(False)
         self.stackedWidget_empresas.setCurrentIndex(1)
         self.movie.start()
@@ -464,6 +469,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.pushButton_body_executar.setEnabled(True)
         self.stackedWidget_empresas.setCurrentIndex(0)
         self.movie.stop()
+
+    def marcar_options(self):
+        for i in self.options:
+            i.setChecked(self.option_checada)
+
+        if self.option_checada == False:
+            self.pushButton_empresas_marcar.setText('Marcar todos')
+        else:
+            self.pushButton_empresas_marcar.setText('Desmarcar todos')
+        self.option_checada = not self.option_checada
 
     def executar(self):
         if self.pushButton_body_relatorio_anexar.text() == '':
