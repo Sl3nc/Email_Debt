@@ -640,61 +640,6 @@
            <property name="bottomMargin">
             <number>0</number>
            </property>
-           <item row="2" column="1">
-            <widget class="QStackedWidget" name="stackedWidget_cadastros">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="currentIndex">
-              <number>0</number>
-             </property>
-             <widget class="QWidget" name="page_7">
-              <layout class="QGridLayout" name="gridLayout_14">
-               <item row="0" column="0">
-                <widget class="QTreeWidget" name="treeWidget_cadastros_infos">
-                 <attribute name="headerVisible">
-                  <bool>false</bool>
-                 </attribute>
-                 <column>
-                  <property name="text">
-                   <string>Nome Empresa</string>
-                  </property>
-                 </column>
-                </widget>
-               </item>
-              </layout>
-             </widget>
-             <widget class="QWidget" name="page_8">
-              <layout class="QGridLayout" name="gridLayout_15">
-               <item row="0" column="0">
-                <widget class="QLabel" name="label">
-                 <property name="maximumSize">
-                  <size>
-                   <width>96</width>
-                   <height>96</height>
-                  </size>
-                 </property>
-                 <property name="text">
-                  <string/>
-                 </property>
-                 <property name="pixmap">
-                  <pixmap>../imgs/load.gif</pixmap>
-                 </property>
-                 <property name="scaledContents">
-                  <bool>true</bool>
-                 </property>
-                 <property name="alignment">
-                  <set>Qt::AlignmentFlag::AlignCenter</set>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </widget>
-            </widget>
-           </item>
            <item row="2" column="0">
             <widget class="QTreeWidget" name="treeWidget_cadastros_title">
              <property name="sizePolicy">
@@ -806,6 +751,23 @@
                </widget>
               </item>
              </layout>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QTreeWidget" name="treeWidget_cadastros_infos">
+             <property name="font">
+              <font>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+             <attribute name="headerVisible">
+              <bool>false</bool>
+             </attribute>
+             <column>
+              <property name="text">
+               <string>Nome Empresa</string>
+              </property>
+             </column>
             </widget>
            </item>
           </layout>

@@ -387,41 +387,6 @@ class Ui_MainWindow(object):
         self.gridLayout_13 = QGridLayout(self.frame_6)
         self.gridLayout_13.setObjectName(u"gridLayout_13")
         self.gridLayout_13.setContentsMargins(50, 0, 50, 0)
-        self.stackedWidget_cadastros = QStackedWidget(self.frame_6)
-        self.stackedWidget_cadastros.setObjectName(u"stackedWidget_cadastros")
-        sizePolicy6 = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
-        sizePolicy6.setHorizontalStretch(0)
-        sizePolicy6.setVerticalStretch(0)
-        sizePolicy6.setHeightForWidth(self.stackedWidget_cadastros.sizePolicy().hasHeightForWidth())
-        self.stackedWidget_cadastros.setSizePolicy(sizePolicy6)
-        self.page_7 = QWidget()
-        self.page_7.setObjectName(u"page_7")
-        self.gridLayout_14 = QGridLayout(self.page_7)
-        self.gridLayout_14.setObjectName(u"gridLayout_14")
-        self.treeWidget_cadastros_infos = QTreeWidget(self.page_7)
-        self.treeWidget_cadastros_infos.setObjectName(u"treeWidget_cadastros_infos")
-        self.treeWidget_cadastros_infos.header().setVisible(False)
-
-        self.gridLayout_14.addWidget(self.treeWidget_cadastros_infos, 0, 0, 1, 1)
-
-        self.stackedWidget_cadastros.addWidget(self.page_7)
-        self.page_8 = QWidget()
-        self.page_8.setObjectName(u"page_8")
-        self.gridLayout_15 = QGridLayout(self.page_8)
-        self.gridLayout_15.setObjectName(u"gridLayout_15")
-        self.label = QLabel(self.page_8)
-        self.label.setObjectName(u"label")
-        self.label.setMaximumSize(QSize(96, 96))
-        self.label.setPixmap(QPixmap(u"../imgs/load.gif"))
-        self.label.setScaledContents(True)
-        self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-        self.gridLayout_15.addWidget(self.label, 0, 0, 1, 1)
-
-        self.stackedWidget_cadastros.addWidget(self.page_8)
-
-        self.gridLayout_13.addWidget(self.stackedWidget_cadastros, 2, 1, 1, 1)
-
         self.treeWidget_cadastros_title = QTreeWidget(self.frame_6)
         font11 = QFont()
         font11.setPointSize(12)
@@ -456,30 +421,39 @@ class Ui_MainWindow(object):
         self.verticalLayout.setContentsMargins(25, -1, 50, -1)
         self.pushButton_cadastro_adcionar = QPushButton(self.frame_5)
         self.pushButton_cadastro_adcionar.setObjectName(u"pushButton_cadastro_adcionar")
-        sizePolicy7 = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
-        sizePolicy7.setHorizontalStretch(0)
-        sizePolicy7.setVerticalStretch(0)
-        sizePolicy7.setHeightForWidth(self.pushButton_cadastro_adcionar.sizePolicy().hasHeightForWidth())
-        self.pushButton_cadastro_adcionar.setSizePolicy(sizePolicy7)
+        sizePolicy6 = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
+        sizePolicy6.setHorizontalStretch(0)
+        sizePolicy6.setVerticalStretch(0)
+        sizePolicy6.setHeightForWidth(self.pushButton_cadastro_adcionar.sizePolicy().hasHeightForWidth())
+        self.pushButton_cadastro_adcionar.setSizePolicy(sizePolicy6)
 
         self.verticalLayout.addWidget(self.pushButton_cadastro_adcionar)
 
         self.pushButton_cadastro_editar = QPushButton(self.frame_5)
         self.pushButton_cadastro_editar.setObjectName(u"pushButton_cadastro_editar")
-        sizePolicy7.setHeightForWidth(self.pushButton_cadastro_editar.sizePolicy().hasHeightForWidth())
-        self.pushButton_cadastro_editar.setSizePolicy(sizePolicy7)
+        sizePolicy6.setHeightForWidth(self.pushButton_cadastro_editar.sizePolicy().hasHeightForWidth())
+        self.pushButton_cadastro_editar.setSizePolicy(sizePolicy6)
 
         self.verticalLayout.addWidget(self.pushButton_cadastro_editar)
 
         self.pushButton_cadastro_remover = QPushButton(self.frame_5)
         self.pushButton_cadastro_remover.setObjectName(u"pushButton_cadastro_remover")
-        sizePolicy7.setHeightForWidth(self.pushButton_cadastro_remover.sizePolicy().hasHeightForWidth())
-        self.pushButton_cadastro_remover.setSizePolicy(sizePolicy7)
+        sizePolicy6.setHeightForWidth(self.pushButton_cadastro_remover.sizePolicy().hasHeightForWidth())
+        self.pushButton_cadastro_remover.setSizePolicy(sizePolicy6)
 
         self.verticalLayout.addWidget(self.pushButton_cadastro_remover)
 
 
         self.gridLayout_13.addWidget(self.frame_5, 0, 2, 3, 1)
+
+        self.treeWidget_cadastros_infos = QTreeWidget(self.frame_6)
+        self.treeWidget_cadastros_infos.setObjectName(u"treeWidget_cadastros_infos")
+        font13 = QFont()
+        font13.setPointSize(12)
+        self.treeWidget_cadastros_infos.setFont(font13)
+        self.treeWidget_cadastros_infos.header().setVisible(False)
+
+        self.gridLayout_13.addWidget(self.treeWidget_cadastros_infos, 2, 1, 1, 1)
 
 
         self.gridLayout_12.addWidget(self.frame_6, 3, 0, 1, 2)
@@ -492,11 +466,11 @@ class Ui_MainWindow(object):
         self.gridLayout_header.setObjectName(u"gridLayout_header")
         self.label_header_title = QLabel(self.centralwidget)
         self.label_header_title.setObjectName(u"label_header_title")
-        font13 = QFont()
-        font13.setFamilies([u"Tw Cen MT"])
-        font13.setPointSize(26)
-        font13.setBold(True)
-        self.label_header_title.setFont(font13)
+        font14 = QFont()
+        font14.setFamilies([u"Tw Cen MT"])
+        font14.setPointSize(26)
+        font14.setBold(True)
+        self.label_header_title.setFont(font14)
         self.label_header_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.gridLayout_header.addWidget(self.label_header_title, 1, 0, 1, 1)
@@ -545,7 +519,6 @@ class Ui_MainWindow(object):
 
         self.stackedWidget_body.setCurrentIndex(0)
         self.stackedWidget_empresas.setCurrentIndex(0)
-        self.stackedWidget_cadastros.setCurrentIndex(0)
 
 
         QMetaObject.connectSlotsByName(MainWindow)
@@ -574,21 +547,20 @@ class Ui_MainWindow(object):
         self.label_endereco_empresa.setText(QCoreApplication.translate("MainWindow", u"nome da empresa", None))
         self.label_cadastros_title.setText(QCoreApplication.translate("MainWindow", u"Informa\u00e7\u00f5es Cadastradas", None))
         self.pushButton_cadastros_back.setText(QCoreApplication.translate("MainWindow", u"Voltar ao menu", None))
-        ___qtreewidgetitem = self.treeWidget_cadastros_infos.headerItem()
+        ___qtreewidgetitem = self.treeWidget_cadastros_title.headerItem()
         ___qtreewidgetitem.setText(0, QCoreApplication.translate("MainWindow", u"Nome Empresa", None));
-        self.label.setText("")
-        ___qtreewidgetitem1 = self.treeWidget_cadastros_title.headerItem()
-        ___qtreewidgetitem1.setText(0, QCoreApplication.translate("MainWindow", u"Nome Empresa", None));
 
         __sortingEnabled = self.treeWidget_cadastros_title.isSortingEnabled()
         self.treeWidget_cadastros_title.setSortingEnabled(False)
-        ___qtreewidgetitem2 = self.treeWidget_cadastros_title.topLevelItem(0)
-        ___qtreewidgetitem2.setText(0, QCoreApplication.translate("MainWindow", u"Endere\u00e7o E-mail", None));
+        ___qtreewidgetitem1 = self.treeWidget_cadastros_title.topLevelItem(0)
+        ___qtreewidgetitem1.setText(0, QCoreApplication.translate("MainWindow", u"Endere\u00e7o E-mail", None));
         self.treeWidget_cadastros_title.setSortingEnabled(__sortingEnabled)
 
         self.pushButton_cadastro_adcionar.setText(QCoreApplication.translate("MainWindow", u"Adcionar", None))
         self.pushButton_cadastro_editar.setText(QCoreApplication.translate("MainWindow", u"Editar", None))
         self.pushButton_cadastro_remover.setText(QCoreApplication.translate("MainWindow", u"Remover", None))
+        ___qtreewidgetitem2 = self.treeWidget_cadastros_infos.headerItem()
+        ___qtreewidgetitem2.setText(0, QCoreApplication.translate("MainWindow", u"Nome Empresa", None));
         self.label_header_title.setText(QCoreApplication.translate("MainWindow", u"Cobran\u00e7a Autom\u00e1tica", None))
         self.label_header_logo.setText("")
     # retranslateUi

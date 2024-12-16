@@ -398,14 +398,13 @@ class Operador(QObject):
         pass
 
     #TODO INFORMAR
-    def informar(self):
+    def informar(self) -> dict:
         db = DataBase()
         dict_informacoes = {}
-
         for i in db.empresas():
             dict_informacoes[i] = db.emails_empresa(i)
-        self.informacoes.emit(dict_informacoes)
         db.close()
+        return dict_informacoes
 
     def add(self, nome_empresa: str, endereco: str):
         ...
@@ -426,7 +425,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.movie = QMovie(resource_path("src\\imgs\\load.gif"))
         self.label_load_gif.setMovie(self.movie)
         self.label_loading_empresas.setMovie(self.movie)
-        self.label.setMovie(self.movie)
 
         icon = QIcon()
         icon.addFile(resource_path("src\\imgs\\upload-icon.png"), QSize(), QIcon.Mode.Normal, QIcon.State.Off)
@@ -453,7 +451,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         )
 
         self.pushButton_cadastros_back.clicked.connect(
-            self.back_infos
+            lambda: self.stackedWidget_body.setCurrentIndex(0)
         )
 
         self.pushButton_cadastros_visualizar.clicked.connect(
@@ -615,25 +613,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.stackedWidget_body.setCurrentIndex(to)
 
     def acess_infos(self):
-        try:
-            self.movie.start()
-            self.stackedWidget_cadastros.setCurrentIndex(1)
-            self.stackedWidget_body.setCurrentIndex(3)
+        self.stackedWidget_body.setCurrentIndex(3)
+        self.treeWidget_cadastros_infos.clear()
 
-            self._operador = Operador()
-            self._thread_operador = QThread()
-            self._operador.moveToThread(self._thread_operador)
-            self._thread_operador.started.connect(self._operador.informar)
-            self._operador.informacoes.connect(self.preencher_infos)
-            self._thread_operador.start()
-        except Exception as e:
-            self.exec_load(False)
-            traceback.print_exc()
-            messagebox.showwarning(title='Aviso', message= e)
-    
-    def preencher_infos(self, dict_enderecos: dict[str,list[str]]):
-        print(dict_enderecos)
-        for empresa, enderecos in dict_enderecos.items():
+        for empresa, enderecos in Operador().informar().items():
             root = QTreeWidgetItem(self.treeWidget_cadastros_infos)
             root.setText(0, empresa)
             # root.setFont(0, QFont())
@@ -643,16 +626,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 child = QTreeWidgetItem()
                 child.setText(0, endereco)
                 root.addChild(child)
-
-        self.stackedWidget_cadastros.setCurrentIndex(0)
-        self.movie.stop()
     
-    def back_infos(self):
-        self.stackedWidget_body.setCurrentIndex(0)
-        self._thread_operador.quit()
-        self._thread_operador.deleteLater()
-       
-
 if __name__ == '__main__':
     app = QApplication()
     window = MainWindow()
