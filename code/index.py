@@ -390,15 +390,10 @@ class Cobrador(QObject):
     def set_novo_endereco(self, valor: str):
         self.enderecos_novos = valor
 
-class Operador(QObject):
-    informacoes = Signal(dict)
-
-    def __init__(self):
-        super().__init__()
-        pass
+class Operador:
 
     #TODO INFORMAR
-    def informar(self) -> dict:
+    def informar() -> dict:
         db = DataBase()
         dict_informacoes = {}
         for i in db.empresas():
@@ -616,7 +611,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.stackedWidget_body.setCurrentIndex(3)
         self.treeWidget_cadastros_infos.clear()
 
-        for empresa, enderecos in Operador().informar().items():
+        for empresa, enderecos in Operador.informar().items():
             root = QTreeWidgetItem(self.treeWidget_cadastros_infos)
             root.setText(0, empresa)
             # root.setFont(0, QFont())
