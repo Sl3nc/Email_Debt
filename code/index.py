@@ -20,7 +20,7 @@ from sqlite3 import connect
 from smtp2go.core import Smtp2goClient
 
 from PySide6.QtWidgets import (
-    QMainWindow, QApplication, QRadioButton, QVBoxLayout, QWidget, QCheckBox
+    QMainWindow, QApplication, QRadioButton, QVBoxLayout, QWidget, QCheckBox, QTreeWidgetItem
 )
 from PySide6.QtGui import QPixmap, QIcon, QMovie
 from PySide6.QtCore import QThread, QObject, Signal, QSize
@@ -383,6 +383,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, parent = None) -> None:
         super().__init__(parent)
         self.setupUi(self)
+
+        root = QTreeWidgetItem(self.treeWidget_cadastros_infos)
+        root.setText(0, "oi")
+        self.treeWidget_cadastros_infos.addTopLevelItem(root)
+
+        child = QTreeWidgetItem()
+        child.setText(0, "oi 2")
+        root.addChild(child)
 
         self.MAX_PROGRESS = 100
         self.coeficiente_progress = 0

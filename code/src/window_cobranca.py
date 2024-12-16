@@ -111,7 +111,7 @@ class Ui_MainWindow(object):
         self.scrollAreaWidgetContents = QWidget()
         self.scrollAreaWidgetContents.setObjectName(u"scrollAreaWidgetContents")
         self.scrollAreaWidgetContents.setEnabled(True)
-        self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 384, 132))
+        self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 340, 132))
         self.gridLayout_6 = QGridLayout(self.scrollAreaWidgetContents)
         self.gridLayout_6.setObjectName(u"gridLayout_6")
         self.stackedWidget_empresas = QStackedWidget(self.scrollAreaWidgetContents)
@@ -341,16 +341,6 @@ class Ui_MainWindow(object):
         self.page_4.setObjectName(u"page_4")
         self.gridLayout_12 = QGridLayout(self.page_4)
         self.gridLayout_12.setObjectName(u"gridLayout_12")
-        self.pushButton_4 = QPushButton(self.page_4)
-        self.pushButton_4.setObjectName(u"pushButton_4")
-        sizePolicy5 = QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Fixed)
-        sizePolicy5.setHorizontalStretch(0)
-        sizePolicy5.setVerticalStretch(0)
-        sizePolicy5.setHeightForWidth(self.pushButton_4.sizePolicy().hasHeightForWidth())
-        self.pushButton_4.setSizePolicy(sizePolicy5)
-
-        self.gridLayout_12.addWidget(self.pushButton_4, 6, 0, 1, 1)
-
         self.label_cadastros_title = QLabel(self.page_4)
         self.label_cadastros_title.setObjectName(u"label_cadastros_title")
         font10 = QFont()
@@ -362,6 +352,16 @@ class Ui_MainWindow(object):
         self.label_cadastros_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.gridLayout_12.addWidget(self.label_cadastros_title, 0, 0, 1, 2)
+
+        self.pushButton_4 = QPushButton(self.page_4)
+        self.pushButton_4.setObjectName(u"pushButton_4")
+        sizePolicy5 = QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Fixed)
+        sizePolicy5.setHorizontalStretch(0)
+        sizePolicy5.setVerticalStretch(0)
+        sizePolicy5.setHeightForWidth(self.pushButton_4.sizePolicy().hasHeightForWidth())
+        self.pushButton_4.setSizePolicy(sizePolicy5)
+
+        self.gridLayout_12.addWidget(self.pushButton_4, 1, 0, 1, 1)
 
         self.frame_6 = QFrame(self.page_4)
         self.frame_6.setObjectName(u"frame_6")
@@ -376,7 +376,7 @@ class Ui_MainWindow(object):
         self.frame_5.setFrameShadow(QFrame.Shadow.Raised)
         self.verticalLayout = QVBoxLayout(self.frame_5)
         self.verticalLayout.setObjectName(u"verticalLayout")
-        self.verticalLayout.setContentsMargins(100, -1, 100, -1)
+        self.verticalLayout.setContentsMargins(25, -1, 50, -1)
         self.pushButton_cadastro_adcionar = QPushButton(self.frame_5)
         self.pushButton_cadastro_adcionar.setObjectName(u"pushButton_cadastro_adcionar")
 
@@ -393,35 +393,67 @@ class Ui_MainWindow(object):
         self.verticalLayout.addWidget(self.pushButton_cadastro_remover)
 
 
-        self.gridLayout_13.addWidget(self.frame_5, 0, 1, 1, 1)
+        self.gridLayout_13.addWidget(self.frame_5, 0, 2, 3, 1)
 
-        self.treeWidget_cadastros = QTreeWidget(self.frame_6)
+        self.treeWidget_cadastros_title = QTreeWidget(self.frame_6)
         font11 = QFont()
-        font11.setPointSize(14)
+        font11.setPointSize(12)
         font11.setItalic(True)
         __qtreewidgetitem = QTreeWidgetItem()
         __qtreewidgetitem.setFont(0, font11);
-        self.treeWidget_cadastros.setHeaderItem(__qtreewidgetitem)
+        self.treeWidget_cadastros_title.setHeaderItem(__qtreewidgetitem)
         brush = QBrush(QColor(0, 0, 0, 255))
         brush.setStyle(Qt.NoBrush)
         font12 = QFont()
-        font12.setPointSize(14)
+        font12.setPointSize(12)
         font12.setBold(True)
-        __qtreewidgetitem1 = QTreeWidgetItem(self.treeWidget_cadastros)
+        __qtreewidgetitem1 = QTreeWidgetItem(self.treeWidget_cadastros_title)
         __qtreewidgetitem1.setFont(0, font12);
         __qtreewidgetitem1.setBackground(0, brush);
-        self.treeWidget_cadastros.setObjectName(u"treeWidget_cadastros")
-        sizePolicy6 = QSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Expanding)
+        self.treeWidget_cadastros_title.setObjectName(u"treeWidget_cadastros_title")
+        sizePolicy3.setHeightForWidth(self.treeWidget_cadastros_title.sizePolicy().hasHeightForWidth())
+        self.treeWidget_cadastros_title.setSizePolicy(sizePolicy3)
+        self.treeWidget_cadastros_title.setMinimumSize(QSize(153, 0))
+        self.treeWidget_cadastros_title.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.treeWidget_cadastros_title.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.treeWidget_cadastros_title.setSizeAdjustPolicy(QAbstractScrollArea.SizeAdjustPolicy.AdjustToContents)
+
+        self.gridLayout_13.addWidget(self.treeWidget_cadastros_title, 2, 0, 1, 1)
+
+        self.stackedWidget = QStackedWidget(self.frame_6)
+        self.stackedWidget.setObjectName(u"stackedWidget")
+        sizePolicy6 = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
         sizePolicy6.setHorizontalStretch(0)
         sizePolicy6.setVerticalStretch(0)
-        sizePolicy6.setHeightForWidth(self.treeWidget_cadastros.sizePolicy().hasHeightForWidth())
-        self.treeWidget_cadastros.setSizePolicy(sizePolicy6)
-        self.treeWidget_cadastros.setMinimumSize(QSize(344, 0))
-        self.treeWidget_cadastros.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
-        self.treeWidget_cadastros.setSizeAdjustPolicy(QAbstractScrollArea.SizeAdjustPolicy.AdjustIgnored)
-        self.treeWidget_cadastros.setAlternatingRowColors(True)
+        sizePolicy6.setHeightForWidth(self.stackedWidget.sizePolicy().hasHeightForWidth())
+        self.stackedWidget.setSizePolicy(sizePolicy6)
+        self.page_7 = QWidget()
+        self.page_7.setObjectName(u"page_7")
+        self.gridLayout_14 = QGridLayout(self.page_7)
+        self.gridLayout_14.setObjectName(u"gridLayout_14")
+        self.treeWidget_cadastros_infos = QTreeWidget(self.page_7)
+        self.treeWidget_cadastros_infos.setObjectName(u"treeWidget_cadastros_infos")
+        self.treeWidget_cadastros_infos.header().setVisible(False)
 
-        self.gridLayout_13.addWidget(self.treeWidget_cadastros, 0, 0, 1, 1)
+        self.gridLayout_14.addWidget(self.treeWidget_cadastros_infos, 0, 0, 1, 1)
+
+        self.stackedWidget.addWidget(self.page_7)
+        self.page_8 = QWidget()
+        self.page_8.setObjectName(u"page_8")
+        self.gridLayout_15 = QGridLayout(self.page_8)
+        self.gridLayout_15.setObjectName(u"gridLayout_15")
+        self.label = QLabel(self.page_8)
+        self.label.setObjectName(u"label")
+        self.label.setMaximumSize(QSize(96, 96))
+        self.label.setPixmap(QPixmap(u"../imgs/load.gif"))
+        self.label.setScaledContents(True)
+        self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        self.gridLayout_15.addWidget(self.label, 0, 0, 1, 1)
+
+        self.stackedWidget.addWidget(self.page_8)
+
+        self.gridLayout_13.addWidget(self.stackedWidget, 2, 1, 1, 1)
 
 
         self.gridLayout_12.addWidget(self.frame_6, 3, 0, 1, 2)
@@ -487,6 +519,7 @@ class Ui_MainWindow(object):
 
         self.stackedWidget_body.setCurrentIndex(3)
         self.stackedWidget_empresas.setCurrentIndex(0)
+        self.stackedWidget.setCurrentIndex(0)
 
 
         QMetaObject.connectSlotsByName(MainWindow)
@@ -512,20 +545,23 @@ class Ui_MainWindow(object):
         self.label_endereco_input_title.setText(QCoreApplication.translate("MainWindow", u"Favor, insira o(s) endere\u00e7o(s) de email da empresa", None))
         self.label_endereco_input_subtitle.setText(QCoreApplication.translate("MainWindow", u"No caso de mais de um endere\u00e7o, os divida com ponto-e-v\u00edrgula \";\"", None))
         self.label_endereco_title.setText(QCoreApplication.translate("MainWindow", u"Empresa abaixo n\u00e3o cadastrada!", None))
-        self.pushButton_4.setText(QCoreApplication.translate("MainWindow", u"Voltar ao menu", None))
         self.label_cadastros_title.setText(QCoreApplication.translate("MainWindow", u"Informa\u00e7\u00f5es Cadastradas", None))
+        self.pushButton_4.setText(QCoreApplication.translate("MainWindow", u"Voltar ao menu", None))
         self.pushButton_cadastro_adcionar.setText(QCoreApplication.translate("MainWindow", u"Adcionar", None))
         self.pushButton_cadastro_editar.setText(QCoreApplication.translate("MainWindow", u"Editar", None))
         self.pushButton_cadastro_remover.setText(QCoreApplication.translate("MainWindow", u"Remover", None))
-        ___qtreewidgetitem = self.treeWidget_cadastros.headerItem()
+        ___qtreewidgetitem = self.treeWidget_cadastros_title.headerItem()
         ___qtreewidgetitem.setText(0, QCoreApplication.translate("MainWindow", u"Nome Empresa", None));
 
-        __sortingEnabled = self.treeWidget_cadastros.isSortingEnabled()
-        self.treeWidget_cadastros.setSortingEnabled(False)
-        ___qtreewidgetitem1 = self.treeWidget_cadastros.topLevelItem(0)
-        ___qtreewidgetitem1.setText(0, QCoreApplication.translate("MainWindow", u"Endereco Email", None));
-        self.treeWidget_cadastros.setSortingEnabled(__sortingEnabled)
+        __sortingEnabled = self.treeWidget_cadastros_title.isSortingEnabled()
+        self.treeWidget_cadastros_title.setSortingEnabled(False)
+        ___qtreewidgetitem1 = self.treeWidget_cadastros_title.topLevelItem(0)
+        ___qtreewidgetitem1.setText(0, QCoreApplication.translate("MainWindow", u"Endere\u00e7o E-mail", None));
+        self.treeWidget_cadastros_title.setSortingEnabled(__sortingEnabled)
 
+        ___qtreewidgetitem2 = self.treeWidget_cadastros_infos.headerItem()
+        ___qtreewidgetitem2.setText(0, QCoreApplication.translate("MainWindow", u"Nome Empresa", None));
+        self.label.setText("")
         self.label_header_title.setText(QCoreApplication.translate("MainWindow", u"Cobran\u00e7a Autom\u00e1tica", None))
         self.label_header_logo.setText("")
     # retranslateUi
