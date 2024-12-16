@@ -60,6 +60,10 @@ class DataBase:
             'WHERE nome = "{0}"'
         )
 
+        self.query_empresas = (
+            f'SELECT nome FROM {self.TABELA_EMPRESA} '
+        )
+
         self.insert_empresa = (
             f'INSERT INTO {self.TABELA_EMPRESA} '
             '(nome)'
@@ -71,6 +75,7 @@ class DataBase:
             f'SELECT assinatura FROM {self.TABELA_USUARIO} '
             'WHERE nome = "{0}"'
         )
+
 
         self.connection = connect(self.ARQUIVO_DB)
         self.cursor = self.connection.cursor()
@@ -92,6 +97,12 @@ class DataBase:
             self.query_empresa.format(nome_empresa)
         )
         return self.cursor.fetchone()
+    
+    def empresas(self) -> list[str]:
+        self.cursor.execute(
+            self.query_empresas
+        )
+        return [i for sub in self.cursor.fetchall() for i in sub]
 
     def registrar_enderecos(self, enderecos: list[str], id_empresa: str) -> None:
         self.cursor.executemany(
@@ -380,8 +391,7 @@ class Cobrador(QObject):
         self.enderecos_novos = valor
 
 class Operador(QObject):
-    dict_enderecos = Signal(dict)
-    fim = Signal()
+    informacoes = Signal(dict)
 
     def __init__(self):
         super().__init__()
@@ -390,23 +400,20 @@ class Operador(QObject):
     #TODO INFORMAR
     def informar(self):
         db = DataBase()
-        
+        dict_informacoes = {}
 
+        for i in db.empresas():
+            dict_informacoes[i] = db.emails_empresa(i)
+        self.informacoes.emit(dict_informacoes)
         db.close()
-        self.fim.emit()
+
+    def add(self, nome_empresa: str, endereco: str):
+        ...
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, parent = None) -> None:
         super().__init__(parent)
         self.setupUi(self)
-
-        root = QTreeWidgetItem(self.treeWidget_cadastros_infos)
-        root.setText(0, "Empresa Exemplo")
-        self.treeWidget_cadastros_infos.addTopLevelItem(root)
-
-        child = QTreeWidgetItem()
-        child.setText(0, "E-mail da empresa")
-        root.addChild(child)
 
         self.MAX_PROGRESS = 100
         self.coeficiente_progress = 0
@@ -419,6 +426,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.movie = QMovie(resource_path("src\\imgs\\load.gif"))
         self.label_load_gif.setMovie(self.movie)
         self.label_loading_empresas.setMovie(self.movie)
+        self.label.setMovie(self.movie)
 
         icon = QIcon()
         icon.addFile(resource_path("src\\imgs\\upload-icon.png"), QSize(), QIcon.Mode.Normal, QIcon.State.Off)
@@ -442,6 +450,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.pushButton_empresas_marcar.clicked.connect(
             self.marcar_options
+        )
+
+        self.pushButton_cadastros_back.clicked.connect(
+            self.back_infos
+        )
+
+        self.pushButton_cadastros_visualizar.clicked.connect(
+            self.acess_infos
         )
 
         self.pushButton_empresas_marcar.hide()
@@ -598,9 +614,44 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.movie.stop()
             self.stackedWidget_body.setCurrentIndex(to)
 
-    def acess_cadastro(self):
-        self.stackedWidget_body.setCurrentIndex(3)
-        self.treeWidget_cadastros.setItemWidget()
+    def acess_infos(self):
+        try:
+            self.movie.start()
+            self.stackedWidget_cadastros.setCurrentIndex(1)
+            self.stackedWidget_body.setCurrentIndex(3)
+
+            self._operador = Operador()
+            self._thread_operador = QThread()
+            self._operador.moveToThread(self._thread_operador)
+            self._thread_operador.started.connect(self._operador.informar)
+            self._operador.informacoes.connect(self.preencher_infos)
+            self._thread_operador.start()
+        except Exception as e:
+            self.exec_load(False)
+            traceback.print_exc()
+            messagebox.showwarning(title='Aviso', message= e)
+    
+    def preencher_infos(self, dict_enderecos: dict[str,list[str]]):
+        print(dict_enderecos)
+        for empresa, enderecos in dict_enderecos.items():
+            root = QTreeWidgetItem(self.treeWidget_cadastros_infos)
+            root.setText(0, empresa)
+            # root.setFont(0, QFont())
+            self.treeWidget_cadastros_infos.addTopLevelItem(root)
+
+            for endereco in enderecos:
+                child = QTreeWidgetItem()
+                child.setText(0, endereco)
+                root.addChild(child)
+
+        self.stackedWidget_cadastros.setCurrentIndex(0)
+        self.movie.stop()
+    
+    def back_infos(self):
+        self.stackedWidget_body.setCurrentIndex(0)
+        self._thread_operador.quit()
+        self._thread_operador.deleteLater()
+       
 
 if __name__ == '__main__':
     app = QApplication()
