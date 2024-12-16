@@ -387,31 +387,6 @@ class Ui_MainWindow(object):
         self.gridLayout_13 = QGridLayout(self.frame_6)
         self.gridLayout_13.setObjectName(u"gridLayout_13")
         self.gridLayout_13.setContentsMargins(50, 0, 50, 0)
-        self.treeWidget_cadastros_title = QTreeWidget(self.frame_6)
-        font11 = QFont()
-        font11.setPointSize(12)
-        font11.setItalic(True)
-        __qtreewidgetitem = QTreeWidgetItem()
-        __qtreewidgetitem.setFont(0, font11);
-        self.treeWidget_cadastros_title.setHeaderItem(__qtreewidgetitem)
-        brush = QBrush(QColor(0, 0, 0, 255))
-        brush.setStyle(Qt.NoBrush)
-        font12 = QFont()
-        font12.setPointSize(12)
-        font12.setBold(True)
-        __qtreewidgetitem1 = QTreeWidgetItem(self.treeWidget_cadastros_title)
-        __qtreewidgetitem1.setFont(0, font12);
-        __qtreewidgetitem1.setBackground(0, brush);
-        self.treeWidget_cadastros_title.setObjectName(u"treeWidget_cadastros_title")
-        sizePolicy3.setHeightForWidth(self.treeWidget_cadastros_title.sizePolicy().hasHeightForWidth())
-        self.treeWidget_cadastros_title.setSizePolicy(sizePolicy3)
-        self.treeWidget_cadastros_title.setMinimumSize(QSize(153, 0))
-        self.treeWidget_cadastros_title.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.treeWidget_cadastros_title.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.treeWidget_cadastros_title.setSizeAdjustPolicy(QAbstractScrollArea.SizeAdjustPolicy.AdjustToContents)
-
-        self.gridLayout_13.addWidget(self.treeWidget_cadastros_title, 2, 0, 1, 1)
-
         self.frame_5 = QFrame(self.frame_6)
         self.frame_5.setObjectName(u"frame_5")
         self.frame_5.setFrameShape(QFrame.Shape.StyledPanel)
@@ -444,7 +419,48 @@ class Ui_MainWindow(object):
         self.verticalLayout.addWidget(self.pushButton_cadastro_remover)
 
 
-        self.gridLayout_13.addWidget(self.frame_5, 0, 2, 3, 1)
+        self.gridLayout_13.addWidget(self.frame_5, 0, 2, 5, 1)
+
+        self.frame_8 = QFrame(self.frame_6)
+        self.frame_8.setObjectName(u"frame_8")
+        self.frame_8.setFrameShape(QFrame.Shape.StyledPanel)
+        self.frame_8.setFrameShadow(QFrame.Shadow.Raised)
+        self.gridLayout_14 = QGridLayout(self.frame_8)
+        self.gridLayout_14.setObjectName(u"gridLayout_14")
+        self.treeWidget_cadastros_title = QTreeWidget(self.frame_8)
+        font11 = QFont()
+        font11.setPointSize(12)
+        font11.setItalic(True)
+        __qtreewidgetitem = QTreeWidgetItem()
+        __qtreewidgetitem.setFont(0, font11);
+        self.treeWidget_cadastros_title.setHeaderItem(__qtreewidgetitem)
+        brush = QBrush(QColor(0, 0, 0, 255))
+        brush.setStyle(Qt.NoBrush)
+        font12 = QFont()
+        font12.setPointSize(12)
+        font12.setBold(True)
+        __qtreewidgetitem1 = QTreeWidgetItem(self.treeWidget_cadastros_title)
+        __qtreewidgetitem1.setFont(0, font12);
+        __qtreewidgetitem1.setBackground(0, brush);
+        self.treeWidget_cadastros_title.setObjectName(u"treeWidget_cadastros_title")
+        sizePolicy3.setHeightForWidth(self.treeWidget_cadastros_title.sizePolicy().hasHeightForWidth())
+        self.treeWidget_cadastros_title.setSizePolicy(sizePolicy3)
+        self.treeWidget_cadastros_title.setMinimumSize(QSize(153, 0))
+        self.treeWidget_cadastros_title.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.treeWidget_cadastros_title.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.treeWidget_cadastros_title.setSizeAdjustPolicy(QAbstractScrollArea.SizeAdjustPolicy.AdjustToContents)
+
+        self.gridLayout_14.addWidget(self.treeWidget_cadastros_title, 1, 0, 1, 1)
+
+        self.label = QLabel(self.frame_8)
+        self.label.setObjectName(u"label")
+        self.label.setFont(font7)
+        self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        self.gridLayout_14.addWidget(self.label, 0, 0, 1, 1)
+
+
+        self.gridLayout_13.addWidget(self.frame_8, 4, 0, 1, 1)
 
         self.treeWidget_cadastros_infos = QTreeWidget(self.frame_6)
         self.treeWidget_cadastros_infos.setObjectName(u"treeWidget_cadastros_infos")
@@ -453,7 +469,7 @@ class Ui_MainWindow(object):
         self.treeWidget_cadastros_infos.setFont(font13)
         self.treeWidget_cadastros_infos.header().setVisible(False)
 
-        self.gridLayout_13.addWidget(self.treeWidget_cadastros_infos, 2, 1, 1, 1)
+        self.gridLayout_13.addWidget(self.treeWidget_cadastros_infos, 1, 1, 4, 1)
 
 
         self.gridLayout_12.addWidget(self.frame_6, 3, 0, 1, 2)
@@ -547,18 +563,19 @@ class Ui_MainWindow(object):
         self.label_endereco_empresa.setText(QCoreApplication.translate("MainWindow", u"nome da empresa", None))
         self.label_cadastros_title.setText(QCoreApplication.translate("MainWindow", u"Informa\u00e7\u00f5es Cadastradas", None))
         self.pushButton_cadastros_back.setText(QCoreApplication.translate("MainWindow", u"Voltar ao menu", None))
+        self.pushButton_cadastro_adcionar.setText(QCoreApplication.translate("MainWindow", u"Adcionar", None))
+        self.pushButton_cadastro_editar.setText(QCoreApplication.translate("MainWindow", u"Editar", None))
+        self.pushButton_cadastro_remover.setText(QCoreApplication.translate("MainWindow", u"Remover", None))
         ___qtreewidgetitem = self.treeWidget_cadastros_title.headerItem()
-        ___qtreewidgetitem.setText(0, QCoreApplication.translate("MainWindow", u"Nome Empresa", None));
+        ___qtreewidgetitem.setText(0, QCoreApplication.translate("MainWindow", u"Nome empresa", None));
 
         __sortingEnabled = self.treeWidget_cadastros_title.isSortingEnabled()
         self.treeWidget_cadastros_title.setSortingEnabled(False)
         ___qtreewidgetitem1 = self.treeWidget_cadastros_title.topLevelItem(0)
-        ___qtreewidgetitem1.setText(0, QCoreApplication.translate("MainWindow", u"Endere\u00e7o E-mail", None));
+        ___qtreewidgetitem1.setText(0, QCoreApplication.translate("MainWindow", u"Endere\u00e7o e-mail", None));
         self.treeWidget_cadastros_title.setSortingEnabled(__sortingEnabled)
 
-        self.pushButton_cadastro_adcionar.setText(QCoreApplication.translate("MainWindow", u"Adcionar", None))
-        self.pushButton_cadastro_editar.setText(QCoreApplication.translate("MainWindow", u"Editar", None))
-        self.pushButton_cadastro_remover.setText(QCoreApplication.translate("MainWindow", u"Remover", None))
+        self.label.setText(QCoreApplication.translate("MainWindow", u"Refer\u00eancia:", None))
         ___qtreewidgetitem2 = self.treeWidget_cadastros_infos.headerItem()
         ___qtreewidgetitem2.setText(0, QCoreApplication.translate("MainWindow", u"Nome Empresa", None));
         self.label_header_title.setText(QCoreApplication.translate("MainWindow", u"Cobran\u00e7a Autom\u00e1tica", None))
