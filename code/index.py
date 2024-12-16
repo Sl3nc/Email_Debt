@@ -574,6 +574,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.movie.stop()
             self.stackedWidget_body.setCurrentIndex(to)
 
+    def acess_cadastro(self):
+        self.stackedWidget_body.setCurrentIndex(3)
+        self.treeWidget_cadastros.setItemWidget()
+
 if __name__ == '__main__':
     app = QApplication()
     window = MainWindow()
