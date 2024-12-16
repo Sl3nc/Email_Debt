@@ -379,17 +379,33 @@ class Cobrador(QObject):
     def set_novo_endereco(self, valor: str):
         self.enderecos_novos = valor
 
+class Operador(QObject):
+    dict_enderecos = Signal(dict)
+    fim = Signal()
+
+    def __init__(self):
+        super().__init__()
+        pass
+
+    #TODO INFORMAR
+    def informar(self):
+        db = DataBase()
+        
+
+        db.close()
+        self.fim.emit()
+
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, parent = None) -> None:
         super().__init__(parent)
         self.setupUi(self)
 
         root = QTreeWidgetItem(self.treeWidget_cadastros_infos)
-        root.setText(0, "oi")
+        root.setText(0, "Empresa Exemplo")
         self.treeWidget_cadastros_infos.addTopLevelItem(root)
 
         child = QTreeWidgetItem()
-        child.setText(0, "oi 2")
+        child.setText(0, "E-mail da empresa")
         root.addChild(child)
 
         self.MAX_PROGRESS = 100
