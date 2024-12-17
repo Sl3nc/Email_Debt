@@ -708,12 +708,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             items = self.treeWidget_cadastros_infos.selectedItems()
             if len(items) == 0:
                 raise Exception("Escolha um e-mail para adcionar")
-            parente = items[0].parent()
-            if parente == None:
-                raise Exception("Em pró do funcionamento do programa, adcione apenas endereços de e-mail. As empresas são cadastradas automáticamente quando encontradas na execução")
+            atual = items[0]
+            parente = atual.parent()
+            if parente != None:
+                raise Exception("Selecione a empresa que deseja adcionar o e-mail")
                 
             self.label_endereco_title.setText('Adcionar e-mail na empresa abaixo:')
-            self.label_endereco_empresa.setText(parente.text(0))
+            self.label_endereco_empresa.setText(atual.text(0))
             self.stackedWidget_body.setCurrentIndex(2)
             self.conexao_add = self.pushButton_endereco.clicked.connect(
                 self.operacao_adcionar
@@ -722,18 +723,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             messagebox.showwarning('Aviso', e)
 
     def operacao_adcionar(self):
-        parente = self.treeWidget_cadastros_infos.selectedItems()[0].parent()
+        atual = self.treeWidget_cadastros_infos.selectedItems()[0]
         enderecos = self.lineEdit_endereco.text().split(';')
 
         Operador.add(
-            parente.text(0), 
+            atual.text(0), 
             enderecos
         )
 
         for endereco in enderecos:
             child = QTreeWidgetItem()
             child.setText(0, endereco)
-            parente.addChild(child)
+            atual.addChild(child)
 
         self.pushButton_endereco.disconnect(self.conexao_add)
         self.stackedWidget_body.setCurrentIndex(3)
