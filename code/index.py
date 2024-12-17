@@ -631,12 +631,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 child.setText(0, endereco)
                 root.addChild(child)
 
-    def valid_operacao_info(self) -> bool:
-        for i in self.treeWidget_cadastros_infos.selectedItems():
-            if i.parent() == None:
-                return False
-        return True
-
     def adcionar_info(self):
         try:
             items = self.treeWidget_cadastros_infos.selectedItems()
