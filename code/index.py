@@ -20,7 +20,7 @@ from sqlite3 import connect
 from smtp2go.core import Smtp2goClient
 
 from PySide6.QtWidgets import (
-    QMainWindow, QApplication, QRadioButton, QVBoxLayout, QWidget, QCheckBox
+    QMainWindow, QApplication, QRadioButton, QVBoxLayout, QWidget, QCheckBox, QTreeWidgetItem
 )
 from PySide6.QtGui import QPixmap, QIcon, QMovie
 from PySide6.QtCore import QThread, QObject, Signal, QSize
@@ -60,6 +60,10 @@ class DataBase:
             'WHERE nome = "{0}"'
         )
 
+        self.query_empresas = (
+            f'SELECT nome FROM {self.TABELA_EMPRESA} '
+        )
+
         self.insert_empresa = (
             f'INSERT INTO {self.TABELA_EMPRESA} '
             '(nome)'
@@ -71,6 +75,7 @@ class DataBase:
             f'SELECT assinatura FROM {self.TABELA_USUARIO} '
             'WHERE nome = "{0}"'
         )
+
 
         self.connection = connect(self.ARQUIVO_DB)
         self.cursor = self.connection.cursor()
@@ -92,6 +97,12 @@ class DataBase:
             self.query_empresa.format(nome_empresa)
         )
         return self.cursor.fetchone()
+    
+    def empresas(self) -> list[str]:
+        self.cursor.execute(
+            self.query_empresas
+        )
+        return [i for sub in self.cursor.fetchall() for i in sub]
 
     def registrar_enderecos(self, enderecos: list[str], id_empresa: str) -> None:
         self.cursor.executemany(
@@ -177,7 +188,7 @@ class Conteudo:
                 </h3>
                 <div style="padding-left: 10%;">
                     <p style="margin: 1%;"><b>QR code</b> - PIX</p>
-                    <img src="https://i.imgur.com/T0w2OdH.png" style="width: 20%;">
+                    <img src="https://i.imgur.com/T0w2OdH.png" style="width: 30%;">
                 </div>
             </div>
             <p style="margin: 0.5% 0% 1% 0%;">
@@ -379,6 +390,20 @@ class Cobrador(QObject):
     def set_novo_endereco(self, valor: str):
         self.enderecos_novos = valor
 
+class Operador:
+
+    #TODO INFORMAR
+    def informar() -> dict:
+        db = DataBase()
+        dict_informacoes = {}
+        for i in db.empresas():
+            dict_informacoes[i] = db.emails_empresa(i)
+        db.close()
+        return dict_informacoes
+
+    def add(self, nome_empresa: str, endereco: str):
+        ...
+
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, parent = None) -> None:
         super().__init__(parent)
@@ -418,6 +443,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.pushButton_empresas_marcar.clicked.connect(
             self.marcar_options
+        )
+
+        self.pushButton_cadastros_back.clicked.connect(
+            lambda: self.stackedWidget_body.setCurrentIndex(0)
+        )
+
+        self.pushButton_cadastros_visualizar.clicked.connect(
+            self.acess_infos
         )
 
         self.pushButton_empresas_marcar.hide()
@@ -574,6 +607,21 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.movie.stop()
             self.stackedWidget_body.setCurrentIndex(to)
 
+    def acess_infos(self):
+        self.stackedWidget_body.setCurrentIndex(3)
+        self.treeWidget_cadastros_infos.clear()
+
+        for empresa, enderecos in Operador.informar().items():
+            root = QTreeWidgetItem(self.treeWidget_cadastros_infos)
+            root.setText(0, empresa)
+            # root.setFont(0, QFont())
+            self.treeWidget_cadastros_infos.addTopLevelItem(root)
+
+            for endereco in enderecos:
+                child = QTreeWidgetItem()
+                child.setText(0, endereco)
+                root.addChild(child)
+    
 if __name__ == '__main__':
     app = QApplication()
     window = MainWindow()
