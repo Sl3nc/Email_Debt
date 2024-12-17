@@ -61,6 +61,16 @@ class DataBase:
             '(?,?)'
         )
 
+        self.delete_endereco = (
+            f'DELETE FROM {self.TABELA_EMAIL} '
+            'WHERE id_emp = ? AND endereco = ?'
+        )
+
+        self.delete_enderecos = (
+            f'DELETE FROM {self.TABELA_EMAIL} '
+            'WHERE id_emp = ?'
+        )
+
         self.query_empresa = (
             f'SELECT id_emp FROM {self.TABELA_EMPRESA} '
             'WHERE nome = "{0}"'
@@ -77,6 +87,11 @@ class DataBase:
             '(?)'
         )
 
+        self.delete_empresa = (
+            f'DELETE FROM {self.TABELA_EMPRESA} '
+            'WHERE id_emp = ?'
+        )
+        
         self.query_ass = (
             f'SELECT assinatura FROM {self.TABELA_USUARIO} '
             'WHERE nome = "{0}"'
@@ -91,6 +106,24 @@ class DataBase:
             self.query_endereco.format(nome_empresa)
         )
         return [i for sub in self.cursor.fetchall() for i in sub]
+    
+    def remover_empresa(self, id_empresa: str):
+        self.cursor.execute(
+            self.delete_empresa, (id_empresa, )
+        )
+        self.connection.commit()
+
+    def remover_endereco(self, id_empresa: str, endereco: str):
+        self.cursor.execute(
+            self.delete_endereco, (id_empresa, endereco)
+        )
+        self.connection.commit()
+
+    def remover_enderecos(self, id_empresa: str):
+        self.cursor.execute(
+            self.delete_enderecos, (id_empresa, )
+        )
+        self.connection.commit()
     
     def atualizar_endereco(self, end_novo: str, end_antigo: str, id_emp: str):
         self.cursor.execute(
@@ -426,6 +459,19 @@ class Operador:
         db.atualizar_endereco(endereco_novo, endereco_antigo, id_emp)
         db.close()
 
+    def remove_empresa(nome_empresa: str) -> None:
+        db = DataBase()
+        id_emp = db.identificador_empresa(nome_empresa)
+        db.remover_empresa(id_emp)
+        db.remover_enderecos(id_emp)
+        db.close()
+
+    def remove_endereco(nome_empresa: str, endereco: str) -> None:
+        db = DataBase()
+        id_emp = db.identificador_empresa(nome_empresa)
+        db.remover_endereco(id_emp, endereco)
+        db.close()
+
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, parent = None) -> None:
         super().__init__(parent)
@@ -477,6 +523,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.pushButton_cadastro_editar.clicked.connect(
             self.editar_info
+        )
+
+        self.pushButton_cadastro_remover.clicked.connect(
+            self.remover_info
         )
 
         self.pushButton_empresas_marcar.hide()
@@ -726,7 +776,32 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.label_endereco_input_title.setText(self.actual_text)
         self.pushButton_endereco.disconnect(self.conexao_edit)
         self.stackedWidget_body.setCurrentIndex(3)
-    
+
+    def remover_info(self):
+        # try:
+            items = self.treeWidget_cadastros_infos.selectedItems()
+            if len(items) == 0:
+                raise Exception("Escolha um e-mail ou empresa para remover")
+            parente = items[0].parent()
+            escolhido = items[0]
+
+            if parente == None:
+                if messagebox.askyesno('Atenção!', 'A remoção da empresa eliminará todos seus emails, tem certeza que deseja removê-la?') == False:
+                    return None
+                Operador.remove_empresa(
+                    escolhido.text(0)
+                )
+            else:
+                Operador.remove_endereco(
+                    parente.text(0),
+                    escolhido.text(0)
+                )
+
+            escolhido.setHidden(True)
+            self.stackedWidget_body.setCurrentIndex(3)
+        # except Exception as e:
+        #     messagebox.showwarning('Aviso', e)
+
 if __name__ == '__main__':
     app = QApplication()
     window = MainWindow()
