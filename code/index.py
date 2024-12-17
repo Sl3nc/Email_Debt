@@ -484,6 +484,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.arquivo = Arquivo()
         self.options = []
         self.option_checada = False
+        #
 
         self.setWindowIcon(QIcon(resource_path('src\\imgs\\mail-icon.ico')))
 
