@@ -170,10 +170,12 @@ class Email:
     def __init__(self):
         self.client = Smtp2goClient(api_key='api-57285302C4594921BD70EB19882D320B')
         self.base_titulo = ' - HONORÁRIOS CONTÁBEIS EM ABERTO'
+        self.sender = 'financeiro@deltaprice.com.br'
 
     def criar(self, destinatarios: list[str], nome_empresa: str, conteudo: str):
+        destinatarios.append(self.sender)
         self.payload = {
-            'sender': 'financeiro@deltaprice.com.br',
+            'sender': self.sender,
             'recipients': destinatarios,
             'subject': nome_empresa  + self.base_titulo,
             'html': conteudo,
