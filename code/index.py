@@ -82,21 +82,16 @@ class DataBase:
         pass
 
     def emails_empresa(self, nome_empresa: str) -> list[str]:
-        dict_result = ()
         self.cursor.execute(
             self.query_endereco.format(nome_empresa)
         )
         return [i for sub in self.cursor.fetchall() for i in sub]
 
-    def registrar_empresa(self, nome_empresa: str) -> str:
+    def registrar_empresa(self, nome_empresa: str) -> None:
         self.cursor.execute(
             self.insert_empresa, (nome_empresa,)
         )
         self.connection.commit()
-        self.cursor.execute(
-            self.query_empresa.format(nome_empresa)
-        )
-        return self.cursor.fetchone()
     
     def empresas(self) -> list[str]:
         self.cursor.execute(
@@ -110,6 +105,12 @@ class DataBase:
             ([endereco, id_empresa[0]] for endereco in enderecos)
         )
         self.connection.commit()
+
+    def identificador_empresa(self, nome_empresa: str) -> str:
+        self.cursor.execute(
+            self.query_empresa.format(nome_empresa)
+        )
+        return self.cursor.fetchone()
 
     def query_assinatura(self, nome_func: str) -> str:
         self.cursor.execute(
@@ -381,7 +382,8 @@ class Cobrador(QObject):
         while self.enderecos_novos == '':
             sleep(2)
 
-        id_empresa = db.registrar_empresa(nome_empresa)
+        db.registrar_empresa(nome_empresa)
+        id_empresa = db.identificador_empresa(nome_empresa)
         enderecos_email = self.enderecos_novos.split(';')
         self.enderecos_novos = ''
         db.registrar_enderecos(enderecos_email, id_empresa)
@@ -401,8 +403,11 @@ class Operador:
         db.close()
         return dict_informacoes
 
-    def add(self, nome_empresa: str, endereco: str):
-        ...
+    def add(nome_empresa: str, enderecos: list[str]) -> list[str]:
+        db = DataBase()
+        id_emp = db.identificador_empresa(nome_empresa)
+        db.registrar_enderecos(enderecos, id_emp)
+        db.close()
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, parent = None) -> None:
@@ -429,10 +434,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.label_header_logo.setPixmap(QPixmap
         (resource_path('src\\imgs\\mail-hori.png')))
 
-        self.pushButton_endereco.clicked.connect(
-            self.enviar_valor
-        )
-
         self.pushButton_body_relatorio_anexar.clicked.connect(
             self.inserir_relatorio
         )
@@ -451,6 +452,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.pushButton_cadastros_visualizar.clicked.connect(
             self.acess_infos
+        )
+
+        self.pushButton_cadastro_adcionar.clicked.connect(
+            self.adcionar_info
         )
 
         self.pushButton_empresas_marcar.hide()
@@ -574,19 +579,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 del filtred_content[i.text()]
         return filtred_content
 
-    def enviar_valor(self):
-        try:
-            resp = self.lineEdit_endereco.text()
-            #Validar envio
-            if resp == '':
-                raise Exception('Endereço de email inválido')
-
-            #Confirmar envio
-            self._cobrador.set_novo_endereco(resp)
-            self.exec_load(True)
-        except Exception as e:
-            messagebox.showwarning(title='Aviso', message= e)
-
     def to_progress(self, valor):
         self.progressBar.setValue(self.coeficiente_progress * valor)
 
@@ -597,7 +589,24 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def acess_cadastro(self, nome_empresa: str):
         self.label_endereco_empresa.setText(nome_empresa)
+        self.conexao_envio = self.pushButton_endereco.clicked.connect(
+            self.enviar_valor
+        )
         self.exec_load(False, 2)
+
+    def enviar_valor(self):
+        try:
+            resp = self.lineEdit_endereco.text()
+            #Validar envio
+            if resp == '':
+                raise Exception('Endereço de email inválido')
+
+            #Confirmar envio
+            self._cobrador.set_novo_endereco(resp)
+            self.pushButton_endereco.disconnect(self.conexao_envio)
+            self.exec_load(True)
+        except Exception as e:
+            messagebox.showwarning(title='Aviso', message= e)
 
     def exec_load(self, action: bool, to = 0):
         if action == True:
@@ -621,6 +630,46 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 child = QTreeWidgetItem()
                 child.setText(0, endereco)
                 root.addChild(child)
+
+    def valid_operacao_info(self) -> bool:
+        for i in self.treeWidget_cadastros_infos.selectedItems():
+            if i.parent() == None:
+                return False
+        return True
+
+    def adcionar_info(self):
+        try:
+            items = self.treeWidget_cadastros_infos.selectedItems()
+            if len(items) == 0:
+                raise Exception("Escolha um e-mail para adcionar")
+            parente = items[0].parent()
+            if parente == None:
+                raise Exception("Em pró do funcionamento do programa, adcione apenas endereços de e-mail. As empresas são cadastradas automáticamente quando encontradas na execução")
+                
+            self.stackedWidget_body.setCurrentIndex(2)
+            self.label_endereco_title.setText('Adcionar e-mail em empresa')
+            self.label_endereco_empresa.setText(parente.text(0))
+            self.pushButton_endereco.clicked.connect(
+                self.operacao_adcionar
+            )
+        except Exception as e:
+            messagebox.showwarning('Aviso', e)
+
+    def operacao_adcionar(self):
+        parente = self.treeWidget_cadastros_infos.selectedItems()[0].parent()
+        enderecos = self.lineEdit_endereco.text().split(';')
+
+        Operador.add(
+            parente.text(0), 
+            enderecos
+        )
+
+        for endereco in enderecos:
+            child = QTreeWidgetItem()
+            child.setText(0, endereco)
+            parente.addChild(child)
+
+        self.stackedWidget_body.setCurrentIndex(3)
     
 if __name__ == '__main__':
     app = QApplication()
