@@ -24,7 +24,7 @@
     <item row="1" column="0">
      <widget class="QStackedWidget" name="stackedWidget_body">
       <property name="currentIndex">
-       <number>3</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="page">
        <property name="layoutDirection">
@@ -488,7 +488,7 @@
            </font>
           </property>
           <property name="text">
-           <string>Empresa abaixo não cadastrada!</string>
+           <string>Empresa abaixo não cadastrada:</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignmentFlag::AlignCenter</set>

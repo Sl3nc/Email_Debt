@@ -48,6 +48,12 @@ class DataBase:
             'WHERE nome = "{0}")'
         )
 
+        self.update_endereco = (
+            f'UPDATE {self.TABELA_EMAIL} SET '
+            'endereco = ? '
+            'WHERE endereco = ? AND  id_emp = ?'
+        )
+
         self.insert_endereco = (
             f'INSERT INTO {self.TABELA_EMAIL} '
             '(endereco, id_emp)'
@@ -76,7 +82,6 @@ class DataBase:
             'WHERE nome = "{0}"'
         )
 
-
         self.connection = connect(self.ARQUIVO_DB)
         self.cursor = self.connection.cursor()
         pass
@@ -86,6 +91,12 @@ class DataBase:
             self.query_endereco.format(nome_empresa)
         )
         return [i for sub in self.cursor.fetchall() for i in sub]
+    
+    def atualizar_endereco(self, end_novo: str, end_antigo: str, id_emp: str):
+        self.cursor.execute(
+            self.update_endereco, (end_novo, end_antigo, id_emp)
+        )
+        self.connection.commit()
 
     def registrar_empresa(self, nome_empresa: str) -> None:
         self.cursor.execute(
@@ -102,7 +113,7 @@ class DataBase:
     def registrar_enderecos(self, enderecos: list[str], id_empresa: str) -> None:
         self.cursor.executemany(
             self.insert_endereco, 
-            ([endereco, id_empresa[0]] for endereco in enderecos)
+            ([endereco, id_empresa] for endereco in enderecos)
         )
         self.connection.commit()
 
@@ -110,7 +121,7 @@ class DataBase:
         self.cursor.execute(
             self.query_empresa.format(nome_empresa)
         )
-        return self.cursor.fetchone()
+        return self.cursor.fetchone()[0]
 
     def query_assinatura(self, nome_func: str) -> str:
         self.cursor.execute(
@@ -409,6 +420,12 @@ class Operador:
         db.registrar_enderecos(enderecos, id_emp)
         db.close()
 
+    def edit(nome_empresa: str, endereco_antigo: str, endereco_novo: str) -> None:
+        db = DataBase()
+        id_emp = db.identificador_empresa(nome_empresa)
+        db.atualizar_endereco(endereco_novo, endereco_antigo, id_emp)
+        db.close()
+
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, parent = None) -> None:
         super().__init__(parent)
@@ -456,6 +473,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.pushButton_cadastro_adcionar.clicked.connect(
             self.adcionar_info
+        )
+
+        self.pushButton_cadastro_editar.clicked.connect(
+            self.editar_info
         )
 
         self.pushButton_empresas_marcar.hide()
@@ -588,6 +609,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         messagebox.showinfo(title='Aviso', message= f'Email enviado com sucesso para: \n{'\n- '.join(enderecos_empresas)}')
 
     def acess_cadastro(self, nome_empresa: str):
+        self.label_endereco_title.setText('Empresa abaixo não cadastrada:')
         self.label_endereco_empresa.setText(nome_empresa)
         self.conexao_envio = self.pushButton_endereco.clicked.connect(
             self.enviar_valor
@@ -640,10 +662,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if parente == None:
                 raise Exception("Em pró do funcionamento do programa, adcione apenas endereços de e-mail. As empresas são cadastradas automáticamente quando encontradas na execução")
                 
-            self.stackedWidget_body.setCurrentIndex(2)
-            self.label_endereco_title.setText('Adcionar e-mail em empresa')
+            self.label_endereco_title.setText('Adcionar e-mail na empresa abaixo:')
             self.label_endereco_empresa.setText(parente.text(0))
-            self.pushButton_endereco.clicked.connect(
+            self.stackedWidget_body.setCurrentIndex(2)
+            self.conexao_add = self.pushButton_endereco.clicked.connect(
                 self.operacao_adcionar
             )
         except Exception as e:
@@ -663,6 +685,46 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             child.setText(0, endereco)
             parente.addChild(child)
 
+        self.pushButton_endereco.disconnect(self.conexao_add)
+        self.stackedWidget_body.setCurrentIndex(3)
+
+    def editar_info(self):
+        try:
+            items = self.treeWidget_cadastros_infos.selectedItems()
+            if len(items) == 0:
+                raise Exception("Escolha um e-mail para editar")
+            parente = items[0].parent()
+            escolhido = items[0]
+            if parente == None:
+                raise Exception("Em pró do funcionamento do programa, edite apenas endereços de e-mail. O nome atual das empresas é fundamental para execução")
+                
+            self.label_endereco_input_subtitle.hide()
+            self.actual_text = self.label_endereco_input_title.text()
+            self.label_endereco_input_title.setText(f"Favor, insira o endereço que substituirá o atual endereço: {escolhido.text(0)}")
+            self.label_endereco_title.setText('Editar e-mail da empresa abaixo:')
+            self.label_endereco_empresa.setText(parente.text(0))
+            self.stackedWidget_body.setCurrentIndex(2)
+            self.conexao_edit = self.pushButton_endereco.clicked.connect(
+                self.operacao_editar
+            )
+        except Exception as e:
+            messagebox.showwarning('Aviso', e)
+
+    def operacao_editar(self):
+        atual = self.treeWidget_cadastros_infos.selectedItems()[0]
+        parente = atual.parent()
+        novo_text = self.lineEdit_endereco.text()
+
+        Operador.edit(
+            parente.text(0), 
+            atual.text(0),
+            novo_text
+        )
+
+        atual.setText(0, novo_text)
+        self.label_endereco_input_subtitle.show()
+        self.label_endereco_input_title.setText(self.actual_text)
+        self.pushButton_endereco.disconnect(self.conexao_edit)
         self.stackedWidget_body.setCurrentIndex(3)
     
 if __name__ == '__main__':
