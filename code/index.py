@@ -1,30 +1,32 @@
 from tkinter import messagebox
 from tkinter.filedialog import askopenfilename
 
+import pymysql.cursors
 from smtp2go.core import Smtp2goClient
+import pymysql
 
+from os import getenv
 import tabula as tb
 import pandas as pd
 from unidecode import unidecode
 import traceback
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
-import string
 from os import path, renames
 import sys
 from copy import deepcopy
 from time import sleep
-
-from sqlite3 import connect
-
+from pathlib import Path
+from dotenv import load_dotenv
 from smtp2go.core import Smtp2goClient
-
 from PySide6.QtWidgets import (
     QMainWindow, QApplication, QRadioButton, QVBoxLayout, QWidget, QCheckBox, QTreeWidgetItem
 )
 from PySide6.QtGui import QPixmap, QIcon, QMovie
 from PySide6.QtCore import QThread, QObject, Signal, QSize
 from src.window_cobranca import Ui_MainWindow
+
+load_dotenv(Path(__file__).parent / 'src' / 'env' / '.env')
 
 def resource_path(relative_path):
     base_path = getattr(
@@ -34,46 +36,55 @@ def resource_path(relative_path):
     return path.join(base_path, relative_path)
 
 class DataBase:
-    NOME_DB = 'email_cobranca.sqlite3'
-    ARQUIVO_DB = resource_path(f'src\\db\\{NOME_DB}')
     TABELA_EMPRESA = 'Empresa'
-    TABELA_USUARIO = 'Usuarios'
+    TABELA_USUARIO = 'Usuario'
     TABELA_EMAIL = 'Email'
+
+    def try_connection(self):
+        try:
+            return pymysql.connect(
+                host= getenv('IP_HOST'),
+                port= int(getenv('PORT_HOST')),
+                user= getenv('USER'),
+                password= getenv('PASSWORD'),
+                database= getenv('DB'),
+            )
+        except pymysql.err.OperationalError as e:
+            raise Exception(f'Falha na conexão com o banco de dados, favor comunique o suporte disponível\n\n{e}')
 
     def __init__(self) -> None:
         self.query_endereco = (
             f'SELECT endereco FROM {self.TABELA_EMAIL} '
-            'WHERE id_emp = '
+            'WHERE id_emp IN '
             f'(SELECT id_emp FROM {self.TABELA_EMPRESA} '
-            'WHERE nome = "{0}")'
+            'WHERE nome = %s)'
         )
 
         self.update_endereco = (
             f'UPDATE {self.TABELA_EMAIL} SET '
-            'endereco = ? '
-            'WHERE endereco = ? AND  id_emp = ?'
+            'endereco = %s '
+            'WHERE endereco = %s AND  id_emp = %s'
         )
 
         self.insert_endereco = (
             f'INSERT INTO {self.TABELA_EMAIL} '
             '(endereco, id_emp)'
-            ' VALUES '
-            '(?,?)'
+            ' VALUES (%s, %s) '
         )
 
         self.delete_endereco = (
             f'DELETE FROM {self.TABELA_EMAIL} '
-            'WHERE id_emp = ? AND endereco = ?'
+            'WHERE id_emp = %s AND endereco = %s'
         )
 
         self.delete_enderecos = (
             f'DELETE FROM {self.TABELA_EMAIL} '
-            'WHERE id_emp = ?'
+            'WHERE id_emp = %s'
         )
 
         self.query_empresa = (
             f'SELECT id_emp FROM {self.TABELA_EMPRESA} '
-            'WHERE nome = "{0}"'
+            'WHERE nome = %s'
         )
 
         self.query_empresas = (
@@ -82,90 +93,101 @@ class DataBase:
 
         self.insert_empresa = (
             f'INSERT INTO {self.TABELA_EMPRESA} '
-            '(nome)'
-            ' VALUES '
-            '(?)'
+            '(nome) VALUES (%s) '
         )
 
         self.delete_empresa = (
             f'DELETE FROM {self.TABELA_EMPRESA} '
-            'WHERE id_emp = ?'
+            'WHERE id_emp = %s'
         )
         
         self.query_ass = (
             f'SELECT assinatura FROM {self.TABELA_USUARIO} '
-            'WHERE nome = "{0}"'
+            'WHERE nome = %s'
         )
-
-        self.connection = connect(self.ARQUIVO_DB)
-        self.cursor = self.connection.cursor()
         pass
 
     def emails_empresa(self, nome_empresa: str) -> list[str]:
-        self.cursor.execute(
-            self.query_endereco.format(nome_empresa)
-        )
-        return [i for sub in self.cursor.fetchall() for i in sub]
+        with self.try_connection() as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    self.query_endereco, (nome_empresa,)
+                )
+                return [i for sub in cursor.fetchall() for i in sub]
     
     def remover_empresa(self, id_empresa: str):
-        self.cursor.execute(
-            self.delete_empresa, (id_empresa, )
-        )
-        self.connection.commit()
+        with self.try_connection() as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    self.delete_empresa, (id_empresa, )
+                )
+                connection.commit()
 
     def remover_endereco(self, id_empresa: str, endereco: str):
-        self.cursor.execute(
-            self.delete_endereco, (id_empresa, endereco)
-        )
-        self.connection.commit()
+        with self.try_connection() as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    self.delete_endereco, (id_empresa, endereco)
+                )
+                connection.commit()
 
     def remover_enderecos(self, id_empresa: str):
-        self.cursor.execute(
-            self.delete_enderecos, (id_empresa, )
-        )
-        self.connection.commit()
+        with self.try_connection() as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    self.delete_enderecos, (id_empresa,)
+                )
+                connection.commit()
     
     def atualizar_endereco(self, end_novo: str, end_antigo: str, id_emp: str):
-        self.cursor.execute(
-            self.update_endereco, (end_novo, end_antigo, id_emp)
-        )
-        self.connection.commit()
+        with self.try_connection() as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    self.update_endereco, (end_novo, end_antigo, id_emp)
+                )
+                connection.commit()
 
     def registrar_empresa(self, nome_empresa: str) -> None:
-        self.cursor.execute(
-            self.insert_empresa, (nome_empresa,)
-        )
-        self.connection.commit()
+        with self.try_connection() as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    self.insert_empresa, (nome_empresa,)
+                )
+            connection.commit()
     
     def empresas(self) -> list[str]:
-        self.cursor.execute(
-            self.query_empresas
-        )
-        return [i for sub in self.cursor.fetchall() for i in sub]
+        with self.try_connection() as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    self.query_empresas
+                )
+                return [i for sub in cursor.fetchall() for i in sub]
 
     def registrar_enderecos(self, enderecos: list[str], id_empresa: str) -> None:
-        self.cursor.executemany(
-            self.insert_endereco, 
-            ([endereco, id_empresa] for endereco in enderecos)
-        )
-        self.connection.commit()
+        with self.try_connection() as connection:
+            with connection.cursor() as cursor:
+                cursor.executemany(
+                    self.insert_endereco, 
+                    ([endereco, id_empresa] for endereco in enderecos)
+                )
+                connection.commit()
 
     def identificador_empresa(self, nome_empresa: str) -> str:
-        self.cursor.execute(
-            self.query_empresa.format(nome_empresa)
-        )
-        return self.cursor.fetchone()[0]
+        with self.try_connection() as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    self.query_empresa, (nome_empresa,)
+                )
+                return cursor.fetchone()[0]
 
     def query_assinatura(self, nome_func: str) -> str:
-        self.cursor.execute(
-            self.query_ass.format(nome_func)
-        )
-        return self.cursor.fetchone()[0]
+        with self.try_connection() as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    self.query_ass, (nome_func,)
+                )
+                return cursor.fetchone()[0]
     
-    def close(self):
-        self.cursor.close()
-        self.connection.close()
-
 class Email:
     def __init__(self):
         self.client = Smtp2goClient(api_key='api-57285302C4594921BD70EB19882D320B')
@@ -418,7 +440,6 @@ class Cobrador(QObject):
             for i in enderecos_email:
                 enderecos_totais.append(i)
 
-        db.close()
         self.fim.emit()
         self.resume.emit(enderecos_totais)
 
@@ -446,33 +467,29 @@ class Operador:
         dict_informacoes = {}
         for i in db.empresas():
             dict_informacoes[i] = db.emails_empresa(i)
-        db.close()
+        
         return dict_informacoes
 
     def add(nome_empresa: str, enderecos: list[str]) -> list[str]:
         db = DataBase()
         id_emp = db.identificador_empresa(nome_empresa)
         db.registrar_enderecos(enderecos, id_emp)
-        db.close()
 
     def edit(nome_empresa: str, endereco_antigo: str, endereco_novo: str) -> None:
         db = DataBase()
         id_emp = db.identificador_empresa(nome_empresa)
         db.atualizar_endereco(endereco_novo, endereco_antigo, id_emp)
-        db.close()
 
     def remove_empresa(nome_empresa: str) -> None:
         db = DataBase()
         id_emp = db.identificador_empresa(nome_empresa)
         db.remover_empresa(id_emp)
         db.remover_enderecos(id_emp)
-        db.close()
 
     def remove_endereco(nome_empresa: str, endereco: str) -> None:
         db = DataBase()
         id_emp = db.identificador_empresa(nome_empresa)
         db.remover_endereco(id_emp, endereco)
-        db.close()
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, parent = None) -> None:

@@ -5,7 +5,7 @@ a = Analysis(
     ['code\\index.py'],
     pathex=[],
     binaries=[],
-    datas=[('venv\\Lib\\site-packages\\tabula\\tabula-1.0.5-jar-with-dependencies.jar', 'tabula'), ('code\\imgs\\', 'imgs')],
+    datas=[('venv\\Lib\\site-packages\\tabula\\tabula-1.0.5-jar-with-dependencies.jar', 'tabula'), ('code\\src\\env\\', 'src\\env'), ('code\\src\\imgs\\', 'src\\imgs')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
@@ -35,5 +35,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['code\\imgs\\mail-icon.ico'],
+    icon=['code\\src\\imgs\\mail-icon.ico'],
 )
