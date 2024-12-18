@@ -5,7 +5,7 @@ a = Analysis(
     ['code\\index.py'],
     pathex=[],
     binaries=[],
-    datas=[('venv\\Lib\\site-packages\\tabula\\tabula-1.0.5-jar-with-dependencies.jar', 'tabula'), ('code\\src\\db\\', 'src\\db'), ('code\\src\\imgs\\', 'src\\imgs')],
+    datas=[('venv\\Lib\\site-packages\\tabula\\tabula-1.0.5-jar-with-dependencies.jar', 'tabula'), ('code\\src\\env\\', 'src\\env'), ('code\\src\\imgs\\', 'src\\imgs')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
