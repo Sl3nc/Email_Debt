@@ -2,6 +2,7 @@ from tkinter import messagebox
 from tkinter.filedialog import askopenfilename
 
 from smtp2go.core import Smtp2goClient
+import pymysql
 
 import tabula as tb
 import pandas as pd
@@ -34,13 +35,26 @@ def resource_path(relative_path):
     return path.join(base_path, relative_path)
 
 class DataBase:
-    NOME_DB = 'email_cobranca.sqlite3'
-    ARQUIVO_DB = resource_path(f'src\\db\\{NOME_DB}')
     TABELA_EMPRESA = 'Empresa'
     TABELA_USUARIO = 'Usuarios'
     TABELA_EMAIL = 'Email'
 
+    def try_connection(self):
+        try:
+            return pymysql.connect(
+                host= '192.168.0.156',
+                port= 3306,
+                user= 'usuario',
+                password= 'senha',
+                database= 'base_de_SESAS'
+            )
+        except pymysql.err.OperationalError as e:
+            raise Exception(f'Falha na conexão com o banco de dados, favor comunique o suporte disponível\n\n{e}')
+
     def __init__(self) -> None:
+        self.connection = self.try_connection()
+        self.cursor = self.connection.cursor()
+
         self.query_endereco = (
             f'SELECT endereco FROM {self.TABELA_EMAIL} '
             'WHERE id_emp = '
@@ -96,9 +110,6 @@ class DataBase:
             f'SELECT assinatura FROM {self.TABELA_USUARIO} '
             'WHERE nome = "{0}"'
         )
-
-        self.connection = connect(self.ARQUIVO_DB)
-        self.cursor = self.connection.cursor()
         pass
 
     def emails_empresa(self, nome_empresa: str) -> list[str]:
