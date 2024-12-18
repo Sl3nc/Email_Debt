@@ -40,20 +40,14 @@ class DataBase:
     TABELA_USUARIO = 'Usuario'
     TABELA_EMAIL = 'Email'
 
-    def try_connection(self):
-        try:
-            return pymysql.connect(
+    def __init__(self) -> None:
+        self.connection = pymysql.connect(
                 host= getenv('IP_HOST'),
                 port= int(getenv('PORT_HOST')),
                 user= getenv('USER'),
                 password= getenv('PASSWORD'),
                 database= getenv('DB'),
             )
-        except pymysql.err.OperationalError as e:
-            raise Exception(f'Falha na conexão com o banco de dados, favor comunique o suporte disponível\n\n{e}')
-
-    def __init__(self) -> None:
-        self.connection = self.try_connection()
 
         self.query_endereco = (
             f'SELECT endereco FROM {self.TABELA_EMAIL} '
@@ -452,36 +446,37 @@ class Cobrador(QObject):
         self.enderecos_novos = valor
 
 class Operador:
+    def __init__(self):
+        try:
+            self.db = DataBase()
+        except pymysql.err.OperationalError as e:
+            messagebox.showerror('Aviso!', f'Falha na conexão com o banco de dados, favor comunique o suporte disponível\n\n{e}')
+        pass
 
     #TODO INFORMAR
-    def informar() -> dict:
-        db = DataBase()
+    def informar(self) -> dict:
         dict_informacoes = {}
-        for i in db.empresas():
-            dict_informacoes[i] = db.emails_empresa(i)
+        for i in self.db.empresas():
+            dict_informacoes[i] = self.db.emails_empresa(i)
         
         return dict_informacoes
 
-    def add(nome_empresa: str, enderecos: list[str]) -> list[str]:
-        db = DataBase()
-        id_emp = db.identificador_empresa(nome_empresa)
-        db.registrar_enderecos(enderecos, id_emp)
+    def add(self, nome_empresa: str, enderecos: list[str]) -> list[str]:
+        id_emp = self.db.identificador_empresa(nome_empresa)
+        self.db.registrar_enderecos(enderecos, id_emp)
 
-    def edit(nome_empresa: str, endereco_antigo: str, endereco_novo: str) -> None:
-        db = DataBase()
-        id_emp = db.identificador_empresa(nome_empresa)
-        db.atualizar_endereco(endereco_novo, endereco_antigo, id_emp)
+    def edit(self, nome_empresa: str, endereco_antigo: str, endereco_novo: str) -> None:
+        id_emp = self.db.identificador_empresa(nome_empresa)
+        self.db.atualizar_endereco(endereco_novo, endereco_antigo, id_emp)
 
-    def remove_empresa(nome_empresa: str) -> None:
-        db = DataBase()
-        id_emp = db.identificador_empresa(nome_empresa)
-        db.remover_enderecos(id_emp)
-        db.remover_empresa(id_emp)
+    def remove_empresa(self, nome_empresa: str) -> None:
+        id_emp = self.db.identificador_empresa(nome_empresa)
+        self.db.remover_enderecos(id_emp)
+        self.db.remover_empresa(id_emp)
 
-    def remove_endereco(nome_empresa: str, endereco: str) -> None:
-        db = DataBase()
-        id_emp = db.identificador_empresa(nome_empresa)
-        db.remover_endereco(id_emp, endereco)
+    def remove_endereco(self, nome_empresa: str, endereco: str) -> None:
+        id_emp = self.db.identificador_empresa(nome_empresa)
+        self.db.remover_endereco(id_emp, endereco)
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, parent = None) -> None:
@@ -703,7 +698,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.stackedWidget_body.setCurrentIndex(3)
         self.treeWidget_cadastros_infos.clear()
 
-        for empresa, enderecos in Operador.informar().items():
+        for empresa, enderecos in Operador().informar().items():
             root = QTreeWidgetItem(self.treeWidget_cadastros_infos)
             root.setText(0, empresa)
             # root.setFont(0, QFont())
@@ -737,7 +732,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         atual = self.treeWidget_cadastros_infos.selectedItems()[0]
         enderecos = self.lineEdit_endereco.text().split(';')
 
-        Operador.add(
+        Operador().add(
             atual.text(0), 
             enderecos
         )
@@ -777,7 +772,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         parente = atual.parent()
         novo_text = self.lineEdit_endereco.text()
 
-        Operador.edit(
+        Operador().edit(
             parente.text(0), 
             atual.text(0),
             novo_text
@@ -800,11 +795,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if parente == None:
                 if messagebox.askyesno('Atenção!', 'A remoção da empresa eliminará todos seus emails, tem certeza que deseja removê-la?') == False:
                     return None
-                Operador.remove_empresa(
+                Operador().remove_empresa(
                     escolhido.text(0)
                 )
             else:
-                Operador.remove_endereco(
+                Operador().remove_endereco(
                     parente.text(0),
                     escolhido.text(0)
                 )
