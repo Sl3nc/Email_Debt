@@ -53,6 +53,8 @@ class DataBase:
             raise Exception(f'Falha na conexão com o banco de dados, favor comunique o suporte disponível\n\n{e}')
 
     def __init__(self) -> None:
+        self.connection = self.try_connection()
+
         self.query_endereco = (
             f'SELECT endereco FROM {self.TABELA_EMAIL} '
             'WHERE id_emp IN '
@@ -108,85 +110,75 @@ class DataBase:
         pass
 
     def emails_empresa(self, nome_empresa: str) -> list[str]:
-        with self.try_connection() as connection:
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    self.query_endereco, (nome_empresa,)
-                )
-                return [i for sub in cursor.fetchall() for i in sub]
+        with self.connection.cursor() as cursor:
+            cursor.execute(
+                self.query_endereco, (nome_empresa,)
+            )
+            return [i for sub in cursor.fetchall() for i in sub]
     
     def remover_empresa(self, id_empresa: str):
-        with self.try_connection() as connection:
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    self.delete_empresa, (id_empresa, )
-                )
-                connection.commit()
+        with self.connection.cursor() as cursor:
+            cursor.execute(
+                self.delete_empresa, (id_empresa, )
+            )
+            self.connection.commit()
 
     def remover_endereco(self, id_empresa: str, endereco: str):
-        with self.try_connection() as connection:
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    self.delete_endereco, (id_empresa, endereco)
-                )
-                connection.commit()
+        with self.connection.cursor() as cursor:
+            cursor.execute(
+                self.delete_endereco, (id_empresa, endereco)
+            )
+            self.connection.commit()
 
     def remover_enderecos(self, id_empresa: str):
-        with self.try_connection() as connection:
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    self.delete_enderecos, (id_empresa,)
-                )
-                connection.commit()
+        with self.connection.cursor() as cursor:
+            cursor.execute(
+                self.delete_enderecos, (id_empresa,)
+            )
+            self.connection.commit()
     
     def atualizar_endereco(self, end_novo: str, end_antigo: str, id_emp: str):
-        with self.try_connection() as connection:
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    self.update_endereco, (end_novo, end_antigo, id_emp)
-                )
-                connection.commit()
+        with self.connection.cursor() as cursor:
+            cursor.execute(
+                self.update_endereco, (end_novo, end_antigo, id_emp)
+            )
+            self.connection.commit()
 
     def registrar_empresa(self, nome_empresa: str) -> None:
-        with self.try_connection() as connection:
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    self.insert_empresa, (nome_empresa,)
-                )
-            connection.commit()
+        with self.connection.cursor() as cursor:
+            cursor.execute(
+                self.insert_empresa, (nome_empresa,)
+            )
+            self.connection.commit()
     
     def empresas(self) -> list[str]:
-        with self.try_connection() as connection:
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    self.query_empresas
-                )
-                return [i for sub in cursor.fetchall() for i in sub]
+        with self.connection.cursor() as cursor:
+            cursor.execute(
+                self.query_empresas
+            )
+            return [i for sub in cursor.fetchall() for i in sub]
 
     def registrar_enderecos(self, enderecos: list[str], id_empresa: str) -> None:
-        with self.try_connection() as connection:
-            with connection.cursor() as cursor:
-                cursor.executemany(
-                    self.insert_endereco, 
-                    ([endereco, id_empresa] for endereco in enderecos)
-                )
-                connection.commit()
+        with self.connection.cursor() as cursor:
+            cursor.executemany(
+                self.insert_endereco, 
+                ([endereco, id_empresa] for endereco in enderecos)
+            )
+            self.connection.commit()
 
     def identificador_empresa(self, nome_empresa: str) -> str:
-        with self.try_connection() as connection:
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    self.query_empresa, (nome_empresa,)
-                )
-                return cursor.fetchone()[0]
+        with self.connection.cursor() as cursor:
+            cursor.execute(
+                self.query_empresa, (nome_empresa,)
+            )
+            return cursor.fetchone()[0]
 
     def query_assinatura(self, nome_func: str) -> str:
-        with self.try_connection() as connection:
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    self.query_ass, (nome_func,)
-                )
-                return cursor.fetchone()[0]
+        with self.connection.cursor() as cursor:
+            cursor.execute(
+                self.query_ass, (nome_func,)
+            )
+            return cursor.fetchone()[0]
     
 class Email:
     def __init__(self):
