@@ -483,8 +483,8 @@ class Operador:
     def remove_empresa(nome_empresa: str) -> None:
         db = DataBase()
         id_emp = db.identificador_empresa(nome_empresa)
-        db.remover_empresa(id_emp)
         db.remover_enderecos(id_emp)
+        db.remover_empresa(id_emp)
 
     def remove_endereco(nome_empresa: str, endereco: str) -> None:
         db = DataBase()
