@@ -181,7 +181,7 @@ class Email:
         self.sender = 'financeiro@deltaprice.com.br'
 
     def criar(self, destinatarios: list[str], nome_empresa: str, conteudo: str):
-        destinatarios.append(self.sender)
+        # destinatarios.append(self.sender)
         self.payload = {
             'sender': self.sender,
             'recipients': destinatarios,
@@ -399,23 +399,23 @@ class Cobrador(QObject):
     fim = Signal()
     resume = Signal(list)
 
-    def __init__(self, dict_content: dict[str,str], nome_func: str):
+    def __init__(self, dict_content: dict[str,str], nome_func: str, db: DataBase):
         super().__init__()
         self.dict_content = dict_content
         self.nome_func = nome_func
+        self.db = db
         self.enderecos_novos = ''
 
     #TODO EXECUTAR
     def executar(self):
-        db = DataBase()
         email = Email()
         count = 0
         enderecos_totais = []
-        assinatura = db.query_assinatura(self.nome_func)
+        assinatura = self.db.query_assinatura(self.nome_func)
         for nome_empresa, conteudo in self.dict_content.items():
-            enderecos_email = db.emails_empresa(nome_empresa)
+            enderecos_email = self.db.emails_empresa(nome_empresa)
             if enderecos_email == []:
-                enderecos_email = self.registro(nome_empresa, db)
+                enderecos_email = self.registro(nome_empresa)
             
             conteudo = conteudo.replace('$assinatura', assinatura)
             email.criar(enderecos_email, nome_empresa, conteudo)
@@ -430,16 +430,16 @@ class Cobrador(QObject):
         self.resume.emit(enderecos_totais)
 
     #TODO REGISTRO
-    def registro(self, nome_empresa: str, db: DataBase):
+    def registro(self, nome_empresa: str):
         self.novo_endereco.emit(nome_empresa)
         while self.enderecos_novos == '':
             sleep(2)
 
-        db.registrar_empresa(nome_empresa)
-        id_empresa = db.identificador_empresa(nome_empresa)
+        self.db.registrar_empresa(nome_empresa)
+        id_empresa = self.db.identificador_empresa(nome_empresa)
         enderecos_email = self.enderecos_novos.split(';')
         self.enderecos_novos = ''
-        db.registrar_enderecos(enderecos_email, id_empresa)
+        self.db.registrar_enderecos(enderecos_email, id_empresa)
         return enderecos_email
     
     def set_novo_endereco(self, valor: str):
@@ -603,7 +603,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             self._cobrador = Cobrador(
                 content_filtred,
-                self.comboBox_body_funcionario.currentText()
+                self.comboBox_body_funcionario.currentText(),
+                self.db
                 )
             self._thread_cobrador = QThread()
 
@@ -763,14 +764,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             items = self.treeWidget_cadastros_infos.selectedItems()
             if len(items) == 0:
                 raise Exception("Escolha um e-mail ou empresa para remover")
-            parente = items[0].parent()
             escolhido = items[0]
+            parente = escolhido.parent()
 
             if parente == None:
                 if messagebox.askyesno('Atenção!', 'A remoção da empresa eliminará todos seus emails, tem certeza que deseja removê-la?') == False:
                     return None
 
-                id_emp = self.db.identificador_empresa(parente.text(0))
+                id_emp = self.db.identificador_empresa(escolhido.text(0))
                 self.db.remover_enderecos(id_emp)
                 self.db.remover_empresa(id_emp)
             else:
