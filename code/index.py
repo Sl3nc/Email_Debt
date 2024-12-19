@@ -26,6 +26,11 @@ from PySide6.QtGui import QPixmap, QIcon, QMovie
 from PySide6.QtCore import QThread, QObject, Signal, QSize
 from src.window_cobranca import Ui_MainWindow
 
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+from selenium.common.exceptions import NoSuchElementException
+
 load_dotenv(Path(__file__).parent / 'src' / 'env' / '.env')
 
 def resource_path(relative_path):
@@ -392,6 +397,82 @@ class Arquivo(QObject):
                 dict_conteudos[nome_atual] = conteudo_atual.to_string()
 
         return dict_conteudos
+
+class Acessorias:
+    ROOT_FOLDER = Path(__file__).parent
+    CHROME_DRIVER_PATH = ROOT_FOLDER / 'drivers' / 'chromedriver.exe'
+    URL_MAIN = 'https://app.acessorias.com/sysmain.php'
+    URL_DETALHES = 'https://app.acessorias.com/sysmain.php?m=105&act=e&i={0}&uP=14&o=EmpNome,EmpID|Asc'
+
+
+    INPUT_EMAIL = 'mailAC'
+    INPUT_PASSWORD= 'passAC'
+    BTN_ENTRAR = '#site-corpo > section.secao.secao-login > div > form > div.botoes > button'
+
+    def __init__(self) -> None:
+        self.rowContato = 'divCtt_0_{0}'
+        self.campo_nome = 'CttNome_0_{0}'
+        self.campo_email = 'CttEMail_0_{0}'
+
+        self.browser = self.make_chrome_browser(hide=False)
+        self.browser.get(self.URL_MAIN)
+        pass
+
+    def make_chrome_browser(self,*options: str, hide: bool) -> webdriver.Chrome:
+        chrome_options = webdriver.ChromeOptions()
+
+        if options is not None:
+            for option in options:
+                chrome_options.add_argument(option)
+
+        chrome_service = Service(
+            executable_path=str(self.CHROME_DRIVER_PATH),
+        )
+
+        browser = webdriver.Chrome(
+            service=chrome_service,
+            options=chrome_options
+        )
+
+        if hide == True:
+            browser.set_window_position(-10000,0)
+
+        return browser
+    
+    def login(self, usuario: str, senha: str):
+        self.browser.find_element(By.NAME, self.INPUT_EMAIL).send_keys(usuario)
+        self.browser.find_element(By.NAME, self.INPUT_PASSWORD).send_keys(senha)
+
+        self.browser.find_element(By.CSS_SELECTOR, self.BTN_ENTRAR).click()
+
+    def pesquisar(self, num_empresa: str):
+        self.browser.get(self.URL_DETALHES.format(num_empresa))
+        sleep(2)
+
+        dict_contato = {}
+        count = 1
+        while self.contato_exists(count) == True:
+            nome = self.browser.find_element(By.ID, self.campo_nome.format(count))\
+                .get_attribute('value')
+            email = self.browser.find_element(By.ID, self.campo_email.format(count))\
+                .get_attribute('value')
+
+            if email != '':
+                dict_contato[nome] = email
+            count = count + 1
+
+        print(dict_contato)
+        return dict_contato
+
+    def contato_exists(self, id):
+        try:
+            self.browser.find_element(By.ID, self.rowContato.format(id))
+            return True
+        except NoSuchElementException:
+            return False
+
+    def close(self):
+        self.browser.close()
 
 class Cobrador(QObject):
     novo_endereco = Signal(str)
