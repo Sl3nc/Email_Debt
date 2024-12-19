@@ -414,7 +414,7 @@ class Cobrador(QObject):
         assinatura = self.db.query_assinatura(self.nome_func)
         for nome_empresa, conteudo in self.dict_content.items():
             enderecos_email = self.db.emails_empresa(nome_empresa)
-            if enderecos_email == []:
+            if enderecos_email == []: #Sem email cadastrado da empresa
                 enderecos_email = self.registro(nome_empresa)
             
             conteudo = conteudo.replace('$assinatura', assinatura)
