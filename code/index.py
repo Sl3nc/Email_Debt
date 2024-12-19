@@ -445,42 +445,10 @@ class Cobrador(QObject):
     def set_novo_endereco(self, valor: str):
         self.enderecos_novos = valor
 
-class Operador:
-    def __init__(self):
-        try:
-            self.db = DataBase()
-        except pymysql.err.OperationalError as e:
-            messagebox.showerror('Aviso!', f'Falha na conexão com o banco de dados, favor comunique o suporte disponível\n\n{e}')
-        pass
-
-    #TODO INFORMAR
-    def informar(self) -> dict:
-        dict_informacoes = {}
-        for i in self.db.empresas():
-            dict_informacoes[i] = self.db.emails_empresa(i)
-        
-        return dict_informacoes
-
-    def add(self, nome_empresa: str, enderecos: list[str]) -> list[str]:
-        id_emp = self.db.identificador_empresa(nome_empresa)
-        self.db.registrar_enderecos(enderecos, id_emp)
-
-    def edit(self, nome_empresa: str, endereco_antigo: str, endereco_novo: str) -> None:
-        id_emp = self.db.identificador_empresa(nome_empresa)
-        self.db.atualizar_endereco(endereco_novo, endereco_antigo, id_emp)
-
-    def remove_empresa(self, nome_empresa: str) -> None:
-        id_emp = self.db.identificador_empresa(nome_empresa)
-        self.db.remover_enderecos(id_emp)
-        self.db.remover_empresa(id_emp)
-
-    def remove_endereco(self, nome_empresa: str, endereco: str) -> None:
-        id_emp = self.db.identificador_empresa(nome_empresa)
-        self.db.remover_endereco(id_emp, endereco)
-
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, parent = None) -> None:
         super().__init__(parent)
+        self.try_conection()
         self.setupUi(self)
 
         self.MAX_PROGRESS = 100
@@ -540,6 +508,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._thread = QThread()
         self.arquivo.moveToThread(self._thread)
         self.arquivo.fim.connect(self._thread.quit)
+
+    def try_conection(self):
+        try:
+            self.db = DataBase()
+        except pymysql.err.OperationalError as e:
+            messagebox.showerror('Aviso!', f'Falha na conexão com o banco de dados, favor comunique o suporte disponível\n\n{e}')
+            raise Exception('')
 
     #TODO THREADS
     def inserir_relatorio(self):
@@ -695,10 +670,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.stackedWidget_body.setCurrentIndex(to)
 
     def acess_infos(self):
+        dict_informacoes = {}
         self.stackedWidget_body.setCurrentIndex(3)
         self.treeWidget_cadastros_infos.clear()
 
-        for empresa, enderecos in Operador().informar().items():
+        for i in self.db.empresas():
+            dict_informacoes[i] = self.db.emails_empresa(i)
+
+        for empresa, enderecos in dict_informacoes.items():
             root = QTreeWidgetItem(self.treeWidget_cadastros_infos)
             root.setText(0, empresa)
             # root.setFont(0, QFont())
@@ -732,10 +711,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         atual = self.treeWidget_cadastros_infos.selectedItems()[0]
         enderecos = self.lineEdit_endereco.text().split(';')
 
-        Operador().add(
-            atual.text(0), 
-            enderecos
-        )
+        id_emp = self.db.identificador_empresa(atual.text(0))
+        self.db.registrar_enderecos(enderecos, id_emp)
 
         for endereco in enderecos:
             child = QTreeWidgetItem()
@@ -772,11 +749,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         parente = atual.parent()
         novo_text = self.lineEdit_endereco.text()
 
-        Operador().edit(
-            parente.text(0), 
-            atual.text(0),
-            novo_text
-        )
+        id_emp = self.db.identificador_empresa(parente.text(0))
+        self.db.atualizar_endereco(novo_text, atual.text(0), id_emp)
 
         atual.setText(0, novo_text)
         self.label_endereco_input_subtitle.show()
@@ -795,14 +769,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if parente == None:
                 if messagebox.askyesno('Atenção!', 'A remoção da empresa eliminará todos seus emails, tem certeza que deseja removê-la?') == False:
                     return None
-                Operador().remove_empresa(
-                    escolhido.text(0)
-                )
+
+                id_emp = self.db.identificador_empresa(parente.text(0))
+                self.db.remover_enderecos(id_emp)
+                self.db.remover_empresa(id_emp)
             else:
-                Operador().remove_endereco(
-                    parente.text(0),
-                    escolhido.text(0)
-                )
+                id_emp = self.db.identificador_empresa(parente.text(0))
+                self.db.remover_endereco(id_emp, escolhido.text(0))
 
             escolhido.setHidden(True)
             self.stackedWidget_body.setCurrentIndex(3)
