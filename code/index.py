@@ -361,10 +361,11 @@ class Arquivo(QObject):
         self.nomes.emit(tabelas[self.col_titulo].values.tolist())
         self.fim.emit(1)
 
+    #TODO LER
     def ler(self):
-        arquivo = tb.read_pdf(self.caminho, pages="all", relative_area=True, area=[20,16,96,100])
+        arquivo = tb.read_pdf(self.caminho, pages="all", relative_area=True, area=[20,10,96,100])
         for tabelas in arquivo:
-            tabelas.columns = ["Titulo/Competencia", "", "","", "","","","","","","","","Valor"]
+            tabelas.columns = ["Num. Dominio", "Titulo/Competencia", "", "","", "","","","","","","","","Valor"]
         tabelas = pd.concat(arquivo, ignore_index=True)
         tabelas = tabelas.drop('', axis=1)
         tabelas = tabelas.drop(0).reset_index(drop=True)
@@ -373,8 +374,7 @@ class Arquivo(QObject):
         self.conteudos.emit(self.filtro_conteudo(tabelas))
         self.fim.emit(2)
 
-    #todo filtro
-    def filtro_conteudo(self, tabelas):
+    def filtro_conteudo(self, tabelas: pd.Series):
         dict_conteudos = {}
         for index, row in tabelas.iterrows():
             if row.Valor != '' and row["Titulo/Competencia"] != '':
@@ -390,11 +390,15 @@ class Arquivo(QObject):
                 }))
             elif row.Valor == '':
                 #Abrir conteudo
+                num_domin = row["Num. Dominio"].replace(' Nome:','')
                 nome_atual = row["Titulo/Competencia"]
                 conteudo_atual = Conteudo()
+                dict_valores = {}
             else:
                 #Fecha conteudo
-                dict_conteudos[nome_atual] = conteudo_atual.to_string()
+                dict_valores['mensagem'] = conteudo_atual.to_string()
+                dict_valores['numero'] = num_domin
+                dict_conteudos[nome_atual] = dict_valores
 
         return dict_conteudos
 
@@ -444,6 +448,7 @@ class Acessorias:
         self.browser.find_element(By.NAME, self.INPUT_PASSWORD).send_keys(senha)
 
         self.browser.find_element(By.CSS_SELECTOR, self.BTN_ENTRAR).click()
+        sleep(4)
 
     def pesquisar(self, num_empresa: str):
         self.browser.get(self.URL_DETALHES.format(num_empresa))
@@ -479,8 +484,9 @@ class Cobrador(QObject):
     progress = Signal(int)
     fim = Signal()
     resume = Signal(list)
+    confirm_enderecos = Signal(dict)
 
-    def __init__(self, dict_content: dict[str,str], nome_func: str, db: DataBase):
+    def __init__(self, dict_content: dict[str,dict], nome_func: str, db: DataBase):
         super().__init__()
         self.dict_content = dict_content
         self.nome_func = nome_func
@@ -492,14 +498,15 @@ class Cobrador(QObject):
         email = Email()
         count = 0
         enderecos_totais = []
+        dict_faltantes = {}
         assinatura = self.db.query_assinatura(self.nome_func)
         for nome_empresa, conteudo in self.dict_content.items():
             enderecos_email = self.db.emails_empresa(nome_empresa)
             if enderecos_email == []: #Sem email cadastrado da empresa
-                enderecos_email = self.registro(nome_empresa)
-            
-            conteudo = conteudo.replace('$assinatura', assinatura)
-            email.criar(enderecos_email, nome_empresa, conteudo)
+                dict_faltantes[nome_empresa] = conteudo['numero']
+                continue
+            conteudo['mensagem'] = conteudo['mensagem'].replace('$assinatura', assinatura)
+            email.criar(enderecos_email, nome_empresa, conteudo['mensagem'])
             email.enviar()
 
             count = count + 1
@@ -507,10 +514,21 @@ class Cobrador(QObject):
             for i in enderecos_email:
                 enderecos_totais.append(i)
 
+        dict_restantes = self.registro_acessorias(dict_faltantes)
         self.fim.emit()
         self.resume.emit(enderecos_totais)
 
     #TODO REGISTRO
+    def registro_acessorias(self, dict_faltante: dict[str,str]):
+        dict_contato = {}
+        acessorias = Acessorias()
+        usuario, senha = self.db.acessorias(self.nome_func)
+        acessorias.login(usuario, senha)
+        for nome_empresa, num_dominio in dict_faltante.items():
+            dict_contato[nome_empresa] = acessorias.pesquisar(num_dominio)
+        self.confirm_enderecos.emit(dict_contato)
+        return self.filtro_enderecos()
+
     def registro(self, nome_empresa: str):
         self.novo_endereco.emit(nome_empresa)
         while self.enderecos_novos == '':
@@ -590,6 +608,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.arquivo.moveToThread(self._thread)
         self.arquivo.fim.connect(self._thread.quit)
 
+        self.confirmar_registro({'Empresa':{'Contato': 'Endereço e-mail'}})
+
     def try_conection(self):
         try:
             self.db = DataBase()
@@ -597,7 +617,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             messagebox.showerror('Aviso!', f'Falha na conexão com o banco de dados, favor comunique o suporte disponível\n\n{e}')
             raise Exception('')
 
-    #TODO THREADS
     def inserir_relatorio(self):
         try:
             caminho_reduzido = self.arquivo.set_caminho(askopenfilename())
@@ -677,7 +696,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.arquivo.disconnect(self.conexao_cobrar)
 
     #TODO COBRAR
-    def cobrar(self, dict_content):
+    def cobrar(self, dict_content: dict[str,dict]):
         try:
             content_filtred = self.filtro(dict_content)
             self.coeficiente_progress = self.MAX_PROGRESS / len(content_filtred)
@@ -695,6 +714,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self._cobrador.fim.connect(self._thread_cobrador.quit)
             self._cobrador.fim.connect(self._thread_cobrador.deleteLater)
             self._cobrador.progress.connect(self.to_progress)
+            self._cobrador.confirm_enderecos.connect(self.confirmar_registro)
             self._cobrador.resume.connect(self.conclusion)
             self._thread_cobrador.finished.connect(self._cobrador.deleteLater)
             self._thread_cobrador.start()
@@ -706,12 +726,24 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             traceback.print_exc()
             messagebox.showwarning(title='Aviso', message= e)
 
-    def filtro(self, dict_content : dict[str,str]):
+    def filtro(self, dict_content : dict[str,dict]):
         filtred_content = deepcopy(dict_content)
         for i in self.options:
             if i.isChecked() == False:
                 del filtred_content[i.text()]
         return filtred_content
+    
+    def confirmar_registro(self, dict_contato: dict[str,dict[str,str]]):
+        for empresa, contato in dict_contato.items():
+            root = QTreeWidgetItem(self.treeWidget_cadastros_infos)
+            root.setText(0, empresa)
+            # root.setFont(0, QFont())
+            self.treeWidget_cadastros_infos.addTopLevelItem(root)
+
+            for endereco in enderecos:
+                child = QTreeWidgetItem()
+                child.setText(0, endereco)
+                root.addChild(child)
 
     def to_progress(self, valor):
         self.progressBar.setValue(self.coeficiente_progress * valor)
