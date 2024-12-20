@@ -555,6 +555,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.arquivo = Arquivo()
         self.options = []
         self.option_checada = False
+        self.widget_enderecos = {}
 
         self.setWindowIcon(QIcon(resource_path('src\\imgs\\mail-icon.ico')))
 
@@ -602,6 +603,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.remover_info
         )
 
+        self.pushButton.clicked.connect(
+            self.enviar_contatos
+        )
+
         self.pushButton_empresas_marcar.hide()
 
         self._thread = QThread()
@@ -609,10 +614,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.arquivo.fim.connect(self._thread.quit)
 
         self.confirmar_registro(
-            {'Empresa':
+            {
+                'Empresa':
                 {
                     'Contato': 'Endereço e-mail',
                     'Outro Contato': 'Outro Endereco'
+                },
+                'Outra Empresa':
+                {
+                    'Contato2': 'Endereco e-mail2'
                 }
             }
         )
@@ -741,6 +751,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         return filtred_content
     
     def confirmar_registro(self, dict_contato: dict[str,dict[str,str]]):
+        self.stackedWidget_body.setCurrentIndex(4)
+        self.widget_enderecos.clear()
         for empresa, contato in dict_contato.items():
             for nome, endereco in contato.items():
                 item = QTreeWidgetItem(self.treeWidget_contatos)
@@ -748,10 +760,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 item.setText(1, nome)
                 cb = QCheckBox(endereco)
                 cb.setChecked(True)
+                self.widget_enderecos[item] = cb
                 self.treeWidget_contatos.setItemWidget(item, 2, cb)
 
     def enviar_contatos(self):
-        self.treeWidget_contatos.itemFromIndex
+        contatos_filtrados = {}
+        empresa_atual = ''
+        for item, cb in self.widget_enderecos.items():
+            if cb.isChecked() == True:
+                if item.text(0) != empresa_atual:
+                    empresa_atual = item.text(0)
+                    contatos_filtrados[empresa_atual] = ''
+
+                contatos_filtrados[empresa_atual] = \
+                    contatos_filtrados[empresa_atual] + cb.text() + ';'
+                
+        print(contatos_filtrados)
+        self._cobrador.set_novo_endereco(contatos_filtrados)
 
     def to_progress(self, valor):
         self.progressBar.setValue(self.coeficiente_progress * valor)
