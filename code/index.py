@@ -608,7 +608,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.arquivo.moveToThread(self._thread)
         self.arquivo.fim.connect(self._thread.quit)
 
-        self.confirmar_registro({'Empresa':{'Contato': 'Endereço e-mail'}})
+        self.confirmar_registro(
+            {'Empresa':
+                {
+                    'Contato': 'Endereço e-mail',
+                    'Outro Contato': 'Outro Endereco'
+                }
+            }
+        )
 
     def try_conection(self):
         try:
@@ -735,15 +742,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     
     def confirmar_registro(self, dict_contato: dict[str,dict[str,str]]):
         for empresa, contato in dict_contato.items():
-            root = QTreeWidgetItem(self.treeWidget_cadastros_infos)
-            root.setText(0, empresa)
-            # root.setFont(0, QFont())
-            self.treeWidget_cadastros_infos.addTopLevelItem(root)
+            for nome, endereco in contato.items():
+                item = QTreeWidgetItem(self.treeWidget_contatos)
+                item.setText(0, empresa)
+                item.setText(1, nome)
+                cb = QCheckBox(endereco)
+                cb.setChecked(True)
+                self.treeWidget_contatos.setItemWidget(item, 2, cb)
 
-            for endereco in enderecos:
-                child = QTreeWidgetItem()
-                child.setText(0, endereco)
-                root.addChild(child)
+    def enviar_contatos(self):
+        self.treeWidget_contatos.itemFromIndex
 
     def to_progress(self, valor):
         self.progressBar.setValue(self.coeficiente_progress * valor)
