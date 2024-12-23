@@ -375,7 +375,6 @@ class Arquivo(QObject):
         self.nomes.emit(tabelas[self.col_titulo].values.tolist())
         self.fim.emit(1)
 
-    #TODO LER
     def ler(self):
         arquivo = tb.read_pdf(self.caminho, pages="all", relative_area=True, area=[20,10,96,100])
         for tabelas in arquivo:
@@ -821,7 +820,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.exec_load(True)
         self.treeWidget_contatos.clear()
 
-    #TODO PROGRESS
     def to_progress(self, valor):
         if valor == -4:
             self.label_load_title.setText('Gerando mensagem...')
