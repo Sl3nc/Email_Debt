@@ -17,9 +17,9 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QApplication, QComboBox, QFrame, QGridLayout,
     QHeaderView, QLabel, QLineEdit, QMainWindow,
-    QMenuBar, QProgressBar, QPushButton, QScrollArea,
-    QSizePolicy, QSpacerItem, QStackedWidget, QStatusBar,
-    QTreeWidget, QTreeWidgetItem, QVBoxLayout, QWidget)
+    QMenuBar, QPushButton, QScrollArea, QSizePolicy,
+    QSpacerItem, QStackedWidget, QStatusBar, QTreeWidget,
+    QTreeWidgetItem, QVBoxLayout, QWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -279,21 +279,6 @@ class Ui_MainWindow(object):
 
         self.gridLayout_8.addItem(self.horizontalSpacer, 0, 0, 1, 1)
 
-        self.frame_3 = QFrame(self.page_2)
-        self.frame_3.setObjectName(u"frame_3")
-        self.frame_3.setFrameShape(QFrame.Shape.StyledPanel)
-        self.frame_3.setFrameShadow(QFrame.Shadow.Raised)
-        self.gridLayout_9 = QGridLayout(self.frame_3)
-        self.gridLayout_9.setObjectName(u"gridLayout_9")
-        self.gridLayout_9.setContentsMargins(100, -1, 100, -1)
-        self.progressBar = QProgressBar(self.frame_3)
-        self.progressBar.setObjectName(u"progressBar")
-
-        self.gridLayout_9.addWidget(self.progressBar, 0, 0, 1, 1)
-
-
-        self.gridLayout_8.addWidget(self.frame_3, 3, 0, 1, 3)
-
         self.horizontalSpacer_2 = QSpacerItem(246, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
         self.gridLayout_8.addItem(self.horizontalSpacer_2, 0, 2, 1, 1)
@@ -319,6 +304,14 @@ class Ui_MainWindow(object):
         self.label_load_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.gridLayout_8.addWidget(self.label_load_title, 2, 1, 1, 1)
+
+        self.horizontalSpacer_5 = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.gridLayout_8.addItem(self.horizontalSpacer_5, 2, 0, 1, 1)
+
+        self.horizontalSpacer_6 = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.gridLayout_8.addItem(self.horizontalSpacer_6, 2, 2, 1, 1)
 
         self.stackedWidget_body.addWidget(self.page_2)
         self.page_5 = QWidget()
@@ -509,8 +502,9 @@ class Ui_MainWindow(object):
         __qtreewidgetitem = QTreeWidgetItem()
         __qtreewidgetitem.setTextAlignment(2, Qt.AlignCenter);
         __qtreewidgetitem.setFont(2, font13);
-        __qtreewidgetitem.setTextAlignment(1, Qt.AlignLeading|Qt.AlignVCenter);
+        __qtreewidgetitem.setTextAlignment(1, Qt.AlignCenter);
         __qtreewidgetitem.setFont(1, font13);
+        __qtreewidgetitem.setTextAlignment(0, Qt.AlignCenter);
         __qtreewidgetitem.setFont(0, font13);
         self.treeWidget_contatos.setHeaderItem(__qtreewidgetitem)
         self.treeWidget_contatos.setObjectName(u"treeWidget_contatos")

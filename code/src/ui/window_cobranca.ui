@@ -468,27 +468,6 @@
           </property>
          </spacer>
         </item>
-        <item row="3" column="0" colspan="3">
-         <widget class="QFrame" name="frame_3">
-          <property name="frameShape">
-           <enum>QFrame::Shape::StyledPanel</enum>
-          </property>
-          <property name="frameShadow">
-           <enum>QFrame::Shadow::Raised</enum>
-          </property>
-          <layout class="QGridLayout" name="gridLayout_9">
-           <property name="leftMargin">
-            <number>100</number>
-           </property>
-           <property name="rightMargin">
-            <number>100</number>
-           </property>
-           <item row="0" column="0">
-            <widget class="QProgressBar" name="progressBar"/>
-           </item>
-          </layout>
-         </widget>
-        </item>
         <item row="0" column="2">
          <spacer name="horizontalSpacer_2">
           <property name="orientation">
@@ -524,26 +503,30 @@
           </property>
          </widget>
         </item>
-        <item row="2" column="1">
-         <widget class="QLabel" name="label_load_title">
-          <property name="font">
-           <font>
-            <family>Tw Cen MT</family>
-            <pointsize>24</pointsize>
-            <italic>true</italic>
-            <bold>false</bold>
-           </font>
-          </property>
-          <property name="text">
-           <string>Carregando...</string>
-          </property>
-          <property name="textFormat">
-           <enum>Qt::TextFormat::PlainText</enum>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignmentFlag::AlignCenter</set>
-          </property>
-         </widget>
+        <item row="1" column="0" colspan="3">
+         <layout class="QGridLayout" name="gridLayout_9">
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_load_title">
+            <property name="font">
+             <font>
+              <family>Tw Cen MT</family>
+              <pointsize>24</pointsize>
+              <italic>true</italic>
+              <bold>false</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>Carregando...</string>
+            </property>
+            <property name="textFormat">
+             <enum>Qt::TextFormat::PlainText</enum>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignmentFlag::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
        </layout>
       </widget>
@@ -854,6 +837,9 @@
                 <bold>true</bold>
                </font>
               </property>
+              <property name="textAlignment">
+               <set>AlignCenter</set>
+              </property>
              </column>
              <column>
               <property name="text">
@@ -867,7 +853,7 @@
                </font>
               </property>
               <property name="textAlignment">
-               <set>AlignLeading|AlignVCenter</set>
+               <set>AlignCenter</set>
               </property>
              </column>
              <column>

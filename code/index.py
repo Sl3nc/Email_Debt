@@ -496,7 +496,7 @@ class Cobrador(QObject):
     novo_endereco = Signal(str)
     progress = Signal(int)
     fim = Signal()
-    resume = Signal(list)
+    resume = Signal(dict)
     confirm_enderecos = Signal(dict)
 
     def __init__(self, dict_content: dict[str,dict], nome_func: str, db: DataBase):
@@ -527,9 +527,11 @@ class Cobrador(QObject):
     def exec_registro(self, dict_faltantes):
         self.progress.emit(-2)
         self.registro_acessorias(dict_faltantes)
+        self.enderecos_novos = {}
         list_restantes = self.registro()
         if list_restantes != []:
             self.registro_manual(list_restantes)
+            self.enderecos_novos = {}
             self.registro()
 
     #TODO REGISTRO
@@ -558,7 +560,6 @@ class Cobrador(QObject):
             self.db.registrar_empresa(nome_empresa)
             id_empresa = self.db.identificador_empresa(nome_empresa)
             enderecos_email = enderecos.split(';')
-            self.enderecos_novos = {}
             self.db.registrar_enderecos(enderecos_email, id_empresa)
         return list_restantes
     
@@ -566,24 +567,21 @@ class Cobrador(QObject):
         self.enderecos_novos = valor
 
     def enviar(self):
-        count = 0
         email = Email()
-        enderecos_totais = []
+        dict_contatos = {}
         assinatura = self.db.query_assinatura(self.nome_func)
 
         for nome_empresa, conteudo in self.dict_content.items():
             enderecos_email = self.db.emails_empresa(nome_empresa)
-            enderecos_totais = enderecos_totais + enderecos_email
+            dict_contatos[nome_empresa] = enderecos_email
+            
             conteudo['mensagem'] =\
                 conteudo['mensagem'].replace('$assinatura', assinatura)
             email.criar(enderecos_email, nome_empresa, conteudo['mensagem'])
             email.enviar()
 
-            count = count + 1
-            self.progress.emit(count)
-
         self.fim.emit()
-        self.resume.emit(enderecos_totais)
+        self.resume.emit(dict_contatos)
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, parent = None) -> None:
@@ -591,8 +589,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.try_conection()
         self.setupUi(self)
 
-        self.MAX_PROGRESS = 100
-        self.coeficiente_progress = 0
         self.arquivo = Arquivo()
         self.options = []
         self.option_checada = False
@@ -736,8 +732,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if self.pushButton_body_relatorio_anexar.text() == '':
             raise Exception ('Insira algum relatório de vencidos')
         
-        self.progressBar.setValue(0)
-
         self.to_progress(-4)
         self.exec_load(True)
 
@@ -759,7 +753,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def cobrar(self, dict_content: dict[str,dict]):
         try:
             content_filtred = self.filtro(dict_content)
-            self.coeficiente_progress = self.MAX_PROGRESS / len(content_filtred)
 
             self._cobrador = Cobrador(
                 content_filtred,
@@ -810,44 +803,46 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         contatos_filtrados = {}
         empresa_atual = ''
         for item, cb in self.widget_enderecos.items():
-            if cb.isChecked() == True:
-                if item.text(0) != empresa_atual:
-                    empresa_atual = item.text(0)
-                    contatos_filtrados[empresa_atual] = ''
+            if item.text(0) != empresa_atual:
+                empresa_atual = item.text(0)
+                contatos_filtrados[empresa_atual] = ''
 
+            if cb.isChecked() == True:
                 contatos_filtrados[empresa_atual] = \
                     contatos_filtrados[empresa_atual] + ';' + cb.text()
                 
         for nome_emp in contatos_filtrados.keys():
             contatos_filtrados[nome_emp] =\
                 contatos_filtrados[nome_emp].replace(';', '', 1)
+            
         print(contatos_filtrados)
         self._cobrador.set_novo_endereco(contatos_filtrados)
         self.to_progress(-1)
         self.exec_load(True)
+        self.treeWidget_contatos.clear()
 
     #TODO PROGRESS
     def to_progress(self, valor):
-        if valor < 1:
-            if valor == -4:
-                self.progressBar.hide()
-                self.label_load_title.setText('Gerando mensagem...')
-            if valor == -3:
-                self.label_load_title.setText('Carregando endereços registrados...')
-            elif valor == -2:
-                self.label_load_title.setText('Buscando endereços no Acessorias...')
-            elif valor == -1:
-                self.label_load_title.setText('Registrando endereços...')
-            elif valor == 0:
-                self.progressBar.show()
-                self.label_load_title.setText('Enviando e-mails...')
-        else:
-            self.progressBar.setValue(self.coeficiente_progress * valor)
+        if valor == -4:
+            self.label_load_title.setText('Gerando mensagem...')
+        if valor == -3:
+            self.label_load_title.setText('Carregando endereços registrados...')
+        elif valor == -2:
+            self.label_load_title.setText('Buscando endereços no Acessórias...')
+        elif valor == -1:
+            self.label_load_title.setText('Registrando endereços...')
+        elif valor == 0:
+            self.label_load_title.setText('Enviando e-mails...')
 
-    def conclusion(self, enderecos_empresas: list[str]):
+    def conclusion(self, dict_contatos: dict[str, list[str]]):
         self.exec_load(False, 0)
-        enderecos_empresas[0] = f'- {enderecos_empresas[0]}'
-        messagebox.showinfo(title='Aviso', message= f'Email enviado com sucesso para: \n{'\n- '.join(enderecos_empresas)}')
+        text = ''
+        for nome_empresa, enderecos in dict_contatos.items():
+            text = f'{text}\n-{nome_empresa}\n'
+            for endereco in enderecos:
+                text = f'{text}|=>{endereco}\n'
+
+        messagebox.showinfo(title='Aviso', message= f'Email enviado com sucesso para: \n{text}')
 
     def acess_cadastro(self, nome_empresa: str):
         self.label_endereco_title.setText('Empresa abaixo não cadastrada:')
