@@ -26,6 +26,11 @@ from PySide6.QtGui import QPixmap, QIcon, QMovie
 from PySide6.QtCore import QThread, QObject, Signal, QSize
 from src.window_cobranca import Ui_MainWindow
 
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+from selenium.common.exceptions import NoSuchElementException
+
 load_dotenv(Path(__file__).parent / 'src' / 'env' / '.env')
 
 def resource_path(relative_path):
@@ -40,19 +45,15 @@ class DataBase:
     TABELA_USUARIO = 'Usuario'
     TABELA_EMAIL = 'Email'
 
-    def try_connection(self):
-        try:
-            return pymysql.connect(
+    def __init__(self) -> None:
+        self.connection = pymysql.connect(
                 host= getenv('IP_HOST'),
                 port= int(getenv('PORT_HOST')),
                 user= getenv('USER'),
                 password= getenv('PASSWORD'),
                 database= getenv('DB'),
             )
-        except pymysql.err.OperationalError as e:
-            raise Exception(f'Falha na conexão com o banco de dados, favor comunique o suporte disponível\n\n{e}')
 
-    def __init__(self) -> None:
         self.query_endereco = (
             f'SELECT endereco FROM {self.TABELA_EMAIL} '
             'WHERE id_emp IN '
@@ -105,88 +106,91 @@ class DataBase:
             f'SELECT assinatura FROM {self.TABELA_USUARIO} '
             'WHERE nome = %s'
         )
+
+        self.query_acessorias = (
+            'SELECT email_acessorias, senha_acessorias'
+            f' FROM {self.TABELA_USUARIO} '
+            'WHERE nome = %s'
+        )
         pass
 
     def emails_empresa(self, nome_empresa: str) -> list[str]:
-        with self.try_connection() as connection:
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    self.query_endereco, (nome_empresa,)
-                )
-                return [i for sub in cursor.fetchall() for i in sub]
+        with self.connection.cursor() as cursor:
+            cursor.execute(
+                self.query_endereco, (nome_empresa,)
+            )
+            return [i for sub in cursor.fetchall() for i in sub]
     
     def remover_empresa(self, id_empresa: str):
-        with self.try_connection() as connection:
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    self.delete_empresa, (id_empresa, )
-                )
-                connection.commit()
+        with self.connection.cursor() as cursor:
+            cursor.execute(
+                self.delete_empresa, (id_empresa, )
+            )
+            self.connection.commit()
 
     def remover_endereco(self, id_empresa: str, endereco: str):
-        with self.try_connection() as connection:
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    self.delete_endereco, (id_empresa, endereco)
-                )
-                connection.commit()
+        with self.connection.cursor() as cursor:
+            cursor.execute(
+                self.delete_endereco, (id_empresa, endereco)
+            )
+            self.connection.commit()
 
     def remover_enderecos(self, id_empresa: str):
-        with self.try_connection() as connection:
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    self.delete_enderecos, (id_empresa,)
-                )
-                connection.commit()
+        with self.connection.cursor() as cursor:
+            cursor.execute(
+                self.delete_enderecos, (id_empresa,)
+            )
+            self.connection.commit()
     
     def atualizar_endereco(self, end_novo: str, end_antigo: str, id_emp: str):
-        with self.try_connection() as connection:
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    self.update_endereco, (end_novo, end_antigo, id_emp)
-                )
-                connection.commit()
+        with self.connection.cursor() as cursor:
+            cursor.execute(
+                self.update_endereco, (end_novo, end_antigo, id_emp)
+            )
+            self.connection.commit()
 
     def registrar_empresa(self, nome_empresa: str) -> None:
-        with self.try_connection() as connection:
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    self.insert_empresa, (nome_empresa,)
-                )
-            connection.commit()
+        with self.connection.cursor() as cursor:
+            cursor.execute(
+                self.insert_empresa, (nome_empresa,)
+            )
+            self.connection.commit()
     
     def empresas(self) -> list[str]:
-        with self.try_connection() as connection:
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    self.query_empresas
-                )
-                return [i for sub in cursor.fetchall() for i in sub]
+        with self.connection.cursor() as cursor:
+            cursor.execute(
+                self.query_empresas
+            )
+            return [i for sub in cursor.fetchall() for i in sub]
 
     def registrar_enderecos(self, enderecos: list[str], id_empresa: str) -> None:
-        with self.try_connection() as connection:
-            with connection.cursor() as cursor:
-                cursor.executemany(
-                    self.insert_endereco, 
-                    ([endereco, id_empresa] for endereco in enderecos)
-                )
-                connection.commit()
+        with self.connection.cursor() as cursor:
+            cursor.executemany(
+                self.insert_endereco, 
+                ([endereco, id_empresa] for endereco in enderecos)
+            )
+            self.connection.commit()
 
     def identificador_empresa(self, nome_empresa: str) -> str:
-        with self.try_connection() as connection:
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    self.query_empresa, (nome_empresa,)
-                )
-                return cursor.fetchone()[0]
+        with self.connection.cursor() as cursor:
+            cursor.execute(
+                self.query_empresa, (nome_empresa,)
+            )
+            return cursor.fetchone()[0]
 
     def query_assinatura(self, nome_func: str) -> str:
-        with self.try_connection() as connection:
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    self.query_ass, (nome_func,)
-                )
-                return cursor.fetchone()[0]
+        with self.connection.cursor() as cursor:
+            cursor.execute(
+                self.query_ass, (nome_func,)
+            )
+            return cursor.fetchone()[0]
+
+    def user_acessorias(self, nome_func: str):
+        with self.connection.cursor() as cursor:
+            cursor.execute(
+                self.query_acessorias, (nome_func,)
+            )
+            return cursor.fetchone()
     
 class Email:
     def __init__(self):
@@ -204,9 +208,10 @@ class Email:
         }
 
     def enviar(self):
-        response = self.client.send(**self.payload)
-        if response.success == False:
-            raise Exception('Endereço de email inválido')
+        print('enviou')
+        # response = self.client.send(**self.payload)
+        # if response.success == False:
+        #     raise Exception('Endereço de email inválido')
 
 #https://i.imgur.com/dTUNLTy.jpeg
 class Conteudo:
@@ -371,9 +376,9 @@ class Arquivo(QObject):
         self.fim.emit(1)
 
     def ler(self):
-        arquivo = tb.read_pdf(self.caminho, pages="all", relative_area=True, area=[20,16,96,100])
+        arquivo = tb.read_pdf(self.caminho, pages="all", relative_area=True, area=[20,10,96,100])
         for tabelas in arquivo:
-            tabelas.columns = ["Titulo/Competencia", "", "","", "","","","","","","","","Valor"]
+            tabelas.columns = ["Num. Dominio", "Titulo/Competencia", "", "","", "","","","","","","","","Valor"]
         tabelas = pd.concat(arquivo, ignore_index=True)
         tabelas = tabelas.drop('', axis=1)
         tabelas = tabelas.drop(0).reset_index(drop=True)
@@ -382,8 +387,7 @@ class Arquivo(QObject):
         self.conteudos.emit(self.filtro_conteudo(tabelas))
         self.fim.emit(2)
 
-    #todo filtro
-    def filtro_conteudo(self, tabelas):
+    def filtro_conteudo(self, tabelas: pd.Series):
         dict_conteudos = {}
         for index, row in tabelas.iterrows():
             if row.Valor != '' and row["Titulo/Competencia"] != '':
@@ -399,108 +403,195 @@ class Arquivo(QObject):
                 }))
             elif row.Valor == '':
                 #Abrir conteudo
+                num_domin = row["Num. Dominio"].replace(' Nome:','')
                 nome_atual = row["Titulo/Competencia"]
                 conteudo_atual = Conteudo()
+                dict_valores = {}
             else:
                 #Fecha conteudo
-                dict_conteudos[nome_atual] = conteudo_atual.to_string()
+                dict_valores['mensagem'] = conteudo_atual.to_string()
+                dict_valores['numero'] = num_domin
+                dict_conteudos[nome_atual] = dict_valores
 
         return dict_conteudos
+
+class Acessorias:
+    ROOT_FOLDER = Path(__file__).parent
+    CHROME_DRIVER_PATH = ROOT_FOLDER / 'src' / 'drivers' / 'chromedriver.exe'
+    URL_MAIN = 'https://app.acessorias.com/sysmain.php'
+    URL_DETALHES = 'https://app.acessorias.com/sysmain.php?m=105&act=e&i={0}&uP=14&o=EmpNome,EmpID|Asc'
+
+
+    INPUT_EMAIL = 'mailAC'
+    INPUT_PASSWORD= 'passAC'
+    BTN_ENTRAR = '#site-corpo > section.secao.secao-login > div > form > div.botoes > button'
+
+    def __init__(self) -> None:
+        self.rowContato = 'divCtt_0_{0}'
+        self.campo_nome = 'CttNome_0_{0}'
+        self.campo_email = 'CttEMail_0_{0}'
+
+        self.browser = self.make_chrome_browser(hide=False)
+        self.browser.get(self.URL_MAIN)
+        pass
+
+    def make_chrome_browser(self,*options: str, hide: bool) -> webdriver.Chrome:
+        chrome_options = webdriver.ChromeOptions()
+
+        if options is not None:
+            for option in options:
+                chrome_options.add_argument(option)
+
+        chrome_service = Service(
+            executable_path=str(self.CHROME_DRIVER_PATH),
+        )
+
+        browser = webdriver.Chrome(
+            service=chrome_service,
+            options=chrome_options
+        )
+
+        if hide == True:
+            browser.set_window_position(-10000,0)
+
+        return browser
+    
+    def login(self, usuario: str, senha: str):
+        self.browser.find_element(By.NAME, self.INPUT_EMAIL).send_keys(usuario)
+        self.browser.find_element(By.NAME, self.INPUT_PASSWORD).send_keys(senha)
+
+        self.browser.find_element(By.CSS_SELECTOR, self.BTN_ENTRAR).click()
+        sleep(4)
+
+    def pesquisar(self, num_empresa: str):
+        self.browser.get(self.URL_DETALHES.format(num_empresa))
+        sleep(2)
+
+        dict_contato = {}
+        count = 1
+        while self.contato_exists(count) == True:
+            nome = self.browser.find_element(By.ID, self.campo_nome.format(count))\
+                .get_attribute('value')
+            email = self.browser.find_element(By.ID, self.campo_email.format(count))\
+                .get_attribute('value')
+
+            if email != '':
+                dict_contato[nome] = email
+            count = count + 1
+
+        return dict_contato
+
+    def contato_exists(self, id):
+        try:
+            self.browser.find_element(By.ID, self.rowContato.format(id))
+            return True
+        except NoSuchElementException:
+            return False
+
+    def close(self):
+        self.browser.close()
 
 class Cobrador(QObject):
     novo_endereco = Signal(str)
     progress = Signal(int)
     fim = Signal()
-    resume = Signal(list)
+    resume = Signal(dict)
+    confirm_enderecos = Signal(dict)
 
-    def __init__(self, dict_content: dict[str,str], nome_func: str):
+    def __init__(self, dict_content: dict[str,dict], nome_func: str, db: DataBase):
         super().__init__()
         self.dict_content = dict_content
         self.nome_func = nome_func
-        self.enderecos_novos = ''
+        self.db = db
+        self.enderecos_novos = {}
 
     #TODO EXECUTAR
     def executar(self):
-        db = DataBase()
-        email = Email()
-        count = 0
-        enderecos_totais = []
-        assinatura = db.query_assinatura(self.nome_func)
+        dict_faltantes = self.filtro_faltantes()
+        if dict_faltantes != {}:
+            self.exec_registro(dict_faltantes)
+        self.progress.emit(0)
+        self.enviar()
+
+    def filtro_faltantes(self):
+        dict_faltantes = {}
+        self.progress.emit(-3)
         for nome_empresa, conteudo in self.dict_content.items():
-            enderecos_email = db.emails_empresa(nome_empresa)
-            if enderecos_email == []:
-                enderecos_email = self.registro(nome_empresa, db)
-            
-            conteudo = conteudo.replace('$assinatura', assinatura)
-            email.criar(enderecos_email, nome_empresa, conteudo)
-            email.enviar()
+            enderecos_email = self.db.emails_empresa(nome_empresa)
+            if enderecos_email == []: #Sem email cadastrado da empresa
+                dict_faltantes[nome_empresa] = conteudo['numero']
+                continue
+        return dict_faltantes
 
-            count = count + 1
-            self.progress.emit(count)
-            for i in enderecos_email:
-                enderecos_totais.append(i)
-
-        self.fim.emit()
-        self.resume.emit(enderecos_totais)
+    def exec_registro(self, dict_faltantes):
+        self.progress.emit(-2)
+        self.registro_acessorias(dict_faltantes)
+        self.enderecos_novos = {}
+        list_restantes = self.registro()
+        if list_restantes != []:
+            self.registro_manual(list_restantes)
+            self.enderecos_novos = {}
+            self.registro()
 
     #TODO REGISTRO
-    def registro(self, nome_empresa: str, db: DataBase):
-        self.novo_endereco.emit(nome_empresa)
-        while self.enderecos_novos == '':
-            sleep(2)
+    def registro_acessorias(self, dict_faltante: dict[str,str]):
+        dict_contato = {}
+        acessorias = Acessorias()
+        usuario, senha = self.db.user_acessorias(self.nome_func)
+        acessorias.login(usuario, senha)
+        for nome_empresa, num_dominio in dict_faltante.items():
+            dict_contato[nome_empresa] = acessorias.pesquisar(num_dominio)
+        acessorias.close()
+        self.confirm_enderecos.emit(dict_contato)
 
-        db.registrar_empresa(nome_empresa)
-        id_empresa = db.identificador_empresa(nome_empresa)
-        enderecos_email = self.enderecos_novos.split(';')
-        self.enderecos_novos = ''
-        db.registrar_enderecos(enderecos_email, id_empresa)
-        return enderecos_email
+    def registro_manual(self, list_restantes: list[str]):
+        for nome_empresa in list_restantes:
+            self.novo_endereco.emit(nome_empresa)
+
+    def registro(self):
+        list_restantes = []
+        while self.enderecos_novos == {}:
+                sleep(2)
+        for nome_empresa, enderecos in self.enderecos_novos.items():
+            if enderecos == '':
+                list_restantes.append(nome_empresa)
+                continue
+            self.db.registrar_empresa(nome_empresa)
+            id_empresa = self.db.identificador_empresa(nome_empresa)
+            enderecos_email = enderecos.split(';')
+            self.db.registrar_enderecos(enderecos_email, id_empresa)
+        return list_restantes
     
-    def set_novo_endereco(self, valor: str):
+    def set_novo_endereco(self, valor: dict[str,str]):
         self.enderecos_novos = valor
 
-class Operador:
+    def enviar(self):
+        email = Email()
+        dict_contatos = {}
+        assinatura = self.db.query_assinatura(self.nome_func)
 
-    #TODO INFORMAR
-    def informar() -> dict:
-        db = DataBase()
-        dict_informacoes = {}
-        for i in db.empresas():
-            dict_informacoes[i] = db.emails_empresa(i)
-        
-        return dict_informacoes
+        for nome_empresa, conteudo in self.dict_content.items():
+            enderecos_email = self.db.emails_empresa(nome_empresa)
+            dict_contatos[nome_empresa] = enderecos_email
+            
+            conteudo['mensagem'] =\
+                conteudo['mensagem'].replace('$assinatura', assinatura)
+            email.criar(enderecos_email, nome_empresa, conteudo['mensagem'])
+            email.enviar()
 
-    def add(nome_empresa: str, enderecos: list[str]) -> list[str]:
-        db = DataBase()
-        id_emp = db.identificador_empresa(nome_empresa)
-        db.registrar_enderecos(enderecos, id_emp)
-
-    def edit(nome_empresa: str, endereco_antigo: str, endereco_novo: str) -> None:
-        db = DataBase()
-        id_emp = db.identificador_empresa(nome_empresa)
-        db.atualizar_endereco(endereco_novo, endereco_antigo, id_emp)
-
-    def remove_empresa(nome_empresa: str) -> None:
-        db = DataBase()
-        id_emp = db.identificador_empresa(nome_empresa)
-        db.remover_enderecos(id_emp)
-        db.remover_empresa(id_emp)
-
-    def remove_endereco(nome_empresa: str, endereco: str) -> None:
-        db = DataBase()
-        id_emp = db.identificador_empresa(nome_empresa)
-        db.remover_endereco(id_emp, endereco)
+        self.fim.emit()
+        self.resume.emit(dict_contatos)
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, parent = None) -> None:
         super().__init__(parent)
+        self.try_conection()
         self.setupUi(self)
 
-        self.MAX_PROGRESS = 100
-        self.coeficiente_progress = 0
         self.arquivo = Arquivo()
         self.options = []
         self.option_checada = False
+        self.widget_enderecos = {}
 
         self.setWindowIcon(QIcon(resource_path('src\\imgs\\mail-icon.ico')))
 
@@ -548,13 +639,37 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.remover_info
         )
 
+        self.pushButton.clicked.connect(
+            self.enviar_contatos
+        )
+
         self.pushButton_empresas_marcar.hide()
 
         self._thread = QThread()
         self.arquivo.moveToThread(self._thread)
         self.arquivo.fim.connect(self._thread.quit)
 
-    #TODO THREADS
+        # self.confirmar_registro(
+        #     {
+        #         'Empresa':
+        #         {
+        #             'Contato': 'Endereço e-mail',
+        #             'Outro Contato': 'Outro Endereco'
+        #         },
+        #         'Outra Empresa':
+        #         {
+        #             'Contato2': 'Endereco e-mail2'
+        #         }
+        #     }
+        # )
+
+    def try_conection(self):
+        try:
+            self.db = DataBase()
+        except pymysql.err.OperationalError as e:
+            messagebox.showerror('Aviso!', f'Falha na conexão com o banco de dados, favor comunique o suporte disponível\n\n{e}')
+            raise Exception('')
+
     def inserir_relatorio(self):
         try:
             caminho_reduzido = self.arquivo.set_caminho(askopenfilename())
@@ -616,7 +731,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if self.pushButton_body_relatorio_anexar.text() == '':
             raise Exception ('Insira algum relatório de vencidos')
         
-        self.progressBar.setValue(0)
+        self.to_progress(-4)
         self.exec_load(True)
 
         self.conexao_ler = self._thread.started.connect(self.arquivo.ler)
@@ -634,14 +749,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.arquivo.disconnect(self.conexao_cobrar)
 
     #TODO COBRAR
-    def cobrar(self, dict_content):
+    def cobrar(self, dict_content: dict[str,dict]):
         try:
             content_filtred = self.filtro(dict_content)
-            self.coeficiente_progress = self.MAX_PROGRESS / len(content_filtred)
 
             self._cobrador = Cobrador(
                 content_filtred,
-                self.comboBox_body_funcionario.currentText()
+                self.comboBox_body_funcionario.currentText(),
+                self.db
                 )
             self._thread_cobrador = QThread()
 
@@ -651,6 +766,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self._cobrador.fim.connect(self._thread_cobrador.quit)
             self._cobrador.fim.connect(self._thread_cobrador.deleteLater)
             self._cobrador.progress.connect(self.to_progress)
+            self._cobrador.confirm_enderecos.connect(self.confirmar_registro)
             self._cobrador.resume.connect(self.conclusion)
             self._thread_cobrador.finished.connect(self._cobrador.deleteLater)
             self._thread_cobrador.start()
@@ -662,38 +778,86 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             traceback.print_exc()
             messagebox.showwarning(title='Aviso', message= e)
 
-    def filtro(self, dict_content : dict[str,str]):
+    def filtro(self, dict_content : dict[str,dict]):
         filtred_content = deepcopy(dict_content)
         for i in self.options:
             if i.isChecked() == False:
                 del filtred_content[i.text()]
         return filtred_content
+    
+    def confirmar_registro(self, dict_contato: dict[str,dict[str,str]]):
+        self.stackedWidget_body.setCurrentIndex(4)
+        self.widget_enderecos.clear()
+        for empresa, contato in dict_contato.items():
+            for nome, endereco in contato.items():
+                item = QTreeWidgetItem(self.treeWidget_contatos)
+                item.setText(0, empresa)
+                item.setText(1, nome)
+                cb = QCheckBox(endereco)
+                cb.setChecked(True)
+                self.widget_enderecos[item] = cb
+                self.treeWidget_contatos.setItemWidget(item, 2, cb)
+
+    def enviar_contatos(self):
+        contatos_filtrados = {}
+        empresa_atual = ''
+        for item, cb in self.widget_enderecos.items():
+            if item.text(0) != empresa_atual:
+                empresa_atual = item.text(0)
+                contatos_filtrados[empresa_atual] = ''
+
+            if cb.isChecked() == True:
+                contatos_filtrados[empresa_atual] = \
+                    contatos_filtrados[empresa_atual] + ';' + cb.text()
+                
+        for nome_emp in contatos_filtrados.keys():
+            contatos_filtrados[nome_emp] =\
+                contatos_filtrados[nome_emp].replace(';', '', 1)
+            
+        print(contatos_filtrados)
+        self._cobrador.set_novo_endereco(contatos_filtrados)
+        self.to_progress(-1)
+        self.exec_load(True)
+        self.treeWidget_contatos.clear()
 
     def to_progress(self, valor):
-        self.progressBar.setValue(self.coeficiente_progress * valor)
+        if valor == -4:
+            self.label_load_title.setText('Gerando mensagem...')
+        if valor == -3:
+            self.label_load_title.setText('Carregando endereços registrados...')
+        elif valor == -2:
+            self.label_load_title.setText('Buscando endereços no Acessórias...')
+        elif valor == -1:
+            self.label_load_title.setText('Registrando endereços...')
+        elif valor == 0:
+            self.label_load_title.setText('Enviando e-mails...')
 
-    def conclusion(self, enderecos_empresas: list[str]):
+    def conclusion(self, dict_contatos: dict[str, list[str]]):
         self.exec_load(False, 0)
-        enderecos_empresas[0] = f'- {enderecos_empresas[0]}'
-        messagebox.showinfo(title='Aviso', message= f'Email enviado com sucesso para: \n{'\n- '.join(enderecos_empresas)}')
+        text = ''
+        for nome_empresa, enderecos in dict_contatos.items():
+            text = f'{text}\n-{nome_empresa}\n'
+            for endereco in enderecos:
+                text = f'{text}|=>{endereco}\n'
+
+        messagebox.showinfo(title='Aviso', message= f'Email enviado com sucesso para: \n{text}')
 
     def acess_cadastro(self, nome_empresa: str):
         self.label_endereco_title.setText('Empresa abaixo não cadastrada:')
         self.label_endereco_empresa.setText(nome_empresa)
         self.conexao_envio = self.pushButton_endereco.clicked.connect(
-            self.enviar_valor
+            lambda: self.enviar_valor(nome_empresa)
         )
         self.exec_load(False, 2)
 
-    def enviar_valor(self):
+    def enviar_valor(self, nome_empresa: str):
         try:
             resp = self.lineEdit_endereco.text()
-            #Validar envio
-            if resp == '':
+
+            if resp == '' or '@' not in resp or '.com' not in resp:
                 raise Exception('Endereço de email inválido')
 
-            #Confirmar envio
-            self._cobrador.set_novo_endereco(resp)
+            self._cobrador.set_novo_endereco({nome_empresa: resp})
             self.pushButton_endereco.disconnect(self.conexao_envio)
             self.exec_load(True)
         except Exception as e:
@@ -708,10 +872,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.stackedWidget_body.setCurrentIndex(to)
 
     def acess_infos(self):
+        dict_informacoes = {}
         self.stackedWidget_body.setCurrentIndex(3)
         self.treeWidget_cadastros_infos.clear()
 
-        for empresa, enderecos in Operador.informar().items():
+        for i in self.db.empresas():
+            dict_informacoes[i] = self.db.emails_empresa(i)
+
+        for empresa, enderecos in dict_informacoes.items():
             root = QTreeWidgetItem(self.treeWidget_cadastros_infos)
             root.setText(0, empresa)
             # root.setFont(0, QFont())
@@ -745,10 +913,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         atual = self.treeWidget_cadastros_infos.selectedItems()[0]
         enderecos = self.lineEdit_endereco.text().split(';')
 
-        Operador.add(
-            atual.text(0), 
-            enderecos
-        )
+        id_emp = self.db.identificador_empresa(atual.text(0))
+        self.db.registrar_enderecos(enderecos, id_emp)
 
         for endereco in enderecos:
             child = QTreeWidgetItem()
@@ -785,11 +951,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         parente = atual.parent()
         novo_text = self.lineEdit_endereco.text()
 
-        Operador.edit(
-            parente.text(0), 
-            atual.text(0),
-            novo_text
-        )
+        id_emp = self.db.identificador_empresa(parente.text(0))
+        self.db.atualizar_endereco(novo_text, atual.text(0), id_emp)
 
         atual.setText(0, novo_text)
         self.label_endereco_input_subtitle.show()
@@ -802,20 +965,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             items = self.treeWidget_cadastros_infos.selectedItems()
             if len(items) == 0:
                 raise Exception("Escolha um e-mail ou empresa para remover")
-            parente = items[0].parent()
             escolhido = items[0]
+            parente = escolhido.parent()
 
             if parente == None:
                 if messagebox.askyesno('Atenção!', 'A remoção da empresa eliminará todos seus emails, tem certeza que deseja removê-la?') == False:
                     return None
-                Operador.remove_empresa(
-                    escolhido.text(0)
-                )
+
+                id_emp = self.db.identificador_empresa(escolhido.text(0))
+                self.db.remover_enderecos(id_emp)
+                self.db.remover_empresa(id_emp)
             else:
-                Operador.remove_endereco(
-                    parente.text(0),
-                    escolhido.text(0)
-                )
+                id_emp = self.db.identificador_empresa(parente.text(0))
+                self.db.remover_endereco(id_emp, escolhido.text(0))
 
             escolhido.setHidden(True)
             self.stackedWidget_body.setCurrentIndex(3)

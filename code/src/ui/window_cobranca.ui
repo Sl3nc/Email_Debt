@@ -21,7 +21,78 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout_2">
-    <item row="1" column="0">
+    <item row="0" column="0">
+     <layout class="QGridLayout" name="gridLayout_header">
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_header_title">
+        <property name="font">
+         <font>
+          <family>Tw Cen MT</family>
+          <pointsize>26</pointsize>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Cobrança Automática</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignmentFlag::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QFrame" name="frame_2">
+        <property name="frameShape">
+         <enum>QFrame::Shape::StyledPanel</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Shadow::Raised</enum>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_5">
+         <property name="leftMargin">
+          <number>100</number>
+         </property>
+         <property name="rightMargin">
+          <number>100</number>
+         </property>
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_header_logo">
+           <property name="text">
+            <string/>
+           </property>
+           <property name="pixmap">
+            <pixmap>../imgs/mail-hori.png</pixmap>
+           </property>
+           <property name="scaledContents">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="Line" name="line">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>5</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">background-color: rgb(85, 170, 255);</string>
+        </property>
+        <property name="lineWidth">
+         <number>0</number>
+        </property>
+        <property name="orientation">
+         <enum>Qt::Orientation::Horizontal</enum>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item row="2" column="0">
      <widget class="QStackedWidget" name="stackedWidget_body">
       <property name="currentIndex">
        <number>0</number>
@@ -281,8 +352,14 @@
            <enum>QFrame::Shadow::Raised</enum>
           </property>
           <layout class="QGridLayout" name="gridLayout_4">
+           <property name="leftMargin">
+            <number>30</number>
+           </property>
            <property name="topMargin">
             <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>30</number>
            </property>
            <property name="bottomMargin">
             <number>0</number>
@@ -322,6 +399,29 @@
               <string>Executar</string>
              </property>
             </widget>
+           </item>
+           <item row="0" column="2">
+            <widget class="QPushButton" name="pushButton_2">
+             <property name="text">
+              <string>Enviar teste</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <spacer name="horizontalSpacer_5">
+             <property name="orientation">
+              <enum>Qt::Orientation::Horizontal</enum>
+             </property>
+             <property name="sizeType">
+              <enum>QSizePolicy::Policy::Maximum</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
            </item>
           </layout>
          </widget>
@@ -397,27 +497,6 @@
           </property>
          </spacer>
         </item>
-        <item row="3" column="0" colspan="3">
-         <widget class="QFrame" name="frame_3">
-          <property name="frameShape">
-           <enum>QFrame::Shape::StyledPanel</enum>
-          </property>
-          <property name="frameShadow">
-           <enum>QFrame::Shadow::Raised</enum>
-          </property>
-          <layout class="QGridLayout" name="gridLayout_9">
-           <property name="leftMargin">
-            <number>100</number>
-           </property>
-           <property name="rightMargin">
-            <number>100</number>
-           </property>
-           <item row="0" column="0">
-            <widget class="QProgressBar" name="progressBar"/>
-           </item>
-          </layout>
-         </widget>
-        </item>
         <item row="0" column="2">
          <spacer name="horizontalSpacer_2">
           <property name="orientation">
@@ -453,26 +532,30 @@
           </property>
          </widget>
         </item>
-        <item row="2" column="1">
-         <widget class="QLabel" name="label_load_title">
-          <property name="font">
-           <font>
-            <family>Tw Cen MT</family>
-            <pointsize>24</pointsize>
-            <italic>true</italic>
-            <bold>false</bold>
-           </font>
-          </property>
-          <property name="text">
-           <string>Carregando...</string>
-          </property>
-          <property name="textFormat">
-           <enum>Qt::TextFormat::PlainText</enum>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignmentFlag::AlignCenter</set>
-          </property>
-         </widget>
+        <item row="1" column="0" colspan="3">
+         <layout class="QGridLayout" name="gridLayout_9">
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_load_title">
+            <property name="font">
+             <font>
+              <family>Tw Cen MT</family>
+              <pointsize>24</pointsize>
+              <italic>true</italic>
+              <bold>false</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>Carregando...</string>
+            </property>
+            <property name="textFormat">
+             <enum>Qt::TextFormat::PlainText</enum>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignmentFlag::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
        </layout>
       </widget>
@@ -488,7 +571,7 @@
            </font>
           </property>
           <property name="text">
-           <string>Empresa abaixo não cadastrada:</string>
+           <string>Empresa abaixo não cadastrada</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -593,7 +676,7 @@
           <property name="font">
            <font>
             <family>Tw Cen MT</family>
-            <pointsize>18</pointsize>
+            <pointsize>20</pointsize>
             <italic>true</italic>
             <underline>false</underline>
            </font>
@@ -734,78 +817,144 @@
         </item>
        </layout>
       </widget>
+      <widget class="QWidget" name="page_7">
+       <layout class="QGridLayout" name="gridLayout_15">
+        <item row="2" column="1">
+         <widget class="QPushButton" name="pushButton">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>100</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>Enviar</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QFrame" name="frame_8">
+          <property name="frameShape">
+           <enum>QFrame::Shape::StyledPanel</enum>
+          </property>
+          <property name="frameShadow">
+           <enum>QFrame::Shadow::Raised</enum>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_17">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>50</number>
+           </property>
+           <item row="0" column="0">
+            <widget class="QTreeWidget" name="treeWidget_contatos">
+             <column>
+              <property name="text">
+               <string>Empresa</string>
+              </property>
+              <property name="font">
+               <font>
+                <family>Yu Gothic UI</family>
+                <pointsize>14</pointsize>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="textAlignment">
+               <set>AlignCenter</set>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string>Contato</string>
+              </property>
+              <property name="font">
+               <font>
+                <family>Yu Gothic UI</family>
+                <pointsize>14</pointsize>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="textAlignment">
+               <set>AlignCenter</set>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string>Endereço</string>
+              </property>
+              <property name="font">
+               <font>
+                <family>Yu Gothic UI</family>
+                <pointsize>14</pointsize>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="textAlignment">
+               <set>AlignCenter</set>
+              </property>
+             </column>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="2" column="2">
+         <spacer name="horizontalSpacer_4">
+          <property name="orientation">
+           <enum>Qt::Orientation::Horizontal</enum>
+          </property>
+          <property name="sizeType">
+           <enum>QSizePolicy::Policy::Minimum</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item row="1" column="0" colspan="3">
+         <widget class="QLabel" name="label_contatos_subtitle">
+          <property name="font">
+           <font>
+            <family>Tw Cen MT</family>
+            <pointsize>14</pointsize>
+            <underline>true</underline>
+           </font>
+          </property>
+          <property name="text">
+           <string>Desmarque os enderços que não deseja registrar</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0" colspan="3">
+         <widget class="QLabel" name="label_contatos_title">
+          <property name="font">
+           <font>
+            <family>Tw Cen MT</family>
+            <pointsize>20</pointsize>
+            <italic>true</italic>
+           </font>
+          </property>
+          <property name="text">
+           <string>Registrar endereços do Acessorias</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignmentFlag::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
      </widget>
-    </item>
-    <item row="0" column="0">
-     <layout class="QGridLayout" name="gridLayout_header">
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_header_title">
-        <property name="font">
-         <font>
-          <family>Tw Cen MT</family>
-          <pointsize>26</pointsize>
-          <bold>true</bold>
-         </font>
-        </property>
-        <property name="text">
-         <string>Cobrança Automática</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignmentFlag::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="0">
-       <widget class="QFrame" name="frame_2">
-        <property name="frameShape">
-         <enum>QFrame::Shape::StyledPanel</enum>
-        </property>
-        <property name="frameShadow">
-         <enum>QFrame::Shadow::Raised</enum>
-        </property>
-        <layout class="QGridLayout" name="gridLayout_5">
-         <property name="leftMargin">
-          <number>100</number>
-         </property>
-         <property name="rightMargin">
-          <number>100</number>
-         </property>
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_header_logo">
-           <property name="text">
-            <string/>
-           </property>
-           <property name="pixmap">
-            <pixmap>../imgs/mail-hori.png</pixmap>
-           </property>
-           <property name="scaledContents">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </item>
-      <item row="2" column="0">
-       <widget class="Line" name="line">
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>5</height>
-         </size>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">background-color: rgb(85, 170, 255);</string>
-        </property>
-        <property name="lineWidth">
-         <number>0</number>
-        </property>
-        <property name="orientation">
-         <enum>Qt::Orientation::Horizontal</enum>
-        </property>
-       </widget>
-      </item>
-     </layout>
     </item>
    </layout>
   </widget>
