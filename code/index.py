@@ -199,7 +199,7 @@ class Email:
         self.sender = 'financeiro@deltaprice.com.br'
 
     def criar(self, destinatarios: list[str], nome_empresa: str, conteudo: str):
-        # destinatarios.append(self.sender)
+        destinatarios.append(self.sender)
         self.payload = {
             'sender': self.sender,
             'recipients': destinatarios,
@@ -208,9 +208,10 @@ class Email:
         }
 
     def enviar(self):
-        response = self.client.send(**self.payload)
-        if response.success == False:
-            raise Exception('Endereço de email inválido')
+        print('enviou')
+        # response = self.client.send(**self.payload)
+        # if response.success == False:
+        #     raise Exception('Endereço de email inválido')
 
 #https://i.imgur.com/dTUNLTy.jpeg
 class Conteudo:
@@ -479,7 +480,6 @@ class Acessorias:
                 dict_contato[nome] = email
             count = count + 1
 
-        print(dict_contato)
         return dict_contato
 
     def contato_exists(self, id):
@@ -508,6 +508,13 @@ class Cobrador(QObject):
 
     #TODO EXECUTAR
     def executar(self):
+        dict_faltantes = self.filtro_faltantes()
+        if dict_faltantes != {}:
+            self.exec_registro(dict_faltantes)
+        self.progress.emit(0)
+        self.enviar()
+
+    def filtro_faltantes(self):
         dict_faltantes = {}
         self.progress.emit(-3)
         for nome_empresa, conteudo in self.dict_content.items():
@@ -515,11 +522,15 @@ class Cobrador(QObject):
             if enderecos_email == []: #Sem email cadastrado da empresa
                 dict_faltantes[nome_empresa] = conteudo['numero']
                 continue
+        return dict_faltantes
+
+    def exec_registro(self, dict_faltantes):
         self.progress.emit(-2)
-        dict_restantes = self.registro_acessorias(dict_faltantes)
-        self.registro_manual(dict_restantes)
-        self.progress.emit(0)
-        self.enviar()
+        self.registro_acessorias(dict_faltantes)
+        list_restantes = self.registro()
+        if list_restantes != []:
+            self.registro_manual(list_restantes)
+            self.registro()
 
     #TODO REGISTRO
     def registro_acessorias(self, dict_faltante: dict[str,str]):
@@ -531,16 +542,12 @@ class Cobrador(QObject):
             dict_contato[nome_empresa] = acessorias.pesquisar(num_dominio)
         acessorias.close()
         self.confirm_enderecos.emit(dict_contato)
-        list_restantes = self.registro()
-        if list_restantes != []:
-            self.registro_manual(list_restantes)
 
     def registro_manual(self, list_restantes: list[str]):
         for nome_empresa in list_restantes:
             self.novo_endereco.emit(nome_empresa)
-            self.registro()
 
-    def registro(self) -> list[str]:
+    def registro(self):
         list_restantes = []
         while self.enderecos_novos == {}:
                 sleep(2)
@@ -811,6 +818,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 contatos_filtrados[empresa_atual] = \
                     contatos_filtrados[empresa_atual] + ';' + cb.text()
                 
+        for nome_emp in contatos_filtrados.keys():
+            contatos_filtrados[nome_emp] =\
+                contatos_filtrados[nome_emp].replace(';', '', 1)
         print(contatos_filtrados)
         self._cobrador.set_novo_endereco(contatos_filtrados)
         self.to_progress(-1)
