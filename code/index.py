@@ -495,28 +495,15 @@ class Cobrador(QObject):
 
     #TODO EXECUTAR
     def executar(self):
-        email = Email()
-        count = 0
-        enderecos_totais = []
         dict_faltantes = {}
-        assinatura = self.db.query_assinatura(self.nome_func)
         for nome_empresa, conteudo in self.dict_content.items():
             enderecos_email = self.db.emails_empresa(nome_empresa)
             if enderecos_email == []: #Sem email cadastrado da empresa
                 dict_faltantes[nome_empresa] = conteudo['numero']
                 continue
-            conteudo['mensagem'] = conteudo['mensagem'].replace('$assinatura', assinatura)
-            email.criar(enderecos_email, nome_empresa, conteudo['mensagem'])
-            email.enviar()
-
-            count = count + 1
-            self.progress.emit(count)
-            for i in enderecos_email:
-                enderecos_totais.append(i)
-
         dict_restantes = self.registro_acessorias(dict_faltantes)
-        self.fim.emit()
-        self.resume.emit(enderecos_totais)
+        self.registro_manual(dict_restantes)
+        self.enviar()
 
     #TODO REGISTRO
     def registro_acessorias(self, dict_faltante: dict[str,str]):
@@ -526,23 +513,53 @@ class Cobrador(QObject):
         acessorias.login(usuario, senha)
         for nome_empresa, num_dominio in dict_faltante.items():
             dict_contato[nome_empresa] = acessorias.pesquisar(num_dominio)
+
         self.confirm_enderecos.emit(dict_contato)
-        return self.filtro_enderecos()
+        list_restantes = self.registro()
+        self.registro_manual(list_restantes)
 
-    def registro(self, nome_empresa: str):
-        self.novo_endereco.emit(nome_empresa)
-        while self.enderecos_novos == '':
-            sleep(2)
+    def registro_manual(self, list_restantes: list[str]):
+        for nome_empresa in list_restantes:
+            self.novo_endereco.emit(nome_empresa)
+            self.registro()
 
-        self.db.registrar_empresa(nome_empresa)
-        id_empresa = self.db.identificador_empresa(nome_empresa)
-        enderecos_email = self.enderecos_novos.split(';')
-        self.enderecos_novos = ''
-        self.db.registrar_enderecos(enderecos_email, id_empresa)
-        return enderecos_email
+    def registro(self):
+        list_restantes = []
+        while self.enderecos_novos == {}:
+                sleep(2)
+        for nome_empresa, enderecos in self.enderecos_novos.items():
+            if enderecos == '':
+                list_restantes.append(nome_empresa)
+                continue
+            self.db.registrar_empresa(nome_empresa)
+            id_empresa = self.db.identificador_empresa(nome_empresa)
+            enderecos_email = enderecos.split(';')
+            self.enderecos_novos = {}
+            self.db.registrar_enderecos(enderecos_email, id_empresa)
+        return list_restantes
     
-    def set_novo_endereco(self, valor: str):
+    def set_novo_endereco(self, valor: dict[str,str]):
         self.enderecos_novos = valor
+
+    def enviar(self):
+        count = 0
+        email = Email()
+        enderecos_totais = []
+        assinatura = self.db.query_assinatura(self.nome_func)
+
+        for nome_empresa, conteudo in self.dict_content.items():
+            enderecos_email = self.db.emails_empresa(nome_empresa)
+            enderecos_totais = enderecos_totais + enderecos_email
+            conteudo['mensagem'] =\
+                conteudo['mensagem'].replace('$assinatura', assinatura)
+            email.criar(enderecos_email, nome_empresa, conteudo['mensagem'])
+            email.enviar()
+
+            count = count + 1
+            self.progress.emit(count)
+
+        self.fim.emit()
+        self.resume.emit(enderecos_totais)
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, parent = None) -> None:
@@ -790,19 +807,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.label_endereco_title.setText('Empresa abaixo não cadastrada:')
         self.label_endereco_empresa.setText(nome_empresa)
         self.conexao_envio = self.pushButton_endereco.clicked.connect(
-            self.enviar_valor
+            lambda: self.enviar_valor(nome_empresa)
         )
         self.exec_load(False, 2)
 
-    def enviar_valor(self):
+    def enviar_valor(self, nome_empresa: str):
         try:
             resp = self.lineEdit_endereco.text()
-            #Validar envio
-            if resp == '':
+
+            if resp == '' or '@' not in resp or '.com' not in resp:
                 raise Exception('Endereço de email inválido')
 
-            #Confirmar envio
-            self._cobrador.set_novo_endereco(resp)
+            self._cobrador.set_novo_endereco({nome_empresa: resp})
             self.pushButton_endereco.disconnect(self.conexao_envio)
             self.exec_load(True)
         except Exception as e:
