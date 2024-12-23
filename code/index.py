@@ -106,6 +106,12 @@ class DataBase:
             f'SELECT assinatura FROM {self.TABELA_USUARIO} '
             'WHERE nome = %s'
         )
+
+        self.query_acessorias = (
+            'SELECT email_acessorias, senha_acessorias'
+            f' FROM {self.TABELA_USUARIO} '
+            'WHERE nome = %s'
+        )
         pass
 
     def emails_empresa(self, nome_empresa: str) -> list[str]:
@@ -178,6 +184,13 @@ class DataBase:
                 self.query_ass, (nome_func,)
             )
             return cursor.fetchone()[0]
+
+    def user_acessorias(self, nome_func: str):
+        with self.connection.cursor() as cursor:
+            cursor.execute(
+                self.query_acessorias, (nome_func,)
+            )
+            return cursor.fetchone()
     
 class Email:
     def __init__(self):
@@ -404,7 +417,7 @@ class Arquivo(QObject):
 
 class Acessorias:
     ROOT_FOLDER = Path(__file__).parent
-    CHROME_DRIVER_PATH = ROOT_FOLDER / 'drivers' / 'chromedriver.exe'
+    CHROME_DRIVER_PATH = ROOT_FOLDER / 'src' / 'drivers' / 'chromedriver.exe'
     URL_MAIN = 'https://app.acessorias.com/sysmain.php'
     URL_DETALHES = 'https://app.acessorias.com/sysmain.php?m=105&act=e&i={0}&uP=14&o=EmpNome,EmpID|Asc'
 
@@ -491,39 +504,43 @@ class Cobrador(QObject):
         self.dict_content = dict_content
         self.nome_func = nome_func
         self.db = db
-        self.enderecos_novos = ''
+        self.enderecos_novos = {}
 
     #TODO EXECUTAR
     def executar(self):
         dict_faltantes = {}
+        self.progress.emit(-3)
         for nome_empresa, conteudo in self.dict_content.items():
             enderecos_email = self.db.emails_empresa(nome_empresa)
             if enderecos_email == []: #Sem email cadastrado da empresa
                 dict_faltantes[nome_empresa] = conteudo['numero']
                 continue
+        self.progress.emit(-2)
         dict_restantes = self.registro_acessorias(dict_faltantes)
         self.registro_manual(dict_restantes)
+        self.progress.emit(0)
         self.enviar()
 
     #TODO REGISTRO
     def registro_acessorias(self, dict_faltante: dict[str,str]):
         dict_contato = {}
         acessorias = Acessorias()
-        usuario, senha = self.db.acessorias(self.nome_func)
+        usuario, senha = self.db.user_acessorias(self.nome_func)
         acessorias.login(usuario, senha)
         for nome_empresa, num_dominio in dict_faltante.items():
             dict_contato[nome_empresa] = acessorias.pesquisar(num_dominio)
-
+        acessorias.close()
         self.confirm_enderecos.emit(dict_contato)
         list_restantes = self.registro()
-        self.registro_manual(list_restantes)
+        if list_restantes != []:
+            self.registro_manual(list_restantes)
 
     def registro_manual(self, list_restantes: list[str]):
         for nome_empresa in list_restantes:
             self.novo_endereco.emit(nome_empresa)
             self.registro()
 
-    def registro(self):
+    def registro(self) -> list[str]:
         list_restantes = []
         while self.enderecos_novos == {}:
                 sleep(2)
@@ -630,19 +647,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.arquivo.moveToThread(self._thread)
         self.arquivo.fim.connect(self._thread.quit)
 
-        self.confirmar_registro(
-            {
-                'Empresa':
-                {
-                    'Contato': 'Endereço e-mail',
-                    'Outro Contato': 'Outro Endereco'
-                },
-                'Outra Empresa':
-                {
-                    'Contato2': 'Endereco e-mail2'
-                }
-            }
-        )
+        # self.confirmar_registro(
+        #     {
+        #         'Empresa':
+        #         {
+        #             'Contato': 'Endereço e-mail',
+        #             'Outro Contato': 'Outro Endereco'
+        #         },
+        #         'Outra Empresa':
+        #         {
+        #             'Contato2': 'Endereco e-mail2'
+        #         }
+        #     }
+        # )
 
     def try_conection(self):
         try:
@@ -713,6 +730,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             raise Exception ('Insira algum relatório de vencidos')
         
         self.progressBar.setValue(0)
+
+        self.to_progress(-4)
         self.exec_load(True)
 
         self.conexao_ler = self._thread.started.connect(self.arquivo.ler)
@@ -790,13 +809,30 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     contatos_filtrados[empresa_atual] = ''
 
                 contatos_filtrados[empresa_atual] = \
-                    contatos_filtrados[empresa_atual] + cb.text() + ';'
+                    contatos_filtrados[empresa_atual] + ';' + cb.text()
                 
         print(contatos_filtrados)
         self._cobrador.set_novo_endereco(contatos_filtrados)
+        self.to_progress(-1)
+        self.exec_load(True)
 
+    #TODO PROGRESS
     def to_progress(self, valor):
-        self.progressBar.setValue(self.coeficiente_progress * valor)
+        if valor < 1:
+            if valor == -4:
+                self.progressBar.hide()
+                self.label_load_title.setText('Gerando mensagem...')
+            if valor == -3:
+                self.label_load_title.setText('Carregando endereços registrados...')
+            elif valor == -2:
+                self.label_load_title.setText('Buscando endereços no Acessorias...')
+            elif valor == -1:
+                self.label_load_title.setText('Registrando endereços...')
+            elif valor == 0:
+                self.progressBar.show()
+                self.label_load_title.setText('Enviando e-mails...')
+        else:
+            self.progressBar.setValue(self.coeficiente_progress * valor)
 
     def conclusion(self, enderecos_empresas: list[str]):
         self.exec_load(False, 0)

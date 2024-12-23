@@ -500,7 +500,7 @@ class Ui_MainWindow(object):
         self.frame_8.setFrameShadow(QFrame.Shadow.Raised)
         self.gridLayout_17 = QGridLayout(self.frame_8)
         self.gridLayout_17.setObjectName(u"gridLayout_17")
-        self.gridLayout_17.setContentsMargins(100, -1, 100, -1)
+        self.gridLayout_17.setContentsMargins(0, -1, 50, -1)
         self.treeWidget_contatos = QTreeWidget(self.frame_8)
         font13 = QFont()
         font13.setFamilies([u"Yu Gothic UI"])
@@ -509,6 +509,7 @@ class Ui_MainWindow(object):
         __qtreewidgetitem = QTreeWidgetItem()
         __qtreewidgetitem.setTextAlignment(2, Qt.AlignCenter);
         __qtreewidgetitem.setFont(2, font13);
+        __qtreewidgetitem.setTextAlignment(1, Qt.AlignLeading|Qt.AlignVCenter);
         __qtreewidgetitem.setFont(1, font13);
         __qtreewidgetitem.setFont(0, font13);
         self.treeWidget_contatos.setHeaderItem(__qtreewidgetitem)
@@ -560,7 +561,7 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
-        self.stackedWidget_body.setCurrentIndex(4)
+        self.stackedWidget_body.setCurrentIndex(0)
         self.stackedWidget_empresas.setCurrentIndex(0)
 
 

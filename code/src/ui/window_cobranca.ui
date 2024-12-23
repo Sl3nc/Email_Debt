@@ -95,7 +95,7 @@
     <item row="2" column="0">
      <widget class="QStackedWidget" name="stackedWidget_body">
       <property name="currentIndex">
-       <number>4</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="page">
        <property name="layoutDirection">
@@ -836,10 +836,10 @@
           </property>
           <layout class="QGridLayout" name="gridLayout_17">
            <property name="leftMargin">
-            <number>100</number>
+            <number>0</number>
            </property>
            <property name="rightMargin">
-            <number>100</number>
+            <number>50</number>
            </property>
            <item row="0" column="0">
             <widget class="QTreeWidget" name="treeWidget_contatos">
@@ -865,6 +865,9 @@
                 <pointsize>14</pointsize>
                 <bold>true</bold>
                </font>
+              </property>
+              <property name="textAlignment">
+               <set>AlignLeading|AlignVCenter</set>
               </property>
              </column>
              <column>
