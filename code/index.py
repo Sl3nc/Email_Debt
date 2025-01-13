@@ -431,7 +431,7 @@ class Acessorias:
         self.campo_nome = 'CttNome_0_{0}'
         self.campo_email = 'CttEMail_0_{0}'
 
-        self.browser = self.make_chrome_browser(hide=False)
+        self.browser = self.make_chrome_browser(hide=True)
         self.browser.get(self.URL_MAIN)
         pass
 
