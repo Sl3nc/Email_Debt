@@ -208,10 +208,10 @@ class Email:
         }
 
     def enviar(self):
-        print('enviou')
-        # response = self.client.send(**self.payload)
-        # if response.success == False:
-        #     raise Exception('Endereço de email inválido')
+        # print('enviou')
+        response = self.client.send(**self.payload)
+        if response.success == False:
+            raise Exception('Endereço de email inválido')
 
 #https://i.imgur.com/dTUNLTy.jpeg
 class Conteudo:
@@ -394,7 +394,7 @@ class Arquivo(QObject):
                 vencimento = row["Titulo/Competencia"].replace('1/1 ','')
                 
                 competencia = datetime.strptime(vencimento[3:],'%m/%Y')
-                competencia = (competencia - relativedelta(month=1)).strftime('%m/%Y')
+                competencia = (competencia - relativedelta(months=1)).strftime('%m/%Y')
                 
                 conteudo_atual.add_linha(pd.Series(data= {
                     'Competência': competencia,
