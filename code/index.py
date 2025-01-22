@@ -208,7 +208,6 @@ class Email:
         }
 
     def enviar(self):
-        # print('enviou')
         response = self.client.send(**self.payload)
         if response.success == False:
             raise Exception('Endereço de email inválido')
@@ -383,6 +382,9 @@ class Arquivo(QObject):
         tabelas = tabelas.drop('', axis=1)
         tabelas = tabelas.drop(0).reset_index(drop=True)
 
+        for i , r in tabelas.iterrows():
+            if pd.isnull(r).all():
+                tabelas.drop(i,inplace = True)
         tabelas.fillna('', inplace=True)
         self.conteudos.emit(self.filtro_conteudo(tabelas))
         self.fim.emit(2)
@@ -521,6 +523,7 @@ class Cobrador(QObject):
             if enderecos_email == []: #Sem email cadastrado da empresa
                 dict_faltantes[nome_empresa] = conteudo['numero']
                 continue
+
         return dict_faltantes
 
     def exec_registro(self, dict_faltantes):
@@ -783,6 +786,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         for i in self.options:
             if i.isChecked() == False:
                 del filtred_content[i.text()]
+        
         return filtred_content
     
     def confirmar_registro(self, dict_contato: dict[str,dict[str,str]]):
