@@ -208,9 +208,10 @@ class Email:
         }
 
     def enviar(self):
-        response = self.client.send(**self.payload)
-        if response.success == False:
-            raise Exception('Endereço de email inválido')
+        ...
+        # response = self.client.send(**self.payload)
+        # if response.success == False:
+        #     raise Exception('Endereço de email inválido')
 
 #https://i.imgur.com/dTUNLTy.jpeg
 class Conteudo:
@@ -336,6 +337,7 @@ class Arquivo(QObject):
     fim = Signal(int)
     nomes = Signal(list)
     conteudos = Signal(dict)
+    error = Signal(bool)
 
     def __init__(self) -> None:
         super().__init__()
@@ -364,30 +366,38 @@ class Arquivo(QObject):
             raise Exception('Formato de arquivo inválido') 
 
     def nomes_empresas(self):
-        arquivo = tb.read_pdf(
-            self.caminho, pages='all',relative_area=True, area=[20,16,90,40]
-        )
-        tabelas = pd.concat(arquivo, ignore_index=True)
-        tabelas.fillna('', inplace=True)
-        tabelas = tabelas[tabelas[self.col_titulo] != '']
-        tabelas = tabelas.loc[tabelas.apply(lambda row: row[self.col_titulo][1] != '/', axis=1)]
-        self.nomes.emit(tabelas[self.col_titulo].values.tolist())
-        self.fim.emit(1)
+        try:
+            arquivo = tb.read_pdf(
+                self.caminho, pages='all',relative_area=True, area=[20,16,90,40], encoding="ISO-8859-1"
+            )
+            tabelas = pd.concat(arquivo, ignore_index=True)
+            tabelas.fillna('', inplace=True)
+            tabelas = tabelas[tabelas[self.col_titulo] != '']
+            tabelas = tabelas.loc[tabelas.apply(lambda row: row[self.col_titulo][1] != '/', axis=1)]
+            self.nomes.emit(tabelas[self.col_titulo].values.tolist())
+            self.fim.emit(1)
+        except Exception as error:
+            self.error.emit(False)
+            messagebox.showerror(title='Aviso', message= f"Erro em ler as empresas do arquivo, favor comunique o desenvolvedor \n\n- erro do tipo: {error}")
 
     def ler(self):
-        arquivo = tb.read_pdf(self.caminho, pages="all", relative_area=True, area=[20,10,96,100])
-        for tabelas in arquivo:
-            tabelas.columns = ["Num. Dominio", "Titulo/Competencia", "", "","", "","","","","","","","","Valor"]
-        tabelas = pd.concat(arquivo, ignore_index=True)
-        tabelas = tabelas.drop('', axis=1)
-        tabelas = tabelas.drop(0).reset_index(drop=True)
+        try:
+            arquivo = tb.read_pdf(self.caminho, pages="all", relative_area=True, area=[20,10,96,100], encoding="ISO-8859-1")
+            for tabelas in arquivo:
+                tabelas.columns = ["Num. Dominio", "Titulo/Competencia", "", "","", "","","","","","","","","Valor"]
+            tabelas = pd.concat(arquivo, ignore_index=True)
+            tabelas = tabelas.drop('', axis=1)
+            tabelas = tabelas.drop(0).reset_index(drop=True)
 
-        for i , r in tabelas.iterrows():
-            if pd.isnull(r).all():
-                tabelas.drop(i,inplace = True)
-        tabelas.fillna('', inplace=True)
-        self.conteudos.emit(self.filtro_conteudo(tabelas))
-        self.fim.emit(2)
+            for i , r in tabelas.iterrows():
+                if pd.isnull(r).all():
+                    tabelas.drop(i,inplace = True)
+            tabelas.fillna('', inplace=True)
+            self.conteudos.emit(self.filtro_conteudo(tabelas))
+            self.fim.emit(2)
+        except Exception as error:
+            self.error.emit(False)
+            messagebox.showerror(title='Aviso', message= f"Erro em ler as empresas do arquivo, favor comunique o desenvolvedor \n\n- erro do tipo: {error}")
 
     def filtro_conteudo(self, tabelas: pd.Series):
         dict_conteudos = {}
@@ -499,6 +509,7 @@ class Cobrador(QObject):
     fim = Signal()
     resume = Signal(dict)
     confirm_enderecos = Signal(dict)
+    error = Signal(bool)
 
     def __init__(self, dict_content: dict[str,dict], nome_func: str, db: DataBase):
         super().__init__()
@@ -509,11 +520,15 @@ class Cobrador(QObject):
 
     #TODO EXECUTAR
     def executar(self):
-        dict_faltantes = self.filtro_faltantes()
-        if dict_faltantes != {}:
-            self.exec_registro(dict_faltantes)
-        self.progress.emit(0)
-        self.enviar()
+        try:
+            dict_faltantes = self.filtro_faltantes()
+            if dict_faltantes != {}:
+                self.exec_registro(dict_faltantes)
+            self.progress.emit(0)
+            self.enviar()
+        except Exception as error:
+            self.progress.emit(0)
+            messagebox.showerror(title='Aviso', message= f"Erro na etapa em questão, favor comunique o desenvolvedor \n\n- erro do tipo: {error}")
 
     def filtro_faltantes(self):
         dict_faltantes = {}
@@ -545,6 +560,7 @@ class Cobrador(QObject):
         for nome_empresa, num_dominio in dict_faltante.items():
             dict_contato[nome_empresa] = acessorias.pesquisar(num_dominio)
         acessorias.close()
+        #Remover as chaves com valor {} e emitir informando que não achou seus endereços
         self.confirm_enderecos.emit(dict_contato)
 
     def registro_manual(self, list_restantes: list[str]):
@@ -670,7 +686,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         try:
             self.db = DataBase()
         except pymysql.err.OperationalError as e:
-            messagebox.showerror('Aviso!', f'Falha na conexão com o banco de dados, favor comunique o suporte disponível\n\n{e}')
+            messagebox.showerror('Aviso!', f'Falha na conexão com o banco de dados. Favor verificar se o aplicativo "DOCKER" está inicializado no servidor, caso constrário, entre em contato com o suporte disponível\n\n{e}')
             raise Exception('')
 
     def inserir_relatorio(self):
@@ -698,15 +714,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.pushButton_empresas_marcar.hide()
         self.pushButton_body_executar.setEnabled(False)
-        self.stackedWidget_empresas.setCurrentIndex(1)
-        self.movie.start()
+        self.exec_load_empresas(True)
         
         self.inicio = self._thread.started.connect(self.arquivo.nomes_empresas)
         self.arquivo.fim.connect(self.reset_thread)
+        self.arquivo.error.connect(self.exec_load_empresas)
         self.conexao_nome = self.arquivo.nomes.connect(self.exibir_opcoes)
 
         self._thread.start()
-    
+
+    def exec_load_empresas(self, action: bool):
+        if action == True:
+            self.movie.start()
+            self.stackedWidget_empresas.setCurrentIndex(1)
+        else:
+            self.movie.stop()
+            self.stackedWidget_empresas.setCurrentIndex(0)
+        
     def exibir_opcoes(self, nomes):
         self.options.clear()
         for nome in nomes:
@@ -717,8 +741,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.pushButton_empresas_marcar.show()
         self.pushButton_body_executar.setEnabled(True)
-        self.stackedWidget_empresas.setCurrentIndex(0)
-        self.movie.stop()
+        self.exec_load_empresas(False)
 
     def marcar_options(self):
         for i in self.options:
@@ -739,6 +762,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.conexao_ler = self._thread.started.connect(self.arquivo.ler)
         self.arquivo.fim.connect(self.reset_thread)
+        self.arquivo.error.connect(self.exec_load)
         self.conexao_cobrar = self.arquivo.conteudos.connect(self.cobrar)
 
         self._thread.start()
@@ -750,7 +774,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         elif option == 2:
             self._thread.disconnect(self.conexao_ler)
             self.arquivo.disconnect(self.conexao_cobrar)
-
+    
     #TODO COBRAR
     def cobrar(self, dict_content: dict[str,dict]):
         try:
@@ -771,6 +795,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self._cobrador.progress.connect(self.to_progress)
             self._cobrador.confirm_enderecos.connect(self.confirmar_registro)
             self._cobrador.resume.connect(self.conclusion)
+            self._cobrador.error.connect(self.exec_load)
             self._thread_cobrador.finished.connect(self._cobrador.deleteLater)
             self._thread_cobrador.start()
         except ZeroDivisionError:
