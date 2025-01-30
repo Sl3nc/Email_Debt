@@ -509,6 +509,7 @@ class Cobrador(QObject):
     fim = Signal()
     resume = Signal(dict)
     confirm_enderecos = Signal(dict)
+    empty_enderecos = Signal(list)
     error = Signal(bool)
 
     def __init__(self, dict_content: dict[str,dict], nome_func: str, db: DataBase):
@@ -542,10 +543,18 @@ class Cobrador(QObject):
         return dict_faltantes
 
     def exec_registro(self, dict_faltantes):
+        list_restantes = []
         self.progress.emit(-2)
-        self.registro_acessorias(dict_faltantes)
-        self.enderecos_novos = {}
-        list_restantes = self.registro()
+        dict_contato, list_empty = self.registro_acessorias(dict_faltantes)
+        if list_empty != []:
+            self.empty_enderecos.emit(list_empty)
+            list_restantes = list_restantes + list_empty
+
+        if dict_contato != {}:
+            self.confirm_enderecos.emit(dict_contato)
+            self.enderecos_novos = {}
+            list_restantes = list_restantes + self.registro()
+
         if list_restantes != []:
             self.registro_manual(list_restantes)
             self.enderecos_novos = {}
@@ -560,8 +569,17 @@ class Cobrador(QObject):
         for nome_empresa, num_dominio in dict_faltante.items():
             dict_contato[nome_empresa] = acessorias.pesquisar(num_dominio)
         acessorias.close()
-        #Remover as chaves com valor {} e emitir informando que não achou seus endereços
-        self.confirm_enderecos.emit(dict_contato)
+        dict_contato, list_empty = self.filter_empty(dict_contato)
+        return dict_contato, list_empty
+     
+    def filter_empty(self, dict_contato):
+        list_empty = []
+        filtered_dict = deepcopy(dict_contato)
+        for key, value in dict_contato.items():
+            if value == {}:
+                list_empty.append(key)
+                del filtered_dict[key]
+        return filtered_dict, list_empty
 
     def registro_manual(self, list_restantes: list[str]):
         for nome_empresa in list_restantes:
@@ -794,6 +812,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self._cobrador.fim.connect(self._thread_cobrador.deleteLater)
             self._cobrador.progress.connect(self.to_progress)
             self._cobrador.confirm_enderecos.connect(self.confirmar_registro)
+            self._cobrador.empty_enderecos.connect(self.empty_enderecos)
             self._cobrador.resume.connect(self.conclusion)
             self._cobrador.error.connect(self.exec_load)
             self._thread_cobrador.finished.connect(self._cobrador.deleteLater)
@@ -826,6 +845,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 cb.setChecked(True)
                 self.widget_enderecos[item] = cb
                 self.treeWidget_contatos.setItemWidget(item, 2, cb)
+
+    def empty_enderecos(self, list_empty: list[str]):
+        messagebox.showwarning(title='Aviso', message=f'O endereço de e-mail das seguintes empresas não foram encontrados no acessórias: \n{'\n -'.join(list_empty)}\nFavor inseri-los manualmente')
 
     def enviar_contatos(self):
         contatos_filtrados = {}
