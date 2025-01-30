@@ -20,7 +20,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from smtp2go.core import Smtp2goClient
 from PySide6.QtWidgets import (
-    QMainWindow, QApplication, QRadioButton, QVBoxLayout, QWidget, QCheckBox, QTreeWidgetItem
+    QMainWindow, QApplication, QRadioButton, QVBoxLayout, QWidget, QCheckBox, QTreeWidgetItem, QLayout,QPushButton
 )
 from PySide6.QtGui import QPixmap, QIcon, QMovie
 from PySide6.QtCore import QThread, QObject, Signal, QSize
@@ -338,6 +338,7 @@ class Arquivo(QObject):
     nomes = Signal(list)
     conteudos = Signal(dict)
     error = Signal(bool)
+    preview = Signal()
 
     def __init__(self) -> None:
         super().__init__()
@@ -426,6 +427,46 @@ class Arquivo(QObject):
                 dict_conteudos[nome_atual] = dict_valores
 
         return dict_conteudos
+    
+    def preview_mensagem(self, tabelas: pd.Series, nome_empresa: str):
+        arquivo = tb.read_pdf(self.caminho, pages="all", relative_area=True, area=[20,10,96,100], encoding="ISO-8859-1")
+        for tabelas in arquivo:
+            tabelas.columns = ["Num. Dominio", "Titulo/Competencia", "", "","", "","","","","","","","","Valor"]
+        tabelas = pd.concat(arquivo, ignore_index=True)
+        tabelas = tabelas.drop('', axis=1)
+        tabelas = tabelas.drop(0).reset_index(drop=True)
+
+        for i , r in tabelas.iterrows():
+            if pd.isnull(r).all():
+                tabelas.drop(i,inplace = True)
+        tabelas.fillna('', inplace=True)
+        
+        dict_conteudos = {}
+        for index, row in tabelas.iterrows():
+            if row.Valor != '' and row["Titulo/Competencia"] != '':
+                vencimento = row["Titulo/Competencia"].replace('1/1 ','')
+                
+                competencia = datetime.strptime(vencimento[3:],'%m/%Y')
+                competencia = (competencia - relativedelta(months=1)).strftime('%m/%Y')
+                
+                conteudo_atual.add_linha(pd.Series(data= {
+                    'Competência': competencia,
+                    'Vencimento': vencimento,
+                    'Valor': row.Valor
+                }))
+            elif row.Valor == '':
+                #Abrir conteudo
+                num_domin = row["Num. Dominio"].replace(' Nome:','')
+                nome_atual = row["Titulo/Competencia"]
+                conteudo_atual = Conteudo()
+                dict_valores = {}
+            else:
+                #Fecha conteudo
+                dict_valores['mensagem'] = conteudo_atual.to_string()
+                dict_valores['numero'] = num_domin
+                dict_conteudos[nome_atual] = dict_valores
+
+        self.preview.emit(dict_conteudos)
 
 class Acessorias:
     ROOT_FOLDER = Path(__file__).parent
@@ -749,17 +790,27 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.movie.stop()
             self.stackedWidget_empresas.setCurrentIndex(0)
         
+    #TODO OPCOES
     def exibir_opcoes(self, nomes):
         self.options.clear()
         for nome in nomes:
+            # layout = QLayout()
             cb = QCheckBox(nome)
             cb.setChecked(True)
             self.options.append(cb)
             self.gridLayout_empresas.addWidget(cb)
 
+            btn = QPushButton()
+            btn.setText('Mensagem')
+            btn.clicked.connect(lambda: self.exibir_mensagem(nome))
+            self.gridLayout_empresas.addWidget(btn)
+
         self.pushButton_empresas_marcar.show()
         self.pushButton_body_executar.setEnabled(True)
         self.exec_load_empresas(False)
+
+    def exibir_mensagem(self, empresa: str):
+        self.arquivo.preview_mensagem()
 
     def marcar_options(self):
         for i in self.options:
