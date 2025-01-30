@@ -546,14 +546,14 @@ class Cobrador(QObject):
         list_restantes = []
         self.progress.emit(-2)
         dict_contato, list_empty = self.registro_acessorias(dict_faltantes)
-        if list_empty != []:
-            self.empty_enderecos.emit(list_empty)
-            list_restantes = list_restantes + list_empty
-
         if dict_contato != {}:
             self.confirm_enderecos.emit(dict_contato)
             self.enderecos_novos = {}
             list_restantes = list_restantes + self.registro()
+
+        if list_empty != []:
+            self.empty_enderecos.emit(list_empty)
+            list_restantes = list_restantes + list_empty
 
         if list_restantes != []:
             self.registro_manual(list_restantes)
