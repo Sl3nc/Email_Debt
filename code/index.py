@@ -5,14 +5,13 @@ import pymysql.cursors
 from smtp2go.core import Smtp2goClient
 import pymysql
 
-from os import getenv
 import tabula as tb
 import pandas as pd
 from unidecode import unidecode
 import traceback
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
-from os import path, renames
+from os import path, renames, getenv, startfile, remove
 import sys
 from copy import deepcopy
 from time import sleep
@@ -20,7 +19,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from smtp2go.core import Smtp2goClient
 from PySide6.QtWidgets import (
-    QMainWindow, QApplication, QRadioButton, QVBoxLayout, QWidget, QCheckBox, QTreeWidgetItem, QLayout,QPushButton
+    QMainWindow, QApplication, QRadioButton, QVBoxLayout, QWidget, QCheckBox, QTreeWidgetItem, QLayout,QPushButton, QHBoxLayout, QFrame, QSizePolicy
 )
 from PySide6.QtGui import QPixmap, QIcon, QMovie
 from PySide6.QtCore import QThread, QObject, Signal, QSize
@@ -208,10 +207,9 @@ class Email:
         }
 
     def enviar(self):
-        ...
-        # response = self.client.send(**self.payload)
-        # if response.success == False:
-        #     raise Exception('Endereço de email inválido')
+        response = self.client.send(**self.payload)
+        if response.success == False:
+            raise Exception('Endereço de email inválido')
 
 #https://i.imgur.com/dTUNLTy.jpeg
 class Conteudo:
@@ -219,66 +217,9 @@ class Conteudo:
         self.VALOR_JUROS = 0.02
         self.text = ''
         self.valores_totais = []
-        self.body = """
-        <!DOCTYPE html>
-        <html lang="pt-BR">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        </head>
-        <body>
-            <p>
-                Prezado cliente, $cumprimento <br><br>Não acusamos o recebimento do(s) honorário(s) relacionado(s) abaixo:
-            </p>
-            <table style="border: 1px solid black;">
-                <thead>
-                    <tr>
-                        <th style="padding: 8px 10px;">COMP.</th>
-                        <th style="padding: 8px 10px;">VENC.</th>
-                        <th style="padding: 8px 10px;">Dias Atraso</th>
-                        <th style="padding: 8px 10px;">Principal</th>
-                        <th style="padding: 8px 10px;">Multa</th>
-                        <th style="padding: 8px 10px;">Juros</th>
-                        <th style="padding: 8px 10px;">Total</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    $text
-                </tbody>
-                <tfoot>
-                    <tr>
-                        <th colspan="6" style="text-align: right;">Total em aberto: </th>
-                        $valor_geral
-                    </tr>
-                </tfoot>
-            </table>
-            <p style="margin: 1% 0% 0.5% 0%;">Pedimos gentilmente que regularize sua situação financeira conosco:</p>
-            <div style="display: flex;">
-                <h3 style="margin: 2% 0% 0% 0%;">
-                    Chave PIX: <span style="font-weight: 100"> 10.620.061/0001-05 </span><br>
-                    Favorecido: Deltaprice Serviços Contábeis<br>
-                    CNPJ: 10.620.061/0001-05<br>
-                    <span style="background-color: yellow;">Banco Itau 341 Ag 1582 conta 98.000-7</span>
-                </h3>
-                <div style="padding-left: 10%;">
-                    <p style="margin: 1%;"><b>QR code</b> - PIX</p>
-                    <img src="https://i.imgur.com/T0w2OdH.png" style="width: 30%;">
-                </div>
-            </div>
-            <p style="margin: 0.5% 0% 1% 0%;">
-                Assim que efetuar o pagamento/transferência, gentileza nos enviar o comprovante para baixa do(s) título(s) em aberto.
-            </p>
-            <b style="color: rgb(87, 86, 86);">Atenciosamente,</b>
-            <br>
-            <img src="$assinatura" style="width: 40%;">
-            <p>
-                Esta mensagem, incluindo seus anexos, tem caráter confidencial e seu conteúdo é restrito ao destinatário da mensagem. Caso você tenha recebido esta mensagem por engano, queira, por favor, retorná-la ao destinatário e apagá-la de seus arquivos. Qualquer uso não autorizado, replicação ou disseminação desta mensagem ou parte dela, incluindo seus anexos, é expressamente proibido. 
-                <br><br>
-                This message is intended only for the use of the addressee(s) named herein. The information contained in this message is confidential and may constitute proprietary or inside information. Unauthorized review, dissemination, distribution, copying or other use of this message, including all attachments, is strictly prohibited and may be unlawful. If you have received this message in error, please notify us immediately by return e-mail and destroy this message and all copies thereof, including all attachments.
-            </p>
-        </body>
-        </html>
-        """
+        self.CONTENT_BASE = Path(__file__).parent / 'src' / 'content_email.html'
+        with open (self.CONTENT_BASE, 'r', encoding='utf-8') as file:
+            self.body = file.read()
 
     def add_linha(self, row: pd.Series):
         valor_pag = float(row['Valor'].replace('.','').replace(',', '.'))
@@ -428,46 +369,6 @@ class Arquivo(QObject):
 
         return dict_conteudos
     
-    def preview_mensagem(self, tabelas: pd.Series, nome_empresa: str):
-        arquivo = tb.read_pdf(self.caminho, pages="all", relative_area=True, area=[20,10,96,100], encoding="ISO-8859-1")
-        for tabelas in arquivo:
-            tabelas.columns = ["Num. Dominio", "Titulo/Competencia", "", "","", "","","","","","","","","Valor"]
-        tabelas = pd.concat(arquivo, ignore_index=True)
-        tabelas = tabelas.drop('', axis=1)
-        tabelas = tabelas.drop(0).reset_index(drop=True)
-
-        for i , r in tabelas.iterrows():
-            if pd.isnull(r).all():
-                tabelas.drop(i,inplace = True)
-        tabelas.fillna('', inplace=True)
-        
-        dict_conteudos = {}
-        for index, row in tabelas.iterrows():
-            if row.Valor != '' and row["Titulo/Competencia"] != '':
-                vencimento = row["Titulo/Competencia"].replace('1/1 ','')
-                
-                competencia = datetime.strptime(vencimento[3:],'%m/%Y')
-                competencia = (competencia - relativedelta(months=1)).strftime('%m/%Y')
-                
-                conteudo_atual.add_linha(pd.Series(data= {
-                    'Competência': competencia,
-                    'Vencimento': vencimento,
-                    'Valor': row.Valor
-                }))
-            elif row.Valor == '':
-                #Abrir conteudo
-                num_domin = row["Num. Dominio"].replace(' Nome:','')
-                nome_atual = row["Titulo/Competencia"]
-                conteudo_atual = Conteudo()
-                dict_valores = {}
-            else:
-                #Fecha conteudo
-                dict_valores['mensagem'] = conteudo_atual.to_string()
-                dict_valores['numero'] = num_domin
-                dict_conteudos[nome_atual] = dict_valores
-
-        self.preview.emit(dict_conteudos)
-
 class Acessorias:
     ROOT_FOLDER = Path(__file__).parent
     CHROME_DRIVER_PATH = ROOT_FOLDER / 'src' / 'drivers' / 'chromedriver.exe'
@@ -670,6 +571,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.options = []
         self.option_checada = False
         self.widget_enderecos = {}
+        self.empresa_preview = ''
+        self.PATH_MESSAGE = 'base_message.html'
 
         self.setWindowIcon(QIcon(resource_path('src\\imgs\\mail-icon.ico')))
 
@@ -794,23 +697,54 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def exibir_opcoes(self, nomes):
         self.options.clear()
         for nome in nomes:
-            # layout = QLayout()
-            cb = QCheckBox(nome)
+            layout = QHBoxLayout()
+            frame = QFrame()
+            sp = frame.sizePolicy()
+            sp.setVerticalPolicy(QSizePolicy.Maximum)
+            frame.setSizePolicy(sp)
+            
+            cb = QCheckBox(nome, frame)
             cb.setChecked(True)
             self.options.append(cb)
-            self.gridLayout_empresas.addWidget(cb)
+            layout.addWidget(cb)
 
-            btn = QPushButton()
-            btn.setText('Mensagem')
-            btn.clicked.connect(lambda: self.exibir_mensagem(nome))
-            self.gridLayout_empresas.addWidget(btn)
+            btn = QPushButton(frame)
+            btn.setText('Preview')
+            btn.clicked.connect(lambda: self.carregar_mensagem(nome))
+            layout.addWidget(btn)
+
+            frame.setLayout(layout)
+            self.gridLayout_empresas.addWidget(frame)
 
         self.pushButton_empresas_marcar.show()
         self.pushButton_body_executar.setEnabled(True)
         self.exec_load_empresas(False)
 
-    def exibir_mensagem(self, empresa: str):
-        self.arquivo.preview_mensagem()
+    def carregar_mensagem(self, empresa: str):
+        if self.empresa_preview != '':
+            remove(self.PATH_MESSAGE)
+        self.empresa_preview = empresa
+        self.pushButton_empresas_marcar.hide()
+        self.pushButton_body_executar.setEnabled(False)
+        self.exec_load_empresas(True)
+        
+        self.conexao_ler = self._thread.started.connect(self.arquivo.ler)
+        self.arquivo.fim.connect(self.reset_thread)
+        self.arquivo.error.connect(self.exec_load_empresas)
+        self.conexao_cobrar = self.arquivo.conteudos.connect(self.exibir_mensagem)
+
+        self._thread.start()
+
+    def exibir_mensagem(self, dict_conteudos):
+        html = dict_conteudos[self.empresa_preview]['mensagem']
+        with open (self.PATH_MESSAGE, 'w', encoding='utf-8') as file:
+           file.write(''.join(x for x in html))
+
+        startfile(self.PATH_MESSAGE)
+
+        self.pushButton_empresas_marcar.show()
+        self.pushButton_body_executar.setEnabled(True)
+        self.exec_load_empresas(False)
 
     def marcar_options(self):
         for i in self.options:
@@ -825,6 +759,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def executar(self):
         if self.pushButton_body_relatorio_anexar.text() == '':
             raise Exception ('Insira algum relatório de vencidos')
+        if self.empresa_preview != '':
+            remove(self.PATH_MESSAGE)
         
         self.to_progress(-4)
         self.exec_load(True)
