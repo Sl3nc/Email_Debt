@@ -15,9 +15,9 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QApplication, QComboBox, QFrame, QGridLayout,
-    QHeaderView, QLabel, QLineEdit, QMainWindow,
-    QMenuBar, QPushButton, QScrollArea, QSizePolicy,
+from PySide6.QtWidgets import (QApplication, QFrame, QGridLayout, QHeaderView,
+    QLabel, QLineEdit, QMainWindow, QMenuBar,
+    QProgressBar, QPushButton, QScrollArea, QSizePolicy,
     QSpacerItem, QStackedWidget, QStatusBar, QTreeWidget,
     QTreeWidgetItem, QVBoxLayout, QWidget)
 
@@ -110,7 +110,7 @@ class Ui_MainWindow(object):
         self.gridLayout_16.addItem(self.horizontalSpacer_3, 0, 1, 1, 1)
 
 
-        self.gridLayout_3.addWidget(self.frame_7, 8, 0, 1, 1)
+        self.gridLayout_3.addWidget(self.frame_7, 6, 0, 1, 1)
 
         self.pushButton_body_relatorio_anexar = QPushButton(self.page)
         self.pushButton_body_relatorio_anexar.setObjectName(u"pushButton_body_relatorio_anexar")
@@ -131,49 +131,15 @@ class Ui_MainWindow(object):
         self.pushButton_body_relatorio_anexar.setIcon(icon)
         self.pushButton_body_relatorio_anexar.setIconSize(QSize(48, 48))
 
-        self.gridLayout_3.addWidget(self.pushButton_body_relatorio_anexar, 6, 1, 1, 1)
-
-        self.verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Maximum)
-
-        self.gridLayout_3.addItem(self.verticalSpacer, 4, 1, 1, 1)
-
-        self.comboBox_body_funcionario = QComboBox(self.page)
-        self.comboBox_body_funcionario.addItem("")
-        self.comboBox_body_funcionario.addItem("")
-        self.comboBox_body_funcionario.setObjectName(u"comboBox_body_funcionario")
-        sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
-        sizePolicy2.setHorizontalStretch(0)
-        sizePolicy2.setVerticalStretch(0)
-        sizePolicy2.setHeightForWidth(self.comboBox_body_funcionario.sizePolicy().hasHeightForWidth())
-        self.comboBox_body_funcionario.setSizePolicy(sizePolicy2)
-        font2 = QFont()
-        font2.setFamilies([u"Segoe UI"])
-        font2.setPointSize(14)
-        self.comboBox_body_funcionario.setFont(font2)
-        self.comboBox_body_funcionario.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
-        self.comboBox_body_funcionario.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
-
-        self.gridLayout_3.addWidget(self.comboBox_body_funcionario, 2, 1, 2, 1)
-
-        self.label_body_funcionario_title = QLabel(self.page)
-        self.label_body_funcionario_title.setObjectName(u"label_body_funcionario_title")
-        sizePolicy3 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Maximum)
-        sizePolicy3.setHorizontalStretch(0)
-        sizePolicy3.setVerticalStretch(0)
-        sizePolicy3.setHeightForWidth(self.label_body_funcionario_title.sizePolicy().hasHeightForWidth())
-        self.label_body_funcionario_title.setSizePolicy(sizePolicy3)
-        font3 = QFont()
-        font3.setFamilies([u"Tw Cen MT"])
-        font3.setPointSize(16)
-        self.label_body_funcionario_title.setFont(font3)
-        self.label_body_funcionario_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-        self.gridLayout_3.addWidget(self.label_body_funcionario_title, 0, 1, 1, 1)
+        self.gridLayout_3.addWidget(self.pushButton_body_relatorio_anexar, 4, 1, 1, 1)
 
         self.frame = QFrame(self.page)
         self.frame.setObjectName(u"frame")
-        sizePolicy3.setHeightForWidth(self.frame.sizePolicy().hasHeightForWidth())
-        self.frame.setSizePolicy(sizePolicy3)
+        sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Maximum)
+        sizePolicy2.setHorizontalStretch(0)
+        sizePolicy2.setVerticalStretch(0)
+        sizePolicy2.setHeightForWidth(self.frame.sizePolicy().hasHeightForWidth())
+        self.frame.setSizePolicy(sizePolicy2)
         self.frame.setFrameShape(QFrame.Shape.StyledPanel)
         self.frame.setFrameShadow(QFrame.Shadow.Raised)
         self.gridLayout_4 = QGridLayout(self.frame)
@@ -185,44 +151,29 @@ class Ui_MainWindow(object):
         sizePolicy.setHeightForWidth(self.pushButton_body_executar.sizePolicy().hasHeightForWidth())
         self.pushButton_body_executar.setSizePolicy(sizePolicy)
         self.pushButton_body_executar.setMinimumSize(QSize(200, 40))
-        font4 = QFont()
-        font4.setPointSize(14)
-        font4.setBold(False)
-        font4.setItalic(True)
-        font4.setUnderline(False)
-        self.pushButton_body_executar.setFont(font4)
+        font2 = QFont()
+        font2.setPointSize(14)
+        font2.setBold(False)
+        font2.setItalic(True)
+        font2.setUnderline(False)
+        self.pushButton_body_executar.setFont(font2)
         self.pushButton_body_executar.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         self.pushButton_body_executar.setStyleSheet(u"border: 2.5px solid rgb(85, 170, 255); border-radius: 10px; background-color: #E1E1E1;")
 
         self.gridLayout_4.addWidget(self.pushButton_body_executar, 0, 0, 1, 1)
 
-        self.pushButton_2 = QPushButton(self.frame)
-        self.pushButton_2.setObjectName(u"pushButton_2")
 
-        self.gridLayout_4.addWidget(self.pushButton_2, 0, 2, 1, 1)
-
-        self.horizontalSpacer_5 = QSpacerItem(40, 20, QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Minimum)
-
-        self.gridLayout_4.addItem(self.horizontalSpacer_5, 0, 1, 1, 1)
-
-
-        self.gridLayout_3.addWidget(self.frame, 8, 1, 1, 1)
+        self.gridLayout_3.addWidget(self.frame, 6, 1, 1, 1)
 
         self.label_body_empresas_title = QLabel(self.page)
         self.label_body_empresas_title.setObjectName(u"label_body_empresas_title")
+        font3 = QFont()
+        font3.setFamilies([u"Tw Cen MT"])
+        font3.setPointSize(16)
         self.label_body_empresas_title.setFont(font3)
         self.label_body_empresas_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.gridLayout_3.addWidget(self.label_body_empresas_title, 0, 0, 1, 1)
-
-        self.label_bodyrelatorio_title = QLabel(self.page)
-        self.label_bodyrelatorio_title.setObjectName(u"label_bodyrelatorio_title")
-        sizePolicy3.setHeightForWidth(self.label_bodyrelatorio_title.sizePolicy().hasHeightForWidth())
-        self.label_bodyrelatorio_title.setSizePolicy(sizePolicy3)
-        self.label_bodyrelatorio_title.setFont(font3)
-        self.label_bodyrelatorio_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-        self.gridLayout_3.addWidget(self.label_bodyrelatorio_title, 5, 1, 1, 1)
 
         self.stackedWidget_empresas = QStackedWidget(self.page)
         self.stackedWidget_empresas.setObjectName(u"stackedWidget_empresas")
@@ -244,11 +195,11 @@ class Ui_MainWindow(object):
         self.label_empresas_aviso = QLabel(self.gridLayout_Scroll)
         self.label_empresas_aviso.setObjectName(u"label_empresas_aviso")
         self.label_empresas_aviso.setEnabled(False)
-        font5 = QFont()
-        font5.setFamilies([u"NSimSun"])
-        font5.setPointSize(14)
-        font5.setItalic(True)
-        self.label_empresas_aviso.setFont(font5)
+        font4 = QFont()
+        font4.setFamilies([u"NSimSun"])
+        font4.setPointSize(14)
+        font4.setItalic(True)
+        self.label_empresas_aviso.setFont(font4)
         self.label_empresas_aviso.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.gridLayout_empresas.addWidget(self.label_empresas_aviso, 0, 0, 1, 1)
@@ -275,7 +226,16 @@ class Ui_MainWindow(object):
 
         self.stackedWidget_empresas.addWidget(self.page_6)
 
-        self.gridLayout_3.addWidget(self.stackedWidget_empresas, 2, 0, 5, 1)
+        self.gridLayout_3.addWidget(self.stackedWidget_empresas, 2, 0, 3, 1)
+
+        self.label_bodyrelatorio_title = QLabel(self.page)
+        self.label_bodyrelatorio_title.setObjectName(u"label_bodyrelatorio_title")
+        sizePolicy2.setHeightForWidth(self.label_bodyrelatorio_title.sizePolicy().hasHeightForWidth())
+        self.label_bodyrelatorio_title.setSizePolicy(sizePolicy2)
+        self.label_bodyrelatorio_title.setFont(font3)
+        self.label_bodyrelatorio_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        self.gridLayout_3.addWidget(self.label_bodyrelatorio_title, 0, 1, 1, 1)
 
         self.stackedWidget_body.addWidget(self.page)
         self.page_2 = QWidget()
@@ -303,16 +263,23 @@ class Ui_MainWindow(object):
         self.gridLayout_9.setObjectName(u"gridLayout_9")
         self.label_load_title = QLabel(self.page_2)
         self.label_load_title.setObjectName(u"label_load_title")
-        font6 = QFont()
-        font6.setFamilies([u"Tw Cen MT"])
-        font6.setPointSize(24)
-        font6.setBold(False)
-        font6.setItalic(True)
-        self.label_load_title.setFont(font6)
+        font5 = QFont()
+        font5.setFamilies([u"Tw Cen MT"])
+        font5.setPointSize(24)
+        font5.setBold(False)
+        font5.setItalic(True)
+        self.label_load_title.setFont(font5)
         self.label_load_title.setTextFormat(Qt.TextFormat.PlainText)
         self.label_load_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.gridLayout_9.addWidget(self.label_load_title, 0, 0, 1, 1)
+
+        self.progressBar = QProgressBar(self.page_2)
+        self.progressBar.setObjectName(u"progressBar")
+        self.progressBar.setValue(0)
+        self.progressBar.setTextVisible(False)
+
+        self.gridLayout_9.addWidget(self.progressBar, 1, 0, 1, 1)
 
 
         self.gridLayout_8.addLayout(self.gridLayout_9, 1, 0, 1, 3)
@@ -324,22 +291,22 @@ class Ui_MainWindow(object):
         self.gridLayout.setObjectName(u"gridLayout")
         self.label_endereco_title = QLabel(self.page_5)
         self.label_endereco_title.setObjectName(u"label_endereco_title")
-        font7 = QFont()
-        font7.setFamilies([u"Tw Cen MT"])
-        font7.setPointSize(22)
-        font7.setUnderline(True)
-        self.label_endereco_title.setFont(font7)
+        font6 = QFont()
+        font6.setFamilies([u"Tw Cen MT"])
+        font6.setPointSize(22)
+        font6.setUnderline(True)
+        self.label_endereco_title.setFont(font6)
         self.label_endereco_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.gridLayout.addWidget(self.label_endereco_title, 0, 1, 1, 2)
 
         self.pushButton_endereco = QPushButton(self.page_5)
         self.pushButton_endereco.setObjectName(u"pushButton_endereco")
-        sizePolicy4 = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
-        sizePolicy4.setHorizontalStretch(0)
-        sizePolicy4.setVerticalStretch(0)
-        sizePolicy4.setHeightForWidth(self.pushButton_endereco.sizePolicy().hasHeightForWidth())
-        self.pushButton_endereco.setSizePolicy(sizePolicy4)
+        sizePolicy3 = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+        sizePolicy3.setHorizontalStretch(0)
+        sizePolicy3.setVerticalStretch(0)
+        sizePolicy3.setHeightForWidth(self.pushButton_endereco.sizePolicy().hasHeightForWidth())
+        self.pushButton_endereco.setSizePolicy(sizePolicy3)
         self.pushButton_endereco.setMaximumSize(QSize(150, 16777215))
 
         self.gridLayout.addWidget(self.pushButton_endereco, 3, 2, 1, 1)
@@ -358,12 +325,12 @@ class Ui_MainWindow(object):
 
         self.label_endereco_input_subtitle = QLabel(self.frame_4)
         self.label_endereco_input_subtitle.setObjectName(u"label_endereco_input_subtitle")
-        font8 = QFont()
-        font8.setFamilies([u"Tw Cen MT"])
-        font8.setPointSize(12)
-        font8.setBold(True)
-        font8.setItalic(True)
-        self.label_endereco_input_subtitle.setFont(font8)
+        font7 = QFont()
+        font7.setFamilies([u"Tw Cen MT"])
+        font7.setPointSize(12)
+        font7.setBold(True)
+        font7.setItalic(True)
+        self.label_endereco_input_subtitle.setFont(font7)
         self.label_endereco_input_subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.gridLayout_10.addWidget(self.label_endereco_input_subtitle, 1, 0, 1, 1)
@@ -373,21 +340,21 @@ class Ui_MainWindow(object):
 
         self.label_endereco_input_title = QLabel(self.page_5)
         self.label_endereco_input_title.setObjectName(u"label_endereco_input_title")
-        font9 = QFont()
-        font9.setFamilies([u"Tw Cen MT"])
-        font9.setPointSize(14)
-        font9.setBold(False)
-        self.label_endereco_input_title.setFont(font9)
+        font8 = QFont()
+        font8.setFamilies([u"Tw Cen MT"])
+        font8.setPointSize(14)
+        font8.setBold(False)
+        self.label_endereco_input_title.setFont(font8)
 
         self.gridLayout.addWidget(self.label_endereco_input_title, 2, 1, 1, 1)
 
         self.label_endereco_empresa = QLabel(self.page_5)
         self.label_endereco_empresa.setObjectName(u"label_endereco_empresa")
-        font10 = QFont()
-        font10.setFamilies([u"Trebuchet MS"])
-        font10.setPointSize(14)
-        font10.setBold(True)
-        self.label_endereco_empresa.setFont(font10)
+        font9 = QFont()
+        font9.setFamilies([u"Trebuchet MS"])
+        font9.setPointSize(14)
+        font9.setBold(True)
+        self.label_endereco_empresa.setFont(font9)
         self.label_endereco_empresa.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.gridLayout.addWidget(self.label_endereco_empresa, 1, 1, 1, 2)
@@ -399,23 +366,23 @@ class Ui_MainWindow(object):
         self.gridLayout_12.setObjectName(u"gridLayout_12")
         self.label_cadastros_title = QLabel(self.page_4)
         self.label_cadastros_title.setObjectName(u"label_cadastros_title")
-        font11 = QFont()
-        font11.setFamilies([u"Tw Cen MT"])
-        font11.setPointSize(20)
-        font11.setItalic(True)
-        font11.setUnderline(False)
-        self.label_cadastros_title.setFont(font11)
+        font10 = QFont()
+        font10.setFamilies([u"Tw Cen MT"])
+        font10.setPointSize(20)
+        font10.setItalic(True)
+        font10.setUnderline(False)
+        self.label_cadastros_title.setFont(font10)
         self.label_cadastros_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.gridLayout_12.addWidget(self.label_cadastros_title, 0, 0, 1, 2)
 
         self.pushButton_cadastros_back = QPushButton(self.page_4)
         self.pushButton_cadastros_back.setObjectName(u"pushButton_cadastros_back")
-        sizePolicy5 = QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Fixed)
-        sizePolicy5.setHorizontalStretch(0)
-        sizePolicy5.setVerticalStretch(0)
-        sizePolicy5.setHeightForWidth(self.pushButton_cadastros_back.sizePolicy().hasHeightForWidth())
-        self.pushButton_cadastros_back.setSizePolicy(sizePolicy5)
+        sizePolicy4 = QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Fixed)
+        sizePolicy4.setHorizontalStretch(0)
+        sizePolicy4.setVerticalStretch(0)
+        sizePolicy4.setHeightForWidth(self.pushButton_cadastros_back.sizePolicy().hasHeightForWidth())
+        self.pushButton_cadastros_back.setSizePolicy(sizePolicy4)
 
         self.gridLayout_12.addWidget(self.pushButton_cadastros_back, 1, 0, 1, 1)
 
@@ -435,30 +402,30 @@ class Ui_MainWindow(object):
         self.verticalLayout.setContentsMargins(50, -1, 50, -1)
         self.pushButton_cadastro_adcionar = QPushButton(self.frame_5)
         self.pushButton_cadastro_adcionar.setObjectName(u"pushButton_cadastro_adcionar")
-        sizePolicy4.setHeightForWidth(self.pushButton_cadastro_adcionar.sizePolicy().hasHeightForWidth())
-        self.pushButton_cadastro_adcionar.setSizePolicy(sizePolicy4)
-        font12 = QFont()
-        font12.setPointSize(12)
-        self.pushButton_cadastro_adcionar.setFont(font12)
+        sizePolicy3.setHeightForWidth(self.pushButton_cadastro_adcionar.sizePolicy().hasHeightForWidth())
+        self.pushButton_cadastro_adcionar.setSizePolicy(sizePolicy3)
+        font11 = QFont()
+        font11.setPointSize(12)
+        self.pushButton_cadastro_adcionar.setFont(font11)
 
         self.verticalLayout.addWidget(self.pushButton_cadastro_adcionar)
 
         self.pushButton_cadastro_editar = QPushButton(self.frame_5)
         self.pushButton_cadastro_editar.setObjectName(u"pushButton_cadastro_editar")
-        sizePolicy6 = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
-        sizePolicy6.setHorizontalStretch(0)
-        sizePolicy6.setVerticalStretch(0)
-        sizePolicy6.setHeightForWidth(self.pushButton_cadastro_editar.sizePolicy().hasHeightForWidth())
-        self.pushButton_cadastro_editar.setSizePolicy(sizePolicy6)
-        self.pushButton_cadastro_editar.setFont(font12)
+        sizePolicy5 = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
+        sizePolicy5.setHorizontalStretch(0)
+        sizePolicy5.setVerticalStretch(0)
+        sizePolicy5.setHeightForWidth(self.pushButton_cadastro_editar.sizePolicy().hasHeightForWidth())
+        self.pushButton_cadastro_editar.setSizePolicy(sizePolicy5)
+        self.pushButton_cadastro_editar.setFont(font11)
 
         self.verticalLayout.addWidget(self.pushButton_cadastro_editar)
 
         self.pushButton_cadastro_remover = QPushButton(self.frame_5)
         self.pushButton_cadastro_remover.setObjectName(u"pushButton_cadastro_remover")
-        sizePolicy6.setHeightForWidth(self.pushButton_cadastro_remover.sizePolicy().hasHeightForWidth())
-        self.pushButton_cadastro_remover.setSizePolicy(sizePolicy6)
-        self.pushButton_cadastro_remover.setFont(font12)
+        sizePolicy5.setHeightForWidth(self.pushButton_cadastro_remover.sizePolicy().hasHeightForWidth())
+        self.pushButton_cadastro_remover.setSizePolicy(sizePolicy5)
+        self.pushButton_cadastro_remover.setFont(font11)
 
         self.verticalLayout.addWidget(self.pushButton_cadastro_remover)
 
@@ -467,7 +434,7 @@ class Ui_MainWindow(object):
 
         self.treeWidget_cadastros_infos = QTreeWidget(self.frame_6)
         self.treeWidget_cadastros_infos.setObjectName(u"treeWidget_cadastros_infos")
-        self.treeWidget_cadastros_infos.setFont(font12)
+        self.treeWidget_cadastros_infos.setFont(font11)
         self.treeWidget_cadastros_infos.header().setVisible(False)
 
         self.gridLayout_13.addWidget(self.treeWidget_cadastros_infos, 0, 0, 5, 1)
@@ -482,11 +449,11 @@ class Ui_MainWindow(object):
         self.gridLayout_15.setObjectName(u"gridLayout_15")
         self.pushButton = QPushButton(self.page_7)
         self.pushButton.setObjectName(u"pushButton")
-        sizePolicy7 = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
-        sizePolicy7.setHorizontalStretch(0)
-        sizePolicy7.setVerticalStretch(0)
-        sizePolicy7.setHeightForWidth(self.pushButton.sizePolicy().hasHeightForWidth())
-        self.pushButton.setSizePolicy(sizePolicy7)
+        sizePolicy6 = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+        sizePolicy6.setHorizontalStretch(0)
+        sizePolicy6.setVerticalStretch(0)
+        sizePolicy6.setHeightForWidth(self.pushButton.sizePolicy().hasHeightForWidth())
+        self.pushButton.setSizePolicy(sizePolicy6)
         self.pushButton.setMaximumSize(QSize(16777215, 100))
 
         self.gridLayout_15.addWidget(self.pushButton, 2, 1, 1, 1)
@@ -499,17 +466,17 @@ class Ui_MainWindow(object):
         self.gridLayout_17.setObjectName(u"gridLayout_17")
         self.gridLayout_17.setContentsMargins(0, -1, 50, -1)
         self.treeWidget_contatos = QTreeWidget(self.frame_8)
-        font13 = QFont()
-        font13.setFamilies([u"Yu Gothic UI"])
-        font13.setPointSize(14)
-        font13.setBold(True)
+        font12 = QFont()
+        font12.setFamilies([u"Yu Gothic UI"])
+        font12.setPointSize(14)
+        font12.setBold(True)
         __qtreewidgetitem = QTreeWidgetItem()
         __qtreewidgetitem.setTextAlignment(2, Qt.AlignCenter);
-        __qtreewidgetitem.setFont(2, font13);
+        __qtreewidgetitem.setFont(2, font12);
         __qtreewidgetitem.setTextAlignment(1, Qt.AlignCenter);
-        __qtreewidgetitem.setFont(1, font13);
+        __qtreewidgetitem.setFont(1, font12);
         __qtreewidgetitem.setTextAlignment(0, Qt.AlignCenter);
-        __qtreewidgetitem.setFont(0, font13);
+        __qtreewidgetitem.setFont(0, font12);
         self.treeWidget_contatos.setHeaderItem(__qtreewidgetitem)
         self.treeWidget_contatos.setObjectName(u"treeWidget_contatos")
 
@@ -524,21 +491,21 @@ class Ui_MainWindow(object):
 
         self.label_contatos_subtitle = QLabel(self.page_7)
         self.label_contatos_subtitle.setObjectName(u"label_contatos_subtitle")
-        font14 = QFont()
-        font14.setFamilies([u"Tw Cen MT"])
-        font14.setPointSize(14)
-        font14.setUnderline(True)
-        self.label_contatos_subtitle.setFont(font14)
+        font13 = QFont()
+        font13.setFamilies([u"Tw Cen MT"])
+        font13.setPointSize(14)
+        font13.setUnderline(True)
+        self.label_contatos_subtitle.setFont(font13)
 
         self.gridLayout_15.addWidget(self.label_contatos_subtitle, 1, 0, 1, 3)
 
         self.label_contatos_title = QLabel(self.page_7)
         self.label_contatos_title.setObjectName(u"label_contatos_title")
-        font15 = QFont()
-        font15.setFamilies([u"Tw Cen MT"])
-        font15.setPointSize(20)
-        font15.setItalic(True)
-        self.label_contatos_title.setFont(font15)
+        font14 = QFont()
+        font14.setFamilies([u"Tw Cen MT"])
+        font14.setPointSize(20)
+        font14.setItalic(True)
+        self.label_contatos_title.setFont(font14)
         self.label_contatos_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.gridLayout_15.addWidget(self.label_contatos_title, 0, 0, 1, 3)
@@ -573,16 +540,11 @@ class Ui_MainWindow(object):
         self.pushButton_empresas_marcar.setText(QCoreApplication.translate("MainWindow", u"Desmacar todos", None))
         self.pushButton_cadastros_visualizar.setText(QCoreApplication.translate("MainWindow", u"Visualizar Cadastros", None))
         self.pushButton_body_relatorio_anexar.setText("")
-        self.comboBox_body_funcionario.setItemText(0, QCoreApplication.translate("MainWindow", u"Bruno", None))
-        self.comboBox_body_funcionario.setItemText(1, QCoreApplication.translate("MainWindow", u"Wellington", None))
-
-        self.label_body_funcionario_title.setText(QCoreApplication.translate("MainWindow", u"Funcion\u00e1rio respons\u00e1vel", None))
         self.pushButton_body_executar.setText(QCoreApplication.translate("MainWindow", u"Executar", None))
-        self.pushButton_2.setText(QCoreApplication.translate("MainWindow", u"Enviar teste", None))
         self.label_body_empresas_title.setText(QCoreApplication.translate("MainWindow", u"Empresas que deseja cobrar", None))
-        self.label_bodyrelatorio_title.setText(QCoreApplication.translate("MainWindow", u"Relat\u00f3rio de vencidos", None))
         self.label_empresas_aviso.setText(QCoreApplication.translate("MainWindow", u"Insira o relat\u00f3rio de vencidos", None))
         self.label_loading_empresas.setText("")
+        self.label_bodyrelatorio_title.setText(QCoreApplication.translate("MainWindow", u"Relat\u00f3rio de vencidos", None))
         self.label_load_gif.setText("")
         self.label_load_title.setText(QCoreApplication.translate("MainWindow", u"Carregando...", None))
         self.label_endereco_title.setText(QCoreApplication.translate("MainWindow", u"Empresa abaixo n\u00e3o cadastrada", None))

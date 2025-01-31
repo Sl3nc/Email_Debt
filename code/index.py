@@ -177,13 +177,6 @@ class DataBase:
             )
             return cursor.fetchone()[0]
 
-    def query_assinatura(self, nome_func: str) -> str:
-        with self.connection.cursor() as cursor:
-            cursor.execute(
-                self.query_ass, (nome_func,)
-            )
-            return cursor.fetchone()[0]
-
     def user_acessorias(self, nome_func: str):
         with self.connection.cursor() as cursor:
             cursor.execute(
@@ -207,9 +200,10 @@ class Email:
         }
 
     def enviar(self):
-        response = self.client.send(**self.payload)
-        if response.success == False:
-            raise Exception('Endereço de email inválido')
+        ...
+        # response = self.client.send(**self.payload)
+        # if response.success == False:
+        #     raise Exception('Endereço de email inválido')
 
 #https://i.imgur.com/dTUNLTy.jpeg
 class Conteudo:
@@ -217,7 +211,7 @@ class Conteudo:
         self.VALOR_JUROS = 0.02
         self.text = ''
         self.valores_totais = []
-        self.CONTENT_BASE = Path(__file__).parent / 'src' / 'content_email.html'
+        self.CONTENT_BASE = Path(__file__).parent / 'src' / 'html' / 'content_email.html'
         with open (self.CONTENT_BASE, 'r', encoding='utf-8') as file:
             self.body = file.read()
 
@@ -453,11 +447,11 @@ class Cobrador(QObject):
     confirm_enderecos = Signal(dict)
     empty_enderecos = Signal(list)
     error = Signal(bool)
+    progress_bar = Signal(int)
 
-    def __init__(self, dict_content: dict[str,dict], nome_func: str, db: DataBase):
+    def __init__(self, dict_content: dict[str,dict], db: DataBase):
         super().__init__()
         self.dict_content = dict_content
-        self.nome_func = nome_func
         self.db = db
         self.enderecos_novos = {}
 
@@ -497,16 +491,16 @@ class Cobrador(QObject):
             self.empty_enderecos.emit(list_empty)
             list_restantes = list_restantes + list_empty
 
+        self.progress.emit(-1)
         if list_restantes != []:
             self.registro_manual(list_restantes)
-            self.enderecos_novos = {}
-            self.registro()
 
     #TODO REGISTRO
     def registro_acessorias(self, dict_faltante: dict[str,str]):
         dict_contato = {}
         acessorias = Acessorias()
-        usuario, senha = self.db.user_acessorias(self.nome_func)
+        usuario = getenv('USER_ACESSORIAS')
+        senha = getenv('PASSWORD_ACESSORIAS') 
         acessorias.login(usuario, senha)
         for nome_empresa, num_dominio in dict_faltante.items():
             dict_contato[nome_empresa] = acessorias.pesquisar(num_dominio)
@@ -526,6 +520,8 @@ class Cobrador(QObject):
     def registro_manual(self, list_restantes: list[str]):
         for nome_empresa in list_restantes:
             self.novo_endereco.emit(nome_empresa)
+            self.enderecos_novos = {}
+            self.registro()
 
     def registro(self):
         list_restantes = []
@@ -547,16 +543,17 @@ class Cobrador(QObject):
     def enviar(self):
         email = Email()
         dict_contatos = {}
-        assinatura = self.db.query_assinatura(self.nome_func)
+        count_content = len(self.dict_content)
+        count = 1
 
         for nome_empresa, conteudo in self.dict_content.items():
             enderecos_email = self.db.emails_empresa(nome_empresa)
             dict_contatos[nome_empresa] = enderecos_email
             
-            conteudo['mensagem'] =\
-                conteudo['mensagem'].replace('$assinatura', assinatura)
             email.criar(enderecos_email, nome_empresa, conteudo['mensagem'])
             email.enviar()
+            count = count + 1
+            self.progress_bar.emit((count / count_content) * 100)
 
         self.fim.emit()
         self.resume.emit(dict_contatos)
@@ -709,7 +706,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             layout.addWidget(cb)
 
             btn = QPushButton(frame)
-            btn.setText('Preview')
+            btn.setText('prévia')
             btn.clicked.connect(lambda: self.carregar_mensagem(nome))
             layout.addWidget(btn)
 
@@ -787,7 +784,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             self._cobrador = Cobrador(
                 content_filtred,
-                self.comboBox_body_funcionario.currentText(),
                 self.db
                 )
             self._thread_cobrador = QThread()
@@ -802,6 +798,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self._cobrador.empty_enderecos.connect(self.empty_enderecos)
             self._cobrador.resume.connect(self.conclusion)
             self._cobrador.error.connect(self.exec_load)
+            self._cobrador.progress_bar.connect(self.to_progress_bar)
             self._thread_cobrador.finished.connect(self._cobrador.deleteLater)
             self._thread_cobrador.start()
         except ZeroDivisionError:
@@ -834,7 +831,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.treeWidget_contatos.setItemWidget(item, 2, cb)
 
     def empty_enderecos(self, list_empty: list[str]):
-        messagebox.showwarning(title='Aviso', message=f'O endereço de e-mail das seguintes empresas não foram encontrados no acessórias: \n{'\n -'.join(list_empty)}\nFavor inseri-los manualmente')
+        messagebox.showwarning(title='Aviso', message=f'O endereço de e-mail das seguintes empresas não foram encontrados no acessórias: \n\n{'\n -'.join(list_empty)}\n\nFavor inseri-los manualmente')
 
     def enviar_contatos(self):
         contatos_filtrados = {}
@@ -860,6 +857,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def to_progress(self, valor):
         if valor == -4:
+            self.progressBar.hide()
             self.label_load_title.setText('Gerando mensagem...')
         if valor == -3:
             self.label_load_title.setText('Carregando endereços registrados...')
@@ -868,7 +866,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         elif valor == -1:
             self.label_load_title.setText('Registrando endereços...')
         elif valor == 0:
+            self.progressBar.show()
             self.label_load_title.setText('Enviando e-mails...')
+
+    def to_progress_bar(self, value):
+        self.progressBar.setValue(value)
 
     def conclusion(self, dict_contatos: dict[str, list[str]]):
         self.exec_load(False, 0)
@@ -881,6 +883,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         messagebox.showinfo(title='Aviso', message= f'Email enviado com sucesso para: \n{text}')
 
     def acess_cadastro(self, nome_empresa: str):
+        self.lineEdit_endereco.setText('')
         self.label_endereco_title.setText('Empresa abaixo não cadastrada:')
         self.label_endereco_empresa.setText(nome_empresa)
         self.conexao_envio = self.pushButton_endereco.clicked.connect(
