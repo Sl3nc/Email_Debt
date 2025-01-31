@@ -5,14 +5,13 @@ import pymysql.cursors
 from smtp2go.core import Smtp2goClient
 import pymysql
 
-from os import getenv
 import tabula as tb
 import pandas as pd
 from unidecode import unidecode
 import traceback
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
-from os import path, renames
+from os import path, renames, getenv, startfile, remove
 import sys
 from copy import deepcopy
 from time import sleep
@@ -20,7 +19,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from smtp2go.core import Smtp2goClient
 from PySide6.QtWidgets import (
-    QMainWindow, QApplication, QRadioButton, QVBoxLayout, QWidget, QCheckBox, QTreeWidgetItem
+    QMainWindow, QApplication, QRadioButton, QVBoxLayout, QWidget, QCheckBox, QTreeWidgetItem, QLayout,QPushButton, QHBoxLayout, QFrame, QSizePolicy
 )
 from PySide6.QtGui import QPixmap, QIcon, QMovie
 from PySide6.QtCore import QThread, QObject, Signal, QSize
@@ -178,13 +177,6 @@ class DataBase:
             )
             return cursor.fetchone()[0]
 
-    def query_assinatura(self, nome_func: str) -> str:
-        with self.connection.cursor() as cursor:
-            cursor.execute(
-                self.query_ass, (nome_func,)
-            )
-            return cursor.fetchone()[0]
-
     def user_acessorias(self, nome_func: str):
         with self.connection.cursor() as cursor:
             cursor.execute(
@@ -208,7 +200,6 @@ class Email:
         }
 
     def enviar(self):
-        # print('enviou')
         response = self.client.send(**self.payload)
         if response.success == False:
             raise Exception('Endereço de email inválido')
@@ -219,66 +210,9 @@ class Conteudo:
         self.VALOR_JUROS = 0.02
         self.text = ''
         self.valores_totais = []
-        self.body = """
-        <!DOCTYPE html>
-        <html lang="pt-BR">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        </head>
-        <body>
-            <p>
-                Prezado cliente, $cumprimento <br><br>Não acusamos o recebimento do(s) honorário(s) relacionado(s) abaixo:
-            </p>
-            <table style="border: 1px solid black;">
-                <thead>
-                    <tr>
-                        <th style="padding: 8px 10px;">COMP.</th>
-                        <th style="padding: 8px 10px;">VENC.</th>
-                        <th style="padding: 8px 10px;">Dias Atraso</th>
-                        <th style="padding: 8px 10px;">Principal</th>
-                        <th style="padding: 8px 10px;">Multa</th>
-                        <th style="padding: 8px 10px;">Juros</th>
-                        <th style="padding: 8px 10px;">Total</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    $text
-                </tbody>
-                <tfoot>
-                    <tr>
-                        <th colspan="6" style="text-align: right;">Total em aberto: </th>
-                        $valor_geral
-                    </tr>
-                </tfoot>
-            </table>
-            <p style="margin: 1% 0% 0.5% 0%;">Pedimos gentilmente que regularize sua situação financeira conosco:</p>
-            <div style="display: flex;">
-                <h3 style="margin: 2% 0% 0% 0%;">
-                    Chave PIX: <span style="font-weight: 100"> 10.620.061/0001-05 </span><br>
-                    Favorecido: Deltaprice Serviços Contábeis<br>
-                    CNPJ: 10.620.061/0001-05<br>
-                    <span style="background-color: yellow;">Banco Itau 341 Ag 1582 conta 98.000-7</span>
-                </h3>
-                <div style="padding-left: 10%;">
-                    <p style="margin: 1%;"><b>QR code</b> - PIX</p>
-                    <img src="https://i.imgur.com/T0w2OdH.png" style="width: 30%;">
-                </div>
-            </div>
-            <p style="margin: 0.5% 0% 1% 0%;">
-                Assim que efetuar o pagamento/transferência, gentileza nos enviar o comprovante para baixa do(s) título(s) em aberto.
-            </p>
-            <b style="color: rgb(87, 86, 86);">Atenciosamente,</b>
-            <br>
-            <img src="$assinatura" style="width: 40%;">
-            <p>
-                Esta mensagem, incluindo seus anexos, tem caráter confidencial e seu conteúdo é restrito ao destinatário da mensagem. Caso você tenha recebido esta mensagem por engano, queira, por favor, retorná-la ao destinatário e apagá-la de seus arquivos. Qualquer uso não autorizado, replicação ou disseminação desta mensagem ou parte dela, incluindo seus anexos, é expressamente proibido. 
-                <br><br>
-                This message is intended only for the use of the addressee(s) named herein. The information contained in this message is confidential and may constitute proprietary or inside information. Unauthorized review, dissemination, distribution, copying or other use of this message, including all attachments, is strictly prohibited and may be unlawful. If you have received this message in error, please notify us immediately by return e-mail and destroy this message and all copies thereof, including all attachments.
-            </p>
-        </body>
-        </html>
-        """
+        self.CONTENT_BASE = Path(__file__).parent / 'src' / 'html' / 'content_email.html'
+        with open (self.CONTENT_BASE, 'r', encoding='utf-8') as file:
+            self.body = file.read()
 
     def add_linha(self, row: pd.Series):
         valor_pag = float(row['Valor'].replace('.','').replace(',', '.'))
@@ -337,6 +271,8 @@ class Arquivo(QObject):
     fim = Signal(int)
     nomes = Signal(list)
     conteudos = Signal(dict)
+    error = Signal(bool)
+    preview = Signal()
 
     def __init__(self) -> None:
         super().__init__()
@@ -365,27 +301,38 @@ class Arquivo(QObject):
             raise Exception('Formato de arquivo inválido') 
 
     def nomes_empresas(self):
-        arquivo = tb.read_pdf(
-            self.caminho, pages='all',relative_area=True, area=[20,16,90,40]
-        )
-        tabelas = pd.concat(arquivo, ignore_index=True)
-        tabelas.fillna('', inplace=True)
-        tabelas = tabelas[tabelas[self.col_titulo] != '']
-        tabelas = tabelas.loc[tabelas.apply(lambda row: row[self.col_titulo][1] != '/', axis=1)]
-        self.nomes.emit(tabelas[self.col_titulo].values.tolist())
-        self.fim.emit(1)
+        try:
+            arquivo = tb.read_pdf(
+                self.caminho, pages='all',relative_area=True, area=[20,16,90,40], encoding="ISO-8859-1"
+            )
+            tabelas = pd.concat(arquivo, ignore_index=True)
+            tabelas.fillna('', inplace=True)
+            tabelas = tabelas[tabelas[self.col_titulo] != '']
+            tabelas = tabelas.loc[tabelas.apply(lambda row: row[self.col_titulo][1] != '/', axis=1)]
+            self.nomes.emit(tabelas[self.col_titulo].values.tolist())
+            self.fim.emit(1)
+        except Exception as error:
+            self.error.emit(False)
+            messagebox.showerror(title='Aviso', message= f"Erro em ler as empresas do arquivo, favor comunique o desenvolvedor \n\n- erro do tipo: {error}")
 
     def ler(self):
-        arquivo = tb.read_pdf(self.caminho, pages="all", relative_area=True, area=[20,10,96,100])
-        for tabelas in arquivo:
-            tabelas.columns = ["Num. Dominio", "Titulo/Competencia", "", "","", "","","","","","","","","Valor"]
-        tabelas = pd.concat(arquivo, ignore_index=True)
-        tabelas = tabelas.drop('', axis=1)
-        tabelas = tabelas.drop(0).reset_index(drop=True)
+        try:
+            arquivo = tb.read_pdf(self.caminho, pages="all", relative_area=True, area=[20,10,96,100], encoding="ISO-8859-1")
+            for tabelas in arquivo:
+                tabelas.columns = ["Num. Dominio", "Titulo/Competencia", "", "","", "","","","","","","","","Valor"]
+            tabelas = pd.concat(arquivo, ignore_index=True)
+            tabelas = tabelas.drop('', axis=1)
+            tabelas = tabelas.drop(0).reset_index(drop=True)
 
-        tabelas.fillna('', inplace=True)
-        self.conteudos.emit(self.filtro_conteudo(tabelas))
-        self.fim.emit(2)
+            for i , r in tabelas.iterrows():
+                if pd.isnull(r).all():
+                    tabelas.drop(i,inplace = True)
+            tabelas.fillna('', inplace=True)
+            self.conteudos.emit(self.filtro_conteudo(tabelas))
+            self.fim.emit(2)
+        except Exception as error:
+            self.error.emit(False)
+            messagebox.showerror(title='Aviso', message= f"Erro em ler as empresas do arquivo, favor comunique o desenvolvedor \n\n- erro do tipo: {error}")
 
     def filtro_conteudo(self, tabelas: pd.Series):
         dict_conteudos = {}
@@ -414,7 +361,7 @@ class Arquivo(QObject):
                 dict_conteudos[nome_atual] = dict_valores
 
         return dict_conteudos
-
+    
 class Acessorias:
     ROOT_FOLDER = Path(__file__).parent
     CHROME_DRIVER_PATH = ROOT_FOLDER / 'src' / 'drivers' / 'chromedriver.exe'
@@ -497,21 +444,27 @@ class Cobrador(QObject):
     fim = Signal()
     resume = Signal(dict)
     confirm_enderecos = Signal(dict)
+    empty_enderecos = Signal(list)
+    error = Signal(bool)
+    progress_bar = Signal(int)
 
-    def __init__(self, dict_content: dict[str,dict], nome_func: str, db: DataBase):
+    def __init__(self, dict_content: dict[str,dict], db: DataBase):
         super().__init__()
         self.dict_content = dict_content
-        self.nome_func = nome_func
         self.db = db
         self.enderecos_novos = {}
 
     #TODO EXECUTAR
     def executar(self):
-        dict_faltantes = self.filtro_faltantes()
-        if dict_faltantes != {}:
-            self.exec_registro(dict_faltantes)
-        self.progress.emit(0)
-        self.enviar()
+        try:
+            dict_faltantes = self.filtro_faltantes()
+            if dict_faltantes != {}:
+                self.exec_registro(dict_faltantes)
+            self.progress.emit(0)
+            self.enviar()
+        except Exception as error:
+            self.progress.emit(0)
+            messagebox.showerror(title='Aviso', message= f"Erro na etapa em questão, favor comunique o desenvolvedor \n\n- erro do tipo: {error}")
 
     def filtro_faltantes(self):
         dict_faltantes = {}
@@ -521,32 +474,53 @@ class Cobrador(QObject):
             if enderecos_email == []: #Sem email cadastrado da empresa
                 dict_faltantes[nome_empresa] = conteudo['numero']
                 continue
+
         return dict_faltantes
 
     def exec_registro(self, dict_faltantes):
+        list_restantes = []
         self.progress.emit(-2)
-        self.registro_acessorias(dict_faltantes)
-        self.enderecos_novos = {}
-        list_restantes = self.registro()
+        dict_contato, list_empty = self.registro_acessorias(dict_faltantes)
+        if dict_contato != {}:
+            self.confirm_enderecos.emit(dict_contato)
+            self.enderecos_novos = {}
+            list_restantes = list_restantes + self.registro()
+
+        if list_empty != []:
+            self.empty_enderecos.emit(list_empty)
+            list_restantes = list_restantes + list_empty
+
+        self.progress.emit(-1)
         if list_restantes != []:
             self.registro_manual(list_restantes)
-            self.enderecos_novos = {}
-            self.registro()
 
     #TODO REGISTRO
     def registro_acessorias(self, dict_faltante: dict[str,str]):
         dict_contato = {}
         acessorias = Acessorias()
-        usuario, senha = self.db.user_acessorias(self.nome_func)
+        usuario = getenv('USER_ACESSORIAS')
+        senha = getenv('PASSWORD_ACESSORIAS') 
         acessorias.login(usuario, senha)
         for nome_empresa, num_dominio in dict_faltante.items():
             dict_contato[nome_empresa] = acessorias.pesquisar(num_dominio)
         acessorias.close()
-        self.confirm_enderecos.emit(dict_contato)
+        dict_contato, list_empty = self.filter_empty(dict_contato)
+        return dict_contato, list_empty
+     
+    def filter_empty(self, dict_contato):
+        list_empty = []
+        filtered_dict = deepcopy(dict_contato)
+        for key, value in dict_contato.items():
+            if value == {}:
+                list_empty.append(key)
+                del filtered_dict[key]
+        return filtered_dict, list_empty
 
     def registro_manual(self, list_restantes: list[str]):
         for nome_empresa in list_restantes:
             self.novo_endereco.emit(nome_empresa)
+            self.enderecos_novos = {}
+            self.registro()
 
     def registro(self):
         list_restantes = []
@@ -568,16 +542,17 @@ class Cobrador(QObject):
     def enviar(self):
         email = Email()
         dict_contatos = {}
-        assinatura = self.db.query_assinatura(self.nome_func)
+        count_content = len(self.dict_content)
+        count = 1
 
         for nome_empresa, conteudo in self.dict_content.items():
             enderecos_email = self.db.emails_empresa(nome_empresa)
             dict_contatos[nome_empresa] = enderecos_email
             
-            conteudo['mensagem'] =\
-                conteudo['mensagem'].replace('$assinatura', assinatura)
             email.criar(enderecos_email, nome_empresa, conteudo['mensagem'])
             email.enviar()
+            count = count + 1
+            self.progress_bar.emit((count / count_content) * 100)
 
         self.fim.emit()
         self.resume.emit(dict_contatos)
@@ -592,6 +567,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.options = []
         self.option_checada = False
         self.widget_enderecos = {}
+        self.empresa_preview = ''
+        self.PATH_MESSAGE = 'base_message.html'
 
         self.setWindowIcon(QIcon(resource_path('src\\imgs\\mail-icon.ico')))
 
@@ -667,7 +644,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         try:
             self.db = DataBase()
         except pymysql.err.OperationalError as e:
-            messagebox.showerror('Aviso!', f'Falha na conexão com o banco de dados, favor comunique o suporte disponível\n\n{e}')
+            messagebox.showerror('Aviso!', f'Falha na conexão com o banco de dados. Favor verificar se o aplicativo "DOCKER" está inicializado no servidor, caso constrário, entre em contato com o suporte disponível\n\n{e}')
             raise Exception('')
 
     def inserir_relatorio(self):
@@ -695,27 +672,75 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.pushButton_empresas_marcar.hide()
         self.pushButton_body_executar.setEnabled(False)
-        self.stackedWidget_empresas.setCurrentIndex(1)
-        self.movie.start()
+        self.exec_load_empresas(True)
         
         self.inicio = self._thread.started.connect(self.arquivo.nomes_empresas)
         self.arquivo.fim.connect(self.reset_thread)
+        self.arquivo.error.connect(self.exec_load_empresas)
         self.conexao_nome = self.arquivo.nomes.connect(self.exibir_opcoes)
 
         self._thread.start()
-    
+
+    def exec_load_empresas(self, action: bool):
+        if action == True:
+            self.movie.start()
+            self.stackedWidget_empresas.setCurrentIndex(1)
+        else:
+            self.movie.stop()
+            self.stackedWidget_empresas.setCurrentIndex(0)
+        
+    #TODO OPCOES
     def exibir_opcoes(self, nomes):
         self.options.clear()
         for nome in nomes:
-            cb = QCheckBox(nome)
+            layout = QHBoxLayout()
+            frame = QFrame()
+            sp = frame.sizePolicy()
+            sp.setVerticalPolicy(QSizePolicy.Maximum)
+            frame.setSizePolicy(sp)
+            
+            cb = QCheckBox(nome, frame)
             cb.setChecked(True)
             self.options.append(cb)
-            self.gridLayout_empresas.addWidget(cb)
+            layout.addWidget(cb)
+
+            btn = QPushButton(frame)
+            btn.setText('prévia')
+            btn.clicked.connect(lambda: self.carregar_mensagem(nome))
+            layout.addWidget(btn)
+
+            frame.setLayout(layout)
+            self.gridLayout_empresas.addWidget(frame)
 
         self.pushButton_empresas_marcar.show()
         self.pushButton_body_executar.setEnabled(True)
-        self.stackedWidget_empresas.setCurrentIndex(0)
-        self.movie.stop()
+        self.exec_load_empresas(False)
+
+    def carregar_mensagem(self, empresa: str):
+        if self.empresa_preview != '':
+            remove(self.PATH_MESSAGE)
+        self.empresa_preview = empresa
+        self.pushButton_empresas_marcar.hide()
+        self.pushButton_body_executar.setEnabled(False)
+        self.exec_load_empresas(True)
+        
+        self.conexao_ler = self._thread.started.connect(self.arquivo.ler)
+        self.arquivo.fim.connect(self.reset_thread)
+        self.arquivo.error.connect(self.exec_load_empresas)
+        self.conexao_cobrar = self.arquivo.conteudos.connect(self.exibir_mensagem)
+
+        self._thread.start()
+
+    def exibir_mensagem(self, dict_conteudos):
+        html = dict_conteudos[self.empresa_preview]['mensagem']
+        with open (self.PATH_MESSAGE, 'w', encoding='utf-8') as file:
+           file.write(''.join(x for x in html))
+
+        startfile(self.PATH_MESSAGE)
+
+        self.pushButton_empresas_marcar.show()
+        self.pushButton_body_executar.setEnabled(True)
+        self.exec_load_empresas(False)
 
     def marcar_options(self):
         for i in self.options:
@@ -730,12 +755,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def executar(self):
         if self.pushButton_body_relatorio_anexar.text() == '':
             raise Exception ('Insira algum relatório de vencidos')
+        if self.empresa_preview != '':
+            remove(self.PATH_MESSAGE)
         
         self.to_progress(-4)
         self.exec_load(True)
 
         self.conexao_ler = self._thread.started.connect(self.arquivo.ler)
         self.arquivo.fim.connect(self.reset_thread)
+        self.arquivo.error.connect(self.exec_load)
         self.conexao_cobrar = self.arquivo.conteudos.connect(self.cobrar)
 
         self._thread.start()
@@ -747,7 +775,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         elif option == 2:
             self._thread.disconnect(self.conexao_ler)
             self.arquivo.disconnect(self.conexao_cobrar)
-
+    
     #TODO COBRAR
     def cobrar(self, dict_content: dict[str,dict]):
         try:
@@ -755,7 +783,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             self._cobrador = Cobrador(
                 content_filtred,
-                self.comboBox_body_funcionario.currentText(),
                 self.db
                 )
             self._thread_cobrador = QThread()
@@ -767,7 +794,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self._cobrador.fim.connect(self._thread_cobrador.deleteLater)
             self._cobrador.progress.connect(self.to_progress)
             self._cobrador.confirm_enderecos.connect(self.confirmar_registro)
+            self._cobrador.empty_enderecos.connect(self.empty_enderecos)
             self._cobrador.resume.connect(self.conclusion)
+            self._cobrador.error.connect(self.exec_load)
+            self._cobrador.progress_bar.connect(self.to_progress_bar)
             self._thread_cobrador.finished.connect(self._cobrador.deleteLater)
             self._thread_cobrador.start()
         except ZeroDivisionError:
@@ -783,6 +813,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         for i in self.options:
             if i.isChecked() == False:
                 del filtred_content[i.text()]
+        
         return filtred_content
     
     def confirmar_registro(self, dict_contato: dict[str,dict[str,str]]):
@@ -797,6 +828,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 cb.setChecked(True)
                 self.widget_enderecos[item] = cb
                 self.treeWidget_contatos.setItemWidget(item, 2, cb)
+
+    def empty_enderecos(self, list_empty: list[str]):
+        messagebox.showwarning(title='Aviso', message=f'O endereço de e-mail das seguintes empresas não foram encontrados no acessórias: \n\n{'\n -'.join(list_empty)}\n\nFavor inseri-los manualmente')
 
     def enviar_contatos(self):
         contatos_filtrados = {}
@@ -822,6 +856,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def to_progress(self, valor):
         if valor == -4:
+            self.progressBar.hide()
             self.label_load_title.setText('Gerando mensagem...')
         if valor == -3:
             self.label_load_title.setText('Carregando endereços registrados...')
@@ -830,7 +865,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         elif valor == -1:
             self.label_load_title.setText('Registrando endereços...')
         elif valor == 0:
+            self.progressBar.show()
             self.label_load_title.setText('Enviando e-mails...')
+
+    def to_progress_bar(self, value):
+        self.progressBar.setValue(value)
 
     def conclusion(self, dict_contatos: dict[str, list[str]]):
         self.exec_load(False, 0)
@@ -843,6 +882,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         messagebox.showinfo(title='Aviso', message= f'Email enviado com sucesso para: \n{text}')
 
     def acess_cadastro(self, nome_empresa: str):
+        self.lineEdit_endereco.setText('')
         self.label_endereco_title.setText('Empresa abaixo não cadastrada:')
         self.label_endereco_empresa.setText(nome_empresa)
         self.conexao_envio = self.pushButton_endereco.clicked.connect(
