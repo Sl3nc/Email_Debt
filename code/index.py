@@ -186,9 +186,9 @@ class DataBase:
     
 class Email:
     def __init__(self):
-        self.client = Smtp2goClient(api_key='api-57285302C4594921BD70EB19882D320B')
+        self.client = Smtp2goClient(api_key= getenv('API_SMTP'))
         self.base_titulo = ' - HONORÁRIOS CONTÁBEIS EM ABERTO'
-        self.sender = 'financeiro@deltaprice.com.br'
+        self.sender = getenv('SENDER_EMAIL')
 
     def criar(self, destinatarios: list[str], nome_empresa: str, conteudo: str):
         destinatarios.append(self.sender)
@@ -565,6 +565,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.arquivo = Arquivo()
         self.options = []
+        self.preview_btn = []
         self.option_checada = False
         self.widget_enderecos = {}
         self.empresa_preview = ''
@@ -690,7 +691,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.stackedWidget_empresas.setCurrentIndex(0)
         
     #TODO OPCOES
-    def exibir_opcoes(self, nomes):
+    def exibir_opcoes(self, nomes: list):
         self.options.clear()
         for nome in nomes:
             layout = QHBoxLayout()
@@ -706,7 +707,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             btn = QPushButton(frame)
             btn.setText('prévia')
-            btn.clicked.connect(lambda: self.carregar_mensagem(nome))
+            btn.setProperty('empresa', nome)
+            btn.clicked.connect(self.carregar_mensagem)
+            self.preview_btn.append(btn)
             layout.addWidget(btn)
 
             frame.setLayout(layout)
@@ -716,7 +719,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.pushButton_body_executar.setEnabled(True)
         self.exec_load_empresas(False)
 
-    def carregar_mensagem(self, empresa: str):
+    def carregar_mensagem(self):
+        for i in self.preview_btn:
+            if i.hasFocus():
+                empresa = i.property('empresa')
+                break
         if self.empresa_preview != '':
             remove(self.PATH_MESSAGE)
         self.empresa_preview = empresa
@@ -919,7 +926,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         for i in self.db.empresas():
             dict_informacoes[i] = self.db.emails_empresa(i)
 
-        for empresa, enderecos in dict_informacoes.items():
+        dict_informacoes_sorted = dict(sorted(dict_informacoes.items()))
+        for empresa, enderecos in dict_informacoes_sorted.items():
             root = QTreeWidgetItem(self.treeWidget_cadastros_infos)
             root.setText(0, empresa)
             # root.setFont(0, QFont())
