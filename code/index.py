@@ -186,9 +186,9 @@ class DataBase:
     
 class Email:
     def __init__(self):
-        self.client = Smtp2goClient(api_key='api-57285302C4594921BD70EB19882D320B')
+        self.client = Smtp2goClient(api_key= getenv('API_SMTP'))
         self.base_titulo = ' - HONORÁRIOS CONTÁBEIS EM ABERTO'
-        self.sender = 'financeiro@deltaprice.com.br'
+        self.sender = getenv('SENDER_EMAIL')
 
     def criar(self, destinatarios: list[str], nome_empresa: str, conteudo: str):
         destinatarios.append(self.sender)
