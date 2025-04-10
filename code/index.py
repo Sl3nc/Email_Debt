@@ -1,43 +1,34 @@
-from tkinter import messagebox
-from tkinter.filedialog import askopenfilename
-
-import pymysql.cursors
-from smtp2go.core import Smtp2goClient
-import pymysql
-
-import tabula as tb
-import pandas as pd
-from unidecode import unidecode
-import traceback
-from datetime import datetime
-from dateutil.relativedelta import relativedelta
-from os import path, renames, getenv, startfile, remove
-import sys
-from copy import deepcopy
-from time import sleep
-from pathlib import Path
-from dotenv import load_dotenv
-from smtp2go.core import Smtp2goClient
 from PySide6.QtWidgets import (
-    QMainWindow, QApplication, QRadioButton, QVBoxLayout, QWidget, QCheckBox, QTreeWidgetItem, QLayout,QPushButton, QHBoxLayout, QFrame, QSizePolicy
+    QMainWindow, QApplication, QCheckBox, QTreeWidgetItem, QPushButton, QHBoxLayout, QFrame, QSizePolicy
 )
-from PySide6.QtGui import QPixmap, QIcon, QMovie
+from selenium.common.exceptions import NoSuchElementException, SessionNotCreatedException
 from PySide6.QtCore import QThread, QObject, Signal, QSize
-from src.window_cobranca import Ui_MainWindow
-
-from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
+from os import renames, getenv, startfile, remove
+from dateutil.relativedelta import relativedelta
+from PySide6.QtGui import QPixmap, QIcon, QMovie
+from tkinter.filedialog import askopenfilename
+from src.window_cobranca import Ui_MainWindow
 from selenium.webdriver.common.by import By
-from selenium.common.exceptions import NoSuchElementException
+from smtp2go.core import Smtp2goClient
+from pymysql import err, connect
+from unidecode import unidecode
+from traceback import print_exc
+from shutil import rmtree, move
+from tkinter import messagebox
+from dotenv import load_dotenv
+from selenium import webdriver
+from datetime import datetime
+from zipfile import ZipFile
+from copy import deepcopy
+from pathlib import Path
+from requests import get
+from json import loads
+from time import sleep
+import pandas as pd
+import tabula as tb
 
 load_dotenv(Path(__file__).parent / 'src' / 'env' / '.env')
-
-def resource_path(relative_path):
-    base_path = getattr(
-        sys,
-        '_MEIPASS',
-        path.dirname(path.abspath(__file__)))
-    return path.join(base_path, relative_path)
 
 class DataBase:
     TABELA_EMPRESA = 'Empresa'
@@ -45,7 +36,7 @@ class DataBase:
     TABELA_EMAIL = 'Email'
 
     def __init__(self) -> None:
-        self.connection = pymysql.connect(
+        self.connection = connect(
                 host= getenv('IP_HOST'),
                 port= int(getenv('PORT_HOST')),
                 user= getenv('USER'),
@@ -200,9 +191,10 @@ class Email:
         }
 
     def enviar(self):
-        response = self.client.send(**self.payload)
-        if response.success == False:
-            raise Exception('Endereço de email inválido')
+        ...
+        # response = self.client.send(**self.payload)
+        # if response.success == False:
+            # raise Exception('Endereço de email inválido')
 
 #https://i.imgur.com/dTUNLTy.jpeg
 class Conteudo:
@@ -362,6 +354,52 @@ class Arquivo(QObject):
 
         return dict_conteudos
     
+class DriverMaintenance:
+    URL = 'https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json'
+    query_parameters = {"downloadformat": "zip"}
+    zip_path = Path(__file__).parent / 'src' / 'drivers' / "chomedriver.zip"
+    zip_extract_path = Path(__file__).parent / 'src' / 'drivers'
+    exe_dir_path = Path(__file__).parent / 'src' / 'drivers' / 'chromedriver-win64' / 'chromedriver.exe'
+    exe_path = Path(__file__).parent / 'src' / 'drivers' / 'chromedriver.exe'
+
+    def __init__(self):
+        pass
+
+    def upgrade(self):
+        try:
+            self._zip()
+            self._extract_move()
+            print("Arquivo movido com sucesso!")
+        except FileNotFoundError:
+            print("O arquivo de origem não foi encontrado.")
+        except Exception as e:
+            print(f"Ocorreu um erro: {e}")
+
+    def _zip(self):
+        object_json = self._download_json()
+        response = self._driver_response(object_json)
+        print(response.ok)
+        with open(self.zip_path, mode="wb") as file:
+            file.write(response.content)
+
+    def _download_json(self):
+        response = get(self.URL)
+        return loads(response.text)
+
+    def _driver_response(self, object_json):
+        latest_driver_url = object_json['channels']['Stable']\
+                                ['downloads']['chromedriver'][4]['url']
+        return get(latest_driver_url, self.query_parameters)
+
+    def _extract_move(self):
+        with ZipFile(self.zip_path, 'r') as zObject: 
+            zObject.extractall(path= self.zip_extract_path) 
+
+        move(self.exe_dir_path, self.exe_path)
+
+        rmtree(self.exe_dir_path.parent)
+        remove(self.zip_path)
+
 class Acessorias:
     ROOT_FOLDER = Path(__file__).parent
     CHROME_DRIVER_PATH = ROOT_FOLDER / 'src' / 'drivers' / 'chromedriver.exe'
@@ -382,26 +420,31 @@ class Acessorias:
         self.browser.get(self.URL_MAIN)
         pass
 
-    def make_chrome_browser(self,*options: str, hide: bool) -> webdriver.Chrome:
-        chrome_options = webdriver.ChromeOptions()
+    def make_chrome_browser(self,*options: str, hide = True) -> webdriver.Chrome:
+        try:
+            chrome_options = webdriver.ChromeOptions()
 
-        if options is not None:
-            for option in options:
-                chrome_options.add_argument(option)
+            if options is not None:
+                for option in options:
+                    chrome_options.add_argument(option)
 
-        chrome_service = Service(
-            executable_path=str(self.CHROME_DRIVER_PATH),
-        )
+            chrome_service = Service(
+                executable_path=str(self.CHROME_DRIVER_PATH),
+            )
 
-        browser = webdriver.Chrome(
-            service=chrome_service,
-            options=chrome_options
-        )
+            browser = webdriver.Chrome(
+                service=chrome_service,
+                options=chrome_options
+            )
 
-        if hide == True:
-            browser.set_window_position(-10000,0)
+            if hide == True:
+                browser.set_window_position(-10000,0)
 
-        return browser
+            return browser
+        except SessionNotCreatedException:
+            DriverMaintenance().upgrade()
+            return self.make_chrome_browser()
+
     
     def login(self, usuario: str, senha: str):
         self.browser.find_element(By.NAME, self.INPUT_EMAIL).send_keys(usuario)
@@ -571,19 +614,29 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.empresa_preview = ''
         self.PATH_MESSAGE = 'base_message.html'
 
-        self.setWindowIcon(QIcon(resource_path('src\\imgs\\mail-icon.ico')))
+        self.setWindowIcon(
+            QIcon(
+                (Path(__file__).parent / 'src' / 'imgs' / 'mail-icon.ico').__str__())
+        )
 
-        self.movie = QMovie(resource_path("src\\imgs\\load.gif"))
+        self.movie = QMovie(
+            (Path(__file__).parent / 'src' / 'imgs' / 'load.gif').__str__()
+        )
         self.label_load_gif.setMovie(self.movie)
         self.label_loading_empresas.setMovie(self.movie)
 
         icon = QIcon()
-        icon.addFile(resource_path("src\\imgs\\upload-icon.png"), QSize(), QIcon.Mode.Normal, QIcon.State.Off)
+        icon.addFile(
+            (Path(__file__).parent / 'src' / 'imgs' / 'upload-icon.png').__str__(),
+            QSize(),
+            QIcon.Mode.Normal,
+            QIcon.State.Off
+        )
         self.pushButton_body_relatorio_anexar.setIcon(icon)
 
         #Logo
-        self.label_header_logo.setPixmap(QPixmap
-        (resource_path('src\\imgs\\mail-hori.png')))
+        self.label_header_logo.setPixmap(
+            QPixmap(Path(__file__).parent / 'src' / 'imgs' / 'mail-hori.png'))
 
         self.pushButton_body_relatorio_anexar.clicked.connect(
             self.inserir_relatorio
@@ -644,7 +697,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def try_conection(self):
         try:
             self.db = DataBase()
-        except pymysql.err.OperationalError as e:
+        except err.OperationalError as e:
             messagebox.showerror('Aviso!', f'Falha na conexão com o banco de dados. Favor verificar se o aplicativo "DOCKER" está inicializado no servidor, caso constrário, entre em contato com o suporte disponível\n\n{e}')
             raise Exception('')
 
@@ -659,7 +712,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # except FileNotFoundError:
         #     messagebox.showwarning(title='Aviso', message= 'Operação cancelada')
         except Exception as e:
-            traceback.print_exc()
+            print_exc()
             messagebox.showwarning(title='Aviso', message= e)
 
     def pesquisar_empresas(self):
@@ -812,7 +865,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             messagebox.showwarning(title='Aviso', message= "Sem empresas selecionadas")
         except Exception as e:
             self.exec_load(False)
-            traceback.print_exc()
+            print_exc()
             messagebox.showwarning(title='Aviso', message= e)
 
     def filtro(self, dict_content : dict[str,dict]):
