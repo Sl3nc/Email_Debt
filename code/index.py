@@ -613,6 +613,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.widget_enderecos = {}
         self.empresa_preview = ''
         self.PATH_MESSAGE = 'base_message.html'
+        self.frames = []
 
         self.setWindowIcon(
             QIcon(
@@ -719,10 +720,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if self.label_empresas_aviso.isVisible() == True:
             self.label_empresas_aviso.hide()
         else:
-            for widget in self.options:
+            for widget in self.frames:
                 self.gridLayout_empresas.removeWidget(widget)
-                widget.hide()
                 widget.destroy()
+                widget.hide()
 
         self.pushButton_empresas_marcar.hide()
         self.pushButton_body_executar.setEnabled(False)
@@ -746,6 +747,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     #TODO OPCOES
     def exibir_opcoes(self, nomes: list):
         self.options.clear()
+        self.preview_btn.clear()
+        self.frames.clear()
         for nome in nomes:
             layout = QHBoxLayout()
             frame = QFrame()
@@ -765,6 +768,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.preview_btn.append(btn)
             layout.addWidget(btn)
 
+            self.frames.append(frame)
             frame.setLayout(layout)
             self.gridLayout_empresas.addWidget(frame)
 
