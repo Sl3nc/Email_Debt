@@ -191,10 +191,9 @@ class Email:
         }
 
     def enviar(self):
-        ...
-        # response = self.client.send(**self.payload)
-        # if response.success == False:
-            # raise Exception('Endereço de email inválido')
+        response = self.client.send(**self.payload)
+        if response.success == False:
+            raise Exception('Endereço de email inválido')
 
 #https://i.imgur.com/dTUNLTy.jpeg
 class Conteudo:
