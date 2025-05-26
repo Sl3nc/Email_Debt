@@ -31,11 +31,16 @@ import tabula as tb
 load_dotenv(Path(__file__).parent / 'src' / 'env' / '.env')
 
 class DataBase:
+    """
+    Classe responsável por gerenciar a conexão e as operações com o banco de dados MySQL.
+    Permite consultar, inserir, atualizar e remover empresas e endereços de e-mail.
+    """
     TABELA_EMPRESA = 'Empresa'
     TABELA_USUARIO = 'Usuario'
     TABELA_EMAIL = 'Email'
 
     def __init__(self) -> None:
+        # Inicializa a conexão com o banco de dados e define as queries SQL utilizadas.
         self.connection = connect(
                 host= getenv('IP_HOST'),
                 port= int(getenv('PORT_HOST')),
@@ -105,6 +110,9 @@ class DataBase:
         pass
 
     def emails_empresa(self, nome_empresa: str) -> list[str]:
+        """
+        Retorna a lista de e-mails cadastrados para uma empresa.
+        """
         with self.connection.cursor() as cursor:
             cursor.execute(
                 self.query_endereco, (nome_empresa,)
@@ -112,6 +120,9 @@ class DataBase:
             return [i for sub in cursor.fetchall() for i in sub]
     
     def remover_empresa(self, id_empresa: str):
+        """
+        Remove uma empresa do banco de dados pelo seu ID.
+        """
         with self.connection.cursor() as cursor:
             cursor.execute(
                 self.delete_empresa, (id_empresa, )
@@ -119,6 +130,9 @@ class DataBase:
             self.connection.commit()
 
     def remover_endereco(self, id_empresa: str, endereco: str):
+        """
+        Remove um endereço de e-mail específico de uma empresa.
+        """
         with self.connection.cursor() as cursor:
             cursor.execute(
                 self.delete_endereco, (id_empresa, endereco)
@@ -126,6 +140,9 @@ class DataBase:
             self.connection.commit()
 
     def remover_enderecos(self, id_empresa: str):
+        """
+        Remove todos os endereços de e-mail de uma empresa.
+        """
         with self.connection.cursor() as cursor:
             cursor.execute(
                 self.delete_enderecos, (id_empresa,)
@@ -133,6 +150,9 @@ class DataBase:
             self.connection.commit()
     
     def atualizar_endereco(self, end_novo: str, end_antigo: str, id_emp: str):
+        """
+        Atualiza um endereço de e-mail de uma empresa.
+        """
         with self.connection.cursor() as cursor:
             cursor.execute(
                 self.update_endereco, (end_novo, end_antigo, id_emp)
@@ -140,6 +160,9 @@ class DataBase:
             self.connection.commit()
 
     def registrar_empresa(self, nome_empresa: str) -> None:
+        """
+        Registra uma nova empresa no banco de dados.
+        """
         with self.connection.cursor() as cursor:
             cursor.execute(
                 self.insert_empresa, (nome_empresa,)
@@ -147,6 +170,9 @@ class DataBase:
             self.connection.commit()
     
     def empresas(self) -> list[str]:
+        """
+        Retorna a lista de nomes de todas as empresas cadastradas.
+        """
         with self.connection.cursor() as cursor:
             cursor.execute(
                 self.query_empresas
@@ -154,6 +180,9 @@ class DataBase:
             return [i for sub in cursor.fetchall() for i in sub]
 
     def registrar_enderecos(self, enderecos: list[str], id_empresa: str) -> None:
+        """
+        Registra múltiplos endereços de e-mail para uma empresa.
+        """
         with self.connection.cursor() as cursor:
             cursor.executemany(
                 self.insert_endereco, 
@@ -162,6 +191,9 @@ class DataBase:
             self.connection.commit()
 
     def identificador_empresa(self, nome_empresa: str) -> str:
+        """
+        Retorna o identificador (ID) de uma empresa pelo nome.
+        """
         with self.connection.cursor() as cursor:
             cursor.execute(
                 self.query_empresa, (nome_empresa,)
@@ -169,6 +201,9 @@ class DataBase:
             return cursor.fetchone()[0]
 
     def user_acessorias(self, nome_func: str):
+        """
+        Retorna as credenciais de acesso ao sistema Acessorias para um usuário.
+        """
         with self.connection.cursor() as cursor:
             cursor.execute(
                 self.query_acessorias, (nome_func,)
@@ -176,12 +211,18 @@ class DataBase:
             return cursor.fetchone()
     
 class Email:
+    """
+    Classe responsável por criar e enviar e-mails utilizando a API SMTP2GO.
+    """
     def __init__(self):
         self.client = Smtp2goClient(api_key= getenv('API_SMTP'))
         self.base_titulo = ' - HONORÁRIOS CONTÁBEIS EM ABERTO'
         self.sender = getenv('SENDER_EMAIL')
 
     def criar(self, destinatarios: list[str], nome_empresa: str, conteudo: str):
+        """
+        Monta o payload do e-mail a ser enviado.
+        """
         destinatarios.append(self.sender)
         self.payload = {
             'sender': self.sender,
@@ -191,12 +232,18 @@ class Email:
         }
 
     def enviar(self):
+        """
+        Envia o e-mail criado.
+        """
         response = self.client.send(**self.payload)
         if response.success == False:
             raise Exception('Endereço de email inválido')
 
 #https://i.imgur.com/dTUNLTy.jpeg
 class Conteudo:
+    """
+    Classe responsável por gerar o conteúdo HTML do e-mail, calculando multas, juros e valores totais.
+    """
     def __init__(self):
         self.VALOR_JUROS = 0.02
         self.text = ''
@@ -206,6 +253,9 @@ class Conteudo:
             self.body = file.read()
 
     def add_linha(self, row: pd.Series):
+        """
+        Adiciona uma linha de cobrança ao conteúdo do e-mail, calculando valores.
+        """
         valor_pag = float(row['Valor'].replace('.','').replace(',', '.'))
 
         dia_atual = datetime.now()
@@ -240,12 +290,18 @@ class Conteudo:
                 )
 
     def valor_geral(self):
+        """
+        Retorna o valor total de todas as cobranças formatado em HTML.
+        """
         valor = f'{sum(self.valores_totais):_.2f}'\
             .replace('.',',').replace('_','.')
         return f'<td><b><span style="color: red;">\
             R$ {valor} </span></b></td>'
     
     def cumprimento(self):
+        """
+        Retorna uma saudação de acordo com o horário atual.
+        """
         hora_atual = datetime.now().hour
         if hora_atual < 12:
             return 'bom dia!'
@@ -254,11 +310,17 @@ class Conteudo:
         return 'boa noite!'
 
     def to_string(self):
+        """
+        Retorna o corpo do e-mail com as informações preenchidas.
+        """
         return self.body.replace('$text', self.text)\
             .replace('$cumprimento', self.cumprimento())\
                 .replace('$valor_geral', self.valor_geral())
 
 class Arquivo(QObject):
+    """
+    Classe responsável por ler e processar arquivos PDF de relatórios, extraindo nomes de empresas e dados de cobrança.
+    """
     fim = Signal(int)
     nomes = Signal(list)
     conteudos = Signal(dict)
@@ -271,6 +333,9 @@ class Arquivo(QObject):
         self.col_titulo = "rcela Vencimento"
 
     def set_caminho(self, caminho):
+        """
+        Define e valida o caminho do arquivo a ser processado.
+        """
         if caminho == '':
             return None
         self.validar_tipo(caminho)
@@ -279,6 +344,9 @@ class Arquivo(QObject):
         return caminho[caminho.rfind('/') +1:]
 
     def validar_uni(self, caminho):
+        """
+        Remove acentuação do caminho do arquivo, se necessário.
+        """
         caminho_uni = unidecode(caminho)
         if caminho != caminho_uni:
             renames(caminho, caminho_uni)
@@ -287,11 +355,17 @@ class Arquivo(QObject):
         return caminho
 
     def validar_tipo(self, caminho: str):
+        """
+        Verifica se o arquivo é do tipo PDF.
+        """
         tipo = caminho[len(caminho) - 3 :]
         if tipo.lower() != 'pdf':
             raise Exception('Formato de arquivo inválido') 
 
     def nomes_empresas(self):
+        """
+        Lê o PDF e emite os nomes das empresas encontradas.
+        """
         try:
             arquivo = tb.read_pdf(
                 self.caminho, pages='all',relative_area=True, area=[20,16,90,40], encoding="ISO-8859-1"
@@ -307,6 +381,9 @@ class Arquivo(QObject):
             messagebox.showerror(title='Aviso', message= f"Erro em ler as empresas do arquivo, favor comunique o desenvolvedor \n\n- erro do tipo: {error}")
 
     def ler(self):
+        """
+        Lê o PDF e emite os conteúdos das cobranças.
+        """
         try:
             arquivo = tb.read_pdf(self.caminho, pages="all", relative_area=True, area=[20,10,96,100], encoding="ISO-8859-1")
             for tabelas in arquivo:
@@ -326,6 +403,9 @@ class Arquivo(QObject):
             messagebox.showerror(title='Aviso', message= f"Erro em ler as empresas do arquivo, favor comunique o desenvolvedor \n\n- erro do tipo: {error}")
 
     def filtro_conteudo(self, tabelas: pd.Series):
+        """
+        Filtra e organiza os dados extraídos do PDF.
+        """
         dict_conteudos = {}
         for index, row in tabelas.iterrows():
             if row.Valor != '' and row["Titulo/Competencia"] != '':
@@ -354,6 +434,9 @@ class Arquivo(QObject):
         return dict_conteudos
     
 class DriverMaintenance:
+    """
+    Classe responsável por baixar e atualizar o driver do Chrome utilizado pelo Selenium.
+    """
     URL = 'https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json'
     query_parameters = {"downloadformat": "zip"}
     zip_path = Path(__file__).parent / 'src' / 'drivers' / "chomedriver.zip"
@@ -365,6 +448,9 @@ class DriverMaintenance:
         pass
 
     def upgrade(self):
+        """
+        Realiza o download e atualização do driver do Chrome.
+        """
         try:
             self._zip()
             self._extract_move()
@@ -375,6 +461,9 @@ class DriverMaintenance:
             print(f"Ocorreu um erro: {e}")
 
     def _zip(self):
+        """
+        Baixa o arquivo zip do driver.
+        """
         object_json = self._download_json()
         response = self._driver_response(object_json)
         print(response.ok)
@@ -382,15 +471,24 @@ class DriverMaintenance:
             file.write(response.content)
 
     def _download_json(self):
+        """
+        Baixa o JSON com informações da última versão do driver.
+        """
         response = get(self.URL)
         return loads(response.text)
 
     def _driver_response(self, object_json):
+        """
+        Obtém a URL de download do driver mais recente.
+        """
         latest_driver_url = object_json['channels']['Stable']\
                                 ['downloads']['chromedriver'][4]['url']
         return get(latest_driver_url, self.query_parameters)
 
     def _extract_move(self):
+        """
+        Extrai e move o executável do driver para o local correto.
+        """
         with ZipFile(self.zip_path, 'r') as zObject: 
             zObject.extractall(path= self.zip_extract_path) 
 
@@ -400,6 +498,9 @@ class DriverMaintenance:
         remove(self.zip_path)
 
 class Acessorias:
+    """
+    Classe responsável por automatizar o acesso ao sistema Acessorias.com para buscar e-mails de contato das empresas.
+    """
     ROOT_FOLDER = Path(__file__).parent
     CHROME_DRIVER_PATH = ROOT_FOLDER / 'src' / 'drivers' / 'chromedriver.exe'
     URL_MAIN = 'https://app.acessorias.com/sysmain.php'
@@ -420,6 +521,9 @@ class Acessorias:
         pass
 
     def make_chrome_browser(self,*options: str, hide = True) -> webdriver.Chrome:
+        """
+        Cria uma instância do navegador Chrome para automação.
+        """
         try:
             chrome_options = webdriver.ChromeOptions()
 
@@ -446,6 +550,9 @@ class Acessorias:
 
     
     def login(self, usuario: str, senha: str):
+        """
+        Realiza login no sistema Acessorias.com.
+        """
         self.browser.find_element(By.NAME, self.INPUT_EMAIL).send_keys(usuario)
         self.browser.find_element(By.NAME, self.INPUT_PASSWORD).send_keys(senha)
 
@@ -453,6 +560,9 @@ class Acessorias:
         sleep(4)
 
     def pesquisar(self, num_empresa: str):
+        """
+        Pesquisa e retorna os contatos de uma empresa pelo número de domínio.
+        """
         self.browser.get(self.URL_DETALHES.format(num_empresa))
         sleep(2)
 
@@ -471,6 +581,9 @@ class Acessorias:
         return dict_contato
 
     def contato_exists(self, id):
+        """
+        Verifica se existe um contato com determinado ID.
+        """
         try:
             self.browser.find_element(By.ID, self.rowContato.format(id))
             return True
@@ -478,9 +591,15 @@ class Acessorias:
             return False
 
     def close(self):
+        """
+        Fecha o navegador automatizado.
+        """
         self.browser.close()
 
 class Cobrador(QObject):
+    """
+    Classe responsável por orquestrar o processo de cobrança: filtra empresas sem e-mail, busca contatos, registra e envia e-mails.
+    """
     novo_endereco = Signal(str)
     progress = Signal(int)
     fim = Signal()
@@ -498,6 +617,9 @@ class Cobrador(QObject):
 
     #TODO EXECUTAR
     def executar(self):
+        """
+        Executa o fluxo principal de cobrança.
+        """
         try:
             dict_faltantes = self.filtro_faltantes()
             if dict_faltantes != {}:
@@ -509,6 +631,9 @@ class Cobrador(QObject):
             messagebox.showerror(title='Aviso', message= f"Erro na etapa em questão, favor comunique o desenvolvedor \n\n- erro do tipo: {error}")
 
     def filtro_faltantes(self):
+        """
+        Filtra empresas que não possuem e-mail cadastrado.
+        """
         dict_faltantes = {}
         self.progress.emit(-3)
         for nome_empresa, conteudo in self.dict_content.items():
@@ -520,6 +645,9 @@ class Cobrador(QObject):
         return dict_faltantes
 
     def exec_registro(self, dict_faltantes):
+        """
+        Executa o registro de e-mails faltantes, buscando no Acessorias e solicitando manualmente se necessário.
+        """
         list_restantes = []
         self.progress.emit(-2)
         dict_contato, list_empty = self.registro_acessorias(dict_faltantes)
@@ -538,6 +666,9 @@ class Cobrador(QObject):
 
     #TODO REGISTRO
     def registro_acessorias(self, dict_faltante: dict[str,str]):
+        """
+        Busca e-mails no sistema Acessorias.com.
+        """
         dict_contato = {}
         acessorias = Acessorias()
         usuario = getenv('USER_ACESSORIAS')
@@ -550,6 +681,9 @@ class Cobrador(QObject):
         return dict_contato, list_empty
      
     def filter_empty(self, dict_contato):
+        """
+        Filtra contatos vazios.
+        """
         list_empty = []
         filtered_dict = deepcopy(dict_contato)
         for key, value in dict_contato.items():
@@ -559,12 +693,18 @@ class Cobrador(QObject):
         return filtered_dict, list_empty
 
     def registro_manual(self, list_restantes: list[str]):
+        """
+        Solicita manualmente o cadastro de e-mails para empresas sem contato.
+        """
         for nome_empresa in list_restantes:
             self.novo_endereco.emit(nome_empresa)
             self.enderecos_novos = {}
             self.registro()
 
     def registro(self):
+        """
+        Registra os e-mails coletados no banco de dados.
+        """
         list_restantes = []
         while self.enderecos_novos == {}:
                 sleep(2)
@@ -579,9 +719,15 @@ class Cobrador(QObject):
         return list_restantes
     
     def set_novo_endereco(self, valor: dict[str,str]):
+        """
+        Define novos endereços de e-mail informados manualmente.
+        """
         self.enderecos_novos = valor
 
     def enviar(self):
+        """
+        Envia os e-mails de cobrança para as empresas.
+        """
         email = Email()
         dict_contatos = {}
         count_content = len(self.dict_content)
@@ -600,7 +746,13 @@ class Cobrador(QObject):
         self.resume.emit(dict_contatos)
 
 class MainWindow(QMainWindow, Ui_MainWindow):
+    """
+    Classe principal da interface gráfica do sistema, responsável por interagir com o usuário e orquestrar as operações.
+    """
     def __init__(self, parent = None) -> None:
+        """
+        Inicializa a janela principal e conecta os sinais aos slots.
+        """
         super().__init__(parent)
         self.try_conection()
         self.setupUi(self)
@@ -695,6 +847,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # )
 
     def try_conection(self):
+        """
+        Tenta conectar ao banco de dados e exibe mensagem de erro caso falhe.
+        """
         try:
             self.db = DataBase()
         except err.OperationalError as e:
@@ -702,6 +857,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             raise Exception('')
 
     def inserir_relatorio(self):
+        """
+        Permite ao usuário selecionar e inserir um relatório PDF.
+        """
         try:
             caminho_reduzido = self.arquivo.set_caminho(askopenfilename())
             if caminho_reduzido == None:
@@ -716,6 +874,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             messagebox.showwarning(title='Aviso', message= e)
 
     def pesquisar_empresas(self):
+        """
+        Pesquisa e exibe as empresas presentes no relatório.
+        """
         if self.label_empresas_aviso.isVisible() == True:
             self.label_empresas_aviso.hide()
         else:
@@ -736,6 +897,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._thread.start()
 
     def exec_load_empresas(self, action: bool):
+        """
+        Controla a exibição do carregamento das empresas.
+        """
         if action == True:
             self.movie.start()
             self.stackedWidget_empresas.setCurrentIndex(1)
@@ -745,6 +909,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         
     #TODO OPCOES
     def exibir_opcoes(self, nomes: list):
+        """
+        Exibe as opções de empresas para seleção.
+        """
         self.options.clear()
         self.preview_btn.clear()
         self.frames.clear()
@@ -776,6 +943,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.exec_load_empresas(False)
 
     def carregar_mensagem(self):
+        """
+        Carrega a prévia da mensagem de cobrança para uma empresa.
+        """
         for i in self.preview_btn:
             if i.hasFocus():
                 empresa = i.property('empresa')
@@ -795,6 +965,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._thread.start()
 
     def exibir_mensagem(self, dict_conteudos):
+        """
+        Exibe a mensagem de cobrança gerada em HTML.
+        """
         html = dict_conteudos[self.empresa_preview]['mensagem']
         with open (self.PATH_MESSAGE, 'w', encoding='utf-8') as file:
            file.write(''.join(x for x in html))
@@ -806,6 +979,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.exec_load_empresas(False)
 
     def marcar_options(self):
+        """
+        Marca ou desmarca todas as opções de empresas.
+        """
         for i in self.options:
             i.setChecked(self.option_checada)
 
@@ -816,6 +992,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.option_checada = not self.option_checada
 
     def executar(self):
+        """
+        Inicia o processo de cobrança para as empresas selecionadas.
+        """
         if self.pushButton_body_relatorio_anexar.text() == '':
             raise Exception ('Insira algum relatório de vencidos')
         if self.empresa_preview != '':
@@ -832,6 +1011,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._thread.start()
 
     def reset_thread(self, option: int):
+        """
+        Reseta as conexões de thread conforme a etapa.
+        """
         if option == 1:
             self._thread.disconnect(self.inicio)
             self.arquivo.disconnect(self.conexao_nome)
@@ -841,6 +1023,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     
     #TODO COBRAR
     def cobrar(self, dict_content: dict[str,dict]):
+        """
+        Inicia o processo de cobrança, criando e enviando os e-mails.
+        """
         try:
             content_filtred = self.filtro(dict_content)
 
@@ -872,6 +1057,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             messagebox.showwarning(title='Aviso', message= e)
 
     def filtro(self, dict_content : dict[str,dict]):
+        """
+        Filtra o conteúdo das empresas selecionadas.
+        """
         filtred_content = deepcopy(dict_content)
         for i in self.options:
             if i.isChecked() == False:
@@ -880,6 +1068,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         return filtred_content
     
     def confirmar_registro(self, dict_contato: dict[str,dict[str,str]]):
+        """
+        Exibe a tela de confirmação dos endereços de e-mail encontrados.
+        """
         self.stackedWidget_body.setCurrentIndex(4)
         self.widget_enderecos.clear()
         for empresa, contato in dict_contato.items():
@@ -893,9 +1084,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.treeWidget_contatos.setItemWidget(item, 2, cb)
 
     def empty_enderecos(self, list_empty: list[str]):
+        """
+        Exibe aviso para empresas sem e-mail encontrado.
+        """
         messagebox.showwarning(title='Aviso', message=f'O endereço de e-mail das seguintes empresas não foram encontrados no acessórias: \n\n{'\n -'.join(list_empty)}\n\nFavor inseri-los manualmente')
 
     def enviar_contatos(self):
+        """
+        Envia os contatos confirmados para registro.
+        """
         contatos_filtrados = {}
         empresa_atual = ''
         for item, cb in self.widget_enderecos.items():
@@ -918,6 +1115,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.treeWidget_contatos.clear()
 
     def to_progress(self, valor):
+        """
+        Atualiza o texto e a barra de progresso conforme a etapa.
+        """
         if valor == -4:
             self.progressBar.hide()
             self.label_load_title.setText('Gerando mensagem...')
@@ -932,9 +1132,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.label_load_title.setText('Enviando e-mails...')
 
     def to_progress_bar(self, value):
+        """
+        Atualiza o valor da barra de progresso.
+        """
         self.progressBar.setValue(value)
 
     def conclusion(self, dict_contatos: dict[str, list[str]]):
+        """
+        Exibe mensagem de conclusão após o envio dos e-mails.
+        """
         self.exec_load(False, 0)
         text = ''
         for nome_empresa, enderecos in dict_contatos.items():
@@ -945,6 +1151,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         messagebox.showinfo(title='Aviso', message= f'Email enviado com sucesso para: \n{text}')
 
     def acess_cadastro(self, nome_empresa: str):
+        """
+        Solicita manualmente o cadastro de e-mail para empresa sem contato.
+        """
         self.lineEdit_endereco.setText('')
         self.label_endereco_title.setText('Empresa abaixo não cadastrada:')
         self.label_endereco_empresa.setText(nome_empresa)
@@ -954,6 +1163,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.exec_load(False, 2)
 
     def enviar_valor(self, nome_empresa: str):
+        """
+        Envia o valor informado manualmente para registro.
+        """
         try:
             resp = self.lineEdit_endereco.text()
 
@@ -967,6 +1179,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             messagebox.showwarning(title='Aviso', message= e)
 
     def exec_load(self, action: bool, to = 0):
+        """
+        Controla a exibição do carregamento geral.
+        """
         if action == True:
             self.movie.start()
             self.stackedWidget_body.setCurrentIndex(1)
@@ -975,6 +1190,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.stackedWidget_body.setCurrentIndex(to)
 
     def acess_infos(self):
+        """
+        Exibe as informações cadastradas no banco de dados.
+        """
         dict_informacoes = {}
         self.stackedWidget_body.setCurrentIndex(3)
         self.treeWidget_cadastros_infos.clear()
@@ -995,6 +1213,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 root.addChild(child)
 
     def adcionar_info(self):
+        """
+        Adiciona um novo e-mail para uma empresa.
+        """
         try:
             items = self.treeWidget_cadastros_infos.selectedItems()
             if len(items) == 0:
@@ -1014,6 +1235,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             messagebox.showwarning('Aviso', e)
 
     def operacao_adcionar(self):
+        """
+        Realiza a operação de adição de e-mail.
+        """
         atual = self.treeWidget_cadastros_infos.selectedItems()[0]
         enderecos = self.lineEdit_endereco.text().split(';')
 
@@ -1029,6 +1253,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.stackedWidget_body.setCurrentIndex(3)
 
     def editar_info(self):
+        """
+        Permite editar um e-mail cadastrado.
+        """
         try:
             items = self.treeWidget_cadastros_infos.selectedItems()
             if len(items) == 0:
@@ -1051,6 +1278,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             messagebox.showwarning('Aviso', e)
 
     def operacao_editar(self):
+        """
+        Realiza a operação de edição de e-mail.
+        """
         atual = self.treeWidget_cadastros_infos.selectedItems()[0]
         parente = atual.parent()
         novo_text = self.lineEdit_endereco.text()
@@ -1065,7 +1295,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.stackedWidget_body.setCurrentIndex(3)
 
     def remover_info(self):
-        # try:
+        """
+        Remove um e-mail ou empresa do banco de dados.
+        """
+        try:
             items = self.treeWidget_cadastros_infos.selectedItems()
             if len(items) == 0:
                 raise Exception("Escolha um e-mail ou empresa para remover")
@@ -1085,10 +1318,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             escolhido.setHidden(True)
             self.stackedWidget_body.setCurrentIndex(3)
-        # except Exception as e:
-        #     messagebox.showwarning('Aviso', e)
+        except Exception as e:
+            messagebox.showwarning('Aviso', e)
 
 if __name__ == '__main__':
+    # Inicializa a aplicação Qt.
     app = QApplication()
     window = MainWindow()
     window.show()
