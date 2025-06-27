@@ -3,7 +3,7 @@ from acessorias import Acessorias
 from tkinter import messagebox
 from database import DataBase
 from copy import deepcopy
-from email import Email
+from delta_email import Email
 from time import sleep
 from os import getenv
 
