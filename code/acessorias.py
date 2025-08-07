@@ -7,13 +7,16 @@ from selenium.webdriver.common.by import By
 from selenium import webdriver
 from pathlib import Path
 from time import sleep
+from os import chmod
 
 class Acessorias:
     """
     Classe responsável por automatizar o acesso ao sistema Acessorias.com para buscar e-mails de contato das empresas.
     """
     ROOT_FOLDER = Path(__file__).parent
+    # CHROME_DRIVER_PATH = ROOT_FOLDER / 'src' / 'drivers' / 'chromedriver'
     CHROME_DRIVER_PATH = ROOT_FOLDER / 'src' / 'drivers' / 'chromedriver.exe'
+    
     URL_MAIN = 'https://app.acessorias.com/sysmain.php'
     URL_DETALHES = 'https://app.acessorias.com/sysmain.php?m=105&act=e&i={0}&uP=14&o=EmpNome,EmpID|Asc'
 
@@ -26,6 +29,10 @@ class Acessorias:
         self.rowContato = 'divCtt_0_{0}'
         self.campo_nome = 'CttNome_0_{0}'
         self.campo_email = 'CttEMail_0_{0}'
+        chmod(
+            self.CHROME_DRIVER_PATH,
+            755
+        )
 
         self.browser = self.make_chrome_browser(hide=True)
         self.browser.get(self.URL_MAIN)

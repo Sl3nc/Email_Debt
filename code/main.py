@@ -1,11 +1,10 @@
 from PySide6.QtWidgets import (
-    QMainWindow, QApplication, QCheckBox, QTreeWidgetItem, QPushButton, QHBoxLayout, QFrame, QSizePolicy
+    QMainWindow, QApplication, QCheckBox, QTreeWidgetItem, QPushButton, QHBoxLayout, QFrame, QSizePolicy, QFileDialog
 )
 from PySide6.QtGui import QPixmap, QIcon, QMovie
-from tkinter.filedialog import askopenfilename
 from src.window_cobranca import Ui_MainWindow
 from PySide6.QtCore import QThread, QSize
-from os import startfile, remove
+from os import remove
 from traceback import print_exc
 from tkinter import messagebox
 from dotenv import load_dotenv
@@ -15,6 +14,7 @@ from copy import deepcopy
 from pathlib import Path
 from file import Arquivo
 from pymysql import err
+from startfile import startfile
 
 load_dotenv(Path(__file__).parent / 'src' / 'env' / '.env')
 
@@ -120,9 +120,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         Permite ao usuário selecionar e inserir um relatório PDF.
         """
         try:
-            caminho_reduzido = self.arquivo.set_caminho(askopenfilename())
+            caminho_reduzido = self.arquivo.set_caminho( 
+                QFileDialog.getOpenFileName(
+                    caption= "Favor, inserir o relatório",
+                    filter= "Arquivo PDF (*pdf)",
+                )[0]
+            )
             if caminho_reduzido == None:
-                return None
+                return
             self.pushButton_body_relatorio_anexar.setText(caminho_reduzido)
             self.pushButton_body_relatorio_anexar.setIcon(QIcon())
             self.pesquisar_empresas()
@@ -346,7 +351,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """
         Exibe aviso para empresas sem e-mail encontrado.
         """
-        messagebox.showwarning(title='Aviso', message=f'O endereço de e-mail das seguintes empresas não foram encontrados no acessórias: \n\n{'\n -'.join(list_empty)}\n\nFavor inseri-los manualmente')
+        b = '\n -'.join(list_empty)
+        a = f'O endereço de e-mail das seguintes empresas não foram encontrados no acessórias:\n\n{b}\n\nFavor inseri-los manualmente'
+        messagebox.showwarning(
+            title='Aviso', 
+            message=a)
 
     def enviar_contatos(self):
         """

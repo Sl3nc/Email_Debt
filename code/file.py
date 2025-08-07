@@ -27,7 +27,7 @@ class Arquivo(QObject):
         """
         Define e valida o caminho do arquivo a ser processado.
         """
-        if caminho == '':
+        if caminho == () or '':
             return None
         self.validar_tipo(caminho)
         caminho = self.validar_uni(caminho)
