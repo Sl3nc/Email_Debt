@@ -26,7 +26,6 @@ class Email:
         """
         Envia o e-mail criado.
         """
-        ...
-        # response = self.client.send(**self.payload)
-        # if response.success == False:
-        #     raise Exception('Endereço de email inválido')
+        response = self.client.send(**self.payload)
+        if response.success == False:
+            raise Exception('Endereço de email inválido')

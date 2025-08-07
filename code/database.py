@@ -15,7 +15,7 @@ class DataBase:
         self.connection = connect(
                 host= getenv('IP_HOST'),
                 port= int(getenv('PORT_HOST')),
-                user= getenv('USER'),
+                user= getenv('USER_DB'),
                 password= getenv('PASSWORD'),
                 database= getenv('DB'),
             )

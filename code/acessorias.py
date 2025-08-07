@@ -14,8 +14,8 @@ class Acessorias:
     Classe responsável por automatizar o acesso ao sistema Acessorias.com para buscar e-mails de contato das empresas.
     """
     ROOT_FOLDER = Path(__file__).parent
-    # CHROME_DRIVER_PATH = ROOT_FOLDER / 'src' / 'drivers' / 'chromedriver'
-    CHROME_DRIVER_PATH = ROOT_FOLDER / 'src' / 'drivers' / 'chromedriver.exe'
+    CHROME_DRIVER_PATH = ROOT_FOLDER / 'src' / 'drivers' / 'chromedriver'
+    # CHROME_DRIVER_PATH = ROOT_FOLDER / 'src' / 'drivers' / 'chromedriver.exe'
     
     URL_MAIN = 'https://app.acessorias.com/sysmain.php'
     URL_DETALHES = 'https://app.acessorias.com/sysmain.php?m=105&act=e&i={0}&uP=14&o=EmpNome,EmpID|Asc'
@@ -73,8 +73,9 @@ class Acessorias:
         """
         self.browser.find_element(By.NAME, self.INPUT_EMAIL).send_keys(usuario)
         self.browser.find_element(By.NAME, self.INPUT_PASSWORD).send_keys(senha)
+        input()
 
-        self.browser.find_element(By.CSS_SELECTOR, self.BTN_ENTRAR).click()
+        # self.browser.find_element(By.CSS_SELECTOR, self.BTN_ENTRAR).click()
         sleep(4)
 
     def pesquisar(self, num_empresa: str):
