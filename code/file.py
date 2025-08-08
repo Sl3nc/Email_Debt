@@ -27,7 +27,7 @@ class Arquivo(QObject):
         """
         Define e valida o caminho do arquivo a ser processado.
         """
-        if caminho == '':
+        if caminho == () or '':
             return None
         self.validar_tipo(caminho)
         caminho = self.validar_uni(caminho)
@@ -59,7 +59,7 @@ class Arquivo(QObject):
         """
         try:
             arquivo = tb.read_pdf(
-                self.caminho, pages='all',relative_area=True, area=[20,16,90,40], encoding="ISO-8859-1"
+                self.caminho, pages='all',relative_area=True, area=[20,16,90,40], encoding="utf-8"
             )
             tabelas = pd.concat(arquivo, ignore_index=True)
             tabelas.fillna('', inplace=True)
@@ -76,7 +76,7 @@ class Arquivo(QObject):
         Lê o PDF e emite os conteúdos das cobranças.
         """
         try:
-            arquivo = tb.read_pdf(self.caminho, pages="all", relative_area=True, area=[20,10,96,100], encoding="ISO-8859-1")
+            arquivo = tb.read_pdf(self.caminho, pages="all", relative_area=True, area=[20,10,96,100], encoding="utf-8")
             for tabelas in arquivo:
                 tabelas.columns = ["Num. Dominio", "Titulo/Competencia", "", "","", "","","","","","","","","Valor"]
             tabelas = pd.concat(arquivo, ignore_index=True)
