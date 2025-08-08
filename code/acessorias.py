@@ -71,10 +71,8 @@ class Acessorias:
         """
         self.browser.find_element(By.NAME, self.INPUT_EMAIL).send_keys(usuario)
         self.browser.find_element(By.NAME, self.INPUT_PASSWORD).send_keys(senha)
-        input()
-
-        # self.browser.find_element(By.CSS_SELECTOR, self.BTN_ENTRAR).click()
-        sleep(4)
+        self.browser.find_element(By.CSS_SELECTOR, self.BTN_ENTRAR).click()
+        self.browser.set_window_position(0,0)
 
     def pesquisar(self, num_empresa: str):
         """

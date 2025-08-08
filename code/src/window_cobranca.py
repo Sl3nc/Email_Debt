@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'window_cobranca.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.8.1
+## Created by: Qt User Interface Compiler version 6.9.0
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -15,11 +15,11 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QApplication, QFrame, QGridLayout, QHeaderView,
-    QLabel, QLineEdit, QMainWindow, QMenuBar,
-    QProgressBar, QPushButton, QScrollArea, QSizePolicy,
-    QSpacerItem, QStackedWidget, QStatusBar, QTreeWidget,
-    QTreeWidgetItem, QVBoxLayout, QWidget)
+from PySide6.QtWidgets import (QApplication, QFrame, QGridLayout, QHBoxLayout,
+    QHeaderView, QLabel, QLineEdit, QMainWindow,
+    QMenuBar, QProgressBar, QPushButton, QScrollArea,
+    QSizePolicy, QSpacerItem, QStackedWidget, QStatusBar,
+    QTreeWidget, QTreeWidgetItem, QVBoxLayout, QWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -187,7 +187,7 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.gridLayout_Scroll = QWidget()
         self.gridLayout_Scroll.setObjectName(u"gridLayout_Scroll")
-        self.gridLayout_Scroll.setGeometry(QRect(0, 0, 383, 105))
+        self.gridLayout_Scroll.setGeometry(QRect(0, 0, 383, 99))
         self.gridLayout_18 = QGridLayout(self.gridLayout_Scroll)
         self.gridLayout_18.setObjectName(u"gridLayout_18")
         self.gridLayout_empresas = QGridLayout()
@@ -242,23 +242,6 @@ class Ui_MainWindow(object):
         self.page_2.setObjectName(u"page_2")
         self.gridLayout_8 = QGridLayout(self.page_2)
         self.gridLayout_8.setObjectName(u"gridLayout_8")
-        self.horizontalSpacer = QSpacerItem(246, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
-
-        self.gridLayout_8.addItem(self.horizontalSpacer, 0, 0, 1, 1)
-
-        self.horizontalSpacer_2 = QSpacerItem(246, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
-
-        self.gridLayout_8.addItem(self.horizontalSpacer_2, 0, 2, 1, 1)
-
-        self.label_load_gif = QLabel(self.page_2)
-        self.label_load_gif.setObjectName(u"label_load_gif")
-        self.label_load_gif.setMaximumSize(QSize(192, 192))
-        self.label_load_gif.setPixmap(QPixmap(u"../imgs/load.gif"))
-        self.label_load_gif.setScaledContents(True)
-        self.label_load_gif.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-        self.gridLayout_8.addWidget(self.label_load_gif, 0, 1, 1, 1)
-
         self.gridLayout_9 = QGridLayout()
         self.gridLayout_9.setObjectName(u"gridLayout_9")
         self.label_load_title = QLabel(self.page_2)
@@ -282,7 +265,29 @@ class Ui_MainWindow(object):
         self.gridLayout_9.addWidget(self.progressBar, 1, 0, 1, 1)
 
 
-        self.gridLayout_8.addLayout(self.gridLayout_9, 1, 0, 1, 3)
+        self.gridLayout_8.addLayout(self.gridLayout_9, 2, 0, 1, 3)
+
+        self.gridLayout_14 = QGridLayout()
+        self.gridLayout_14.setObjectName(u"gridLayout_14")
+        self.label_load_gif = QLabel(self.page_2)
+        self.label_load_gif.setObjectName(u"label_load_gif")
+        self.label_load_gif.setMaximumSize(QSize(192, 192))
+        self.label_load_gif.setPixmap(QPixmap(u"../imgs/load.gif"))
+        self.label_load_gif.setScaledContents(True)
+        self.label_load_gif.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        self.gridLayout_14.addWidget(self.label_load_gif, 0, 1, 1, 1)
+
+        self.horizontalSpacer_2 = QSpacerItem(246, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.gridLayout_14.addItem(self.horizontalSpacer_2, 0, 2, 1, 1)
+
+        self.horizontalSpacer = QSpacerItem(246, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.gridLayout_14.addItem(self.horizontalSpacer, 0, 0, 1, 1)
+
+
+        self.gridLayout_8.addLayout(self.gridLayout_14, 0, 0, 1, 3)
 
         self.stackedWidget_body.addWidget(self.page_2)
         self.page_5 = QWidget()
@@ -511,13 +516,63 @@ class Ui_MainWindow(object):
         self.gridLayout_15.addWidget(self.label_contatos_title, 0, 0, 1, 3)
 
         self.stackedWidget_body.addWidget(self.page_7)
+        self.page_8 = QWidget()
+        self.page_8.setObjectName(u"page_8")
+        self.verticalLayout_2 = QVBoxLayout(self.page_8)
+        self.verticalLayout_2.setObjectName(u"verticalLayout_2")
+        self.label_captcha = QLabel(self.page_8)
+        self.label_captcha.setObjectName(u"label_captcha")
+        sizePolicy7 = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Maximum)
+        sizePolicy7.setHorizontalStretch(0)
+        sizePolicy7.setVerticalStretch(0)
+        sizePolicy7.setHeightForWidth(self.label_captcha.sizePolicy().hasHeightForWidth())
+        self.label_captcha.setSizePolicy(sizePolicy7)
+
+        self.verticalLayout_2.addWidget(self.label_captcha)
+
+        self.verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Maximum)
+
+        self.verticalLayout_2.addItem(self.verticalSpacer)
+
+        self.label = QLabel(self.page_8)
+        self.label.setObjectName(u"label")
+        sizePolicy2.setHeightForWidth(self.label.sizePolicy().hasHeightForWidth())
+        self.label.setSizePolicy(sizePolicy2)
+        font15 = QFont()
+        font15.setBold(True)
+        self.label.setFont(font15)
+        self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        self.verticalLayout_2.addWidget(self.label)
+
+        self.frame_3 = QFrame(self.page_8)
+        self.frame_3.setObjectName(u"frame_3")
+        sizePolicy7.setHeightForWidth(self.frame_3.sizePolicy().hasHeightForWidth())
+        self.frame_3.setSizePolicy(sizePolicy7)
+        self.frame_3.setFrameShape(QFrame.Shape.StyledPanel)
+        self.frame_3.setFrameShadow(QFrame.Shadow.Raised)
+        self.horizontalLayout = QHBoxLayout(self.frame_3)
+        self.horizontalLayout.setObjectName(u"horizontalLayout")
+        self.pushButton_captcha = QPushButton(self.frame_3)
+        self.pushButton_captcha.setObjectName(u"pushButton_captcha")
+        sizePolicy4.setHeightForWidth(self.pushButton_captcha.sizePolicy().hasHeightForWidth())
+        self.pushButton_captcha.setSizePolicy(sizePolicy4)
+        self.pushButton_captcha.setMinimumSize(QSize(160, 50))
+        self.pushButton_captcha.setFont(font15)
+
+        self.horizontalLayout.addWidget(self.pushButton_captcha)
+
+
+        self.verticalLayout_2.addWidget(self.frame_3)
+
+        self.stackedWidget_body.addWidget(self.page_8)
 
         self.gridLayout_2.addWidget(self.stackedWidget_body, 2, 0, 1, 1)
 
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)
         self.menubar.setObjectName(u"menubar")
-        self.menubar.setGeometry(QRect(0, 0, 847, 22))
+        self.menubar.setGeometry(QRect(0, 0, 847, 23))
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QStatusBar(MainWindow)
         self.statusbar.setObjectName(u"statusbar")
@@ -545,8 +600,8 @@ class Ui_MainWindow(object):
         self.label_empresas_aviso.setText(QCoreApplication.translate("MainWindow", u"Insira o relat\u00f3rio de vencidos", None))
         self.label_loading_empresas.setText("")
         self.label_bodyrelatorio_title.setText(QCoreApplication.translate("MainWindow", u"Relat\u00f3rio de vencidos", None))
-        self.label_load_gif.setText("")
         self.label_load_title.setText(QCoreApplication.translate("MainWindow", u"Carregando...", None))
+        self.label_load_gif.setText("")
         self.label_endereco_title.setText(QCoreApplication.translate("MainWindow", u"Empresa abaixo n\u00e3o cadastrada", None))
         self.pushButton_endereco.setText(QCoreApplication.translate("MainWindow", u"Enviar", None))
         self.label_endereco_input_subtitle.setText(QCoreApplication.translate("MainWindow", u"No caso de mais de um endere\u00e7o, os divida com ponto-e-v\u00edrgula \";\"", None))
@@ -566,5 +621,8 @@ class Ui_MainWindow(object):
         ___qtreewidgetitem1.setText(0, QCoreApplication.translate("MainWindow", u"Empresa", None));
         self.label_contatos_subtitle.setText(QCoreApplication.translate("MainWindow", u"Desmarque os ender\u00e7os que n\u00e3o deseja registrar", None))
         self.label_contatos_title.setText(QCoreApplication.translate("MainWindow", u"Registrar endere\u00e7os do Acessorias", None))
+        self.label_captcha.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p align=\"center\"><span style=\" font-size:16pt;\">Para prosseguir.. favor preencher o </span><span style=\" font-size:18pt; font-style:italic;\">captcha</span><span style=\" font-size:16pt;\"> exibido no navegador </span></p><p align=\"center\"><span style=\" font-size:16pt; text-decoration: underline;\">Quando acabar,</span><span style=\" font-size:16pt;\"> preesione o bot\u00e3o &quot;</span><span style=\" font-size:16pt; font-weight:700;\">Confirmar</span><span style=\" font-size:16pt;\">&quot;</span></p></body></html>", None))
+        self.label.setText(QCoreApplication.translate("MainWindow", u"N\u00e3o feche o navegador ou fa\u00e7a outras pesquisas nele durante o processo", None))
+        self.pushButton_captcha.setText(QCoreApplication.translate("MainWindow", u"Confirmar", None))
     # retranslateUi
 

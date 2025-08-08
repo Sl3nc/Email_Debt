@@ -82,9 +82,13 @@ class Cobrador(QObject):
         """
         dict_contato = {}
         acessorias = Acessorias()
+
         usuario = getenv('USER_ACESSORIAS')
         senha = getenv('PASSWORD_ACESSORIAS') 
         acessorias.login(usuario, senha)
+
+        # esperar o captcha do usuário
+
         for nome_empresa, num_dominio in dict_faltante.items():
             dict_contato[nome_empresa] = acessorias.pesquisar(num_dominio)
         acessorias.close()
